@@ -1,0 +1,4387 @@
+<!DOCTYPE html>
+<!--
+  ====================================================================
+  Ya's GIF → SL Sprite Sheet Maker
+  Copyright © 2026 Ya. All rights reserved.
+
+  THIS APPLIES ONLY TO THE APPLICATION CODE WRITTEN BY YA
+  (i.e. the UI, sprite-sheet generation logic, color picker,
+  ZIP/PNG encoders, quantizer, and styles in this file).
+
+  The application code is provided for PERSONAL USE ONLY.
+  Redistribution, republishing on another domain, modifying,
+  or selling this code (in whole or in part) requires written
+  permission from the author. Do not remove this notice.
+
+  --------------------------------------------------------------------
+  THIRD-PARTY LIBRARY (NOT WRITTEN BY YA — separate authorship & license)
+  --------------------------------------------------------------------
+
+  This file bundles "gifuct-js" — an open-source GIF parser
+  authored by Matt Way, used here unmodified under the MIT License.
+  Source: https://github.com/matt-way/gifuct-js
+
+  Ya claims NO authorship over gifuct-js. Its full license text
+  is reproduced below as required by the MIT License terms:
+
+      The MIT License (MIT)
+
+      Copyright (c) 2015 Matt Way
+
+      Permission is hereby granted, free of charge, to any person
+      obtaining a copy of this software and associated documentation
+      files (the "Software"), to deal in the Software without
+      restriction, including without limitation the rights to use,
+      copy, modify, merge, publish, distribute, sublicense, and/or
+      sell copies of the Software, and to permit persons to whom
+      the Software is furnished to do so, subject to the following
+      conditions:
+
+      The above copyright notice and this permission notice shall
+      be included in all copies or substantial portions of the
+      Software.
+
+      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+      KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+      WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+      PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+      OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
+      OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+      OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+  ====================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Ya's GIF→SL Sprite Sheet Maker 💕 (Milo Edition)</title>
+<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<style>
+/* =====================================================================
+   SL Tools :: Synthwave shared theme + navigation
+   Loaded by all tools to give a consistent neon look + tool switcher.
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=VT323&display=swap');
+
+:root {
+  --slt-pink:    #ff2e9a;
+  --slt-magenta: #ff00d6;
+  --slt-cyan:    #00f0ff;
+  --slt-blue:    #5ddcff;
+  --slt-purple:  #6b1fb1;
+  --slt-gold:    #ffd66b;
+  --slt-bg-1:    #0a0024;
+  --slt-bg-2:    #1a0640;
+  --slt-bg-3:    #2d0a5e;
+}
+
+/* ---- Body + background layers (pure CSS — no JS needed) ----
+   The themed body paints the radial bg + overlays a striped
+   "sun" via ::before and an animated grid floor via ::after.
+   Scanlines live on a tiny <div class="slt-scanlines"> element
+   that each themed tool pre-renders so it never has to flash
+   in via JavaScript. */
+body.slt-themed {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 50% 0%,
+    var(--slt-bg-3) 0%, var(--slt-bg-2) 35%, var(--slt-bg-1) 80%) !important;
+  background-attachment: fixed !important;
+  color: var(--slt-cyan);
+  font-family: 'Share Tech Mono', 'VT323', monospace;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+}
+
+body.slt-themed::before {
+  content: '';
+  position: fixed;
+  left: 50%; top: 14vh;
+  transform: translateX(-50%);
+  width: 380px; height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%,
+    #ffe66b 0%, #ff8e2a 35%, #ff2e9a 60%, #6b1fb1 95%);
+  box-shadow: 0 0 80px rgba(255,142,42,0.45), 0 0 200px rgba(255,46,154,0.35);
+  z-index: 0;
+  opacity: 0.85;
+  -webkit-mask-image: repeating-linear-gradient(180deg,
+    black 0, black 22px, transparent 22px, transparent 28px,
+    black 28px, black 42px, transparent 42px, transparent 50px,
+    black 50px, black 70px, transparent 70px, transparent 80px,
+    black 80px);
+          mask-image: repeating-linear-gradient(180deg,
+    black 0, black 22px, transparent 22px, transparent 28px,
+    black 28px, black 42px, transparent 42px, transparent 50px,
+    black 50px, black 70px, transparent 70px, transparent 80px,
+    black 80px);
+  pointer-events: none;
+}
+
+body.slt-themed::after {
+  content: '';
+  position: fixed;
+  bottom: -10vh; left: 50%;
+  transform: translateX(-50%) perspective(420px) rotateX(58deg);
+  transform-origin: top center;
+  width: 220vw; height: 100vh;
+  background:
+    repeating-linear-gradient(0deg,
+      transparent 0, transparent 38px,
+      rgba(255, 0, 214, 0.7) 38px, rgba(255, 0, 214, 0.7) 40px),
+    repeating-linear-gradient(90deg,
+      transparent 0, transparent 38px,
+      rgba(0, 240, 255, 0.55) 38px, rgba(0, 240, 255, 0.55) 40px);
+  pointer-events: none;
+  animation: slt-grid-scroll 1.6s linear infinite;
+  opacity: 0.65;
+  z-index: 0;
+}
+@keyframes slt-grid-scroll {
+  0%   { background-position: 0 0,    0 0; }
+  100% { background-position: 0 40px, 0 0; }
+}
+
+.slt-scanlines {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0)    0px, rgba(0,0,0,0)    2px,
+    rgba(0,0,0,0.18) 3px, rgba(0,0,0,0)    4px);
+  z-index: 9999;
+  mix-blend-mode: multiply;
+}
+
+/* Lift every element above the bg pseudo-elements. */
+body.slt-themed > *:not(.slt-scanlines):not(.slt-nav) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Floating navigation pill (top-right) ---------------------------
+   The nav is `position: fixed` so it floats above the page and stays
+   in view while you scroll. It has two states:
+     data-open="false" → only the small handle pill is visible
+     data-open="true"  → the panel hangs below, listing all tools
+   State persists in localStorage between page loads.            */
+
+.slt-nav {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  font-family: 'Orbitron', 'Audiowide', sans-serif;
+}
+
+/* The always-visible handle pill — kept small so it doesn't crowd
+   page titles. */
+.slt-nav-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  margin: 0;
+  padding: 5px 10px 5px 5px;
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.92) 0%, rgba(45,10,94,0.88) 100%);
+  border: 1.5px solid var(--slt-cyan);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--slt-cyan);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(0,240,255,0.5);
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(255,0,214,0.3) inset,
+    0 0 14px rgba(0,240,255,0.35),
+    0 4px 16px rgba(0,0,0,0.5);
+  transition: box-shadow .18s, transform .12s, border-color .18s, color .18s;
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+}
+.slt-nav-handle:hover {
+  border-color: var(--slt-magenta);
+  color: var(--slt-magenta);
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 22px var(--slt-magenta),
+    0 4px 18px rgba(0,0,0,0.5);
+  transform: translateY(1px);
+}
+.slt-nav[data-open="true"] .slt-nav-handle {
+  border-color: var(--slt-gold);
+  color: var(--slt-gold);
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 18px var(--slt-magenta),
+    0 4px 18px rgba(0,0,0,0.5);
+}
+
+/* Current-tool badge inside the handle */
+.slt-nav-current {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border: 1.5px solid var(--slt-gold);
+  border-radius: 999px;
+  background: rgba(255,214,107,0.18);
+  color: var(--slt-gold);
+  font-family: 'Audiowide', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0;
+  text-shadow: 0 0 6px var(--slt-gold);
+  box-shadow: 0 0 8px rgba(255,214,107,0.5);
+}
+
+/* Brand text (gradient) — used inside the panel header */
+.slt-nav-handle-brand {
+  display: block;
+  background: linear-gradient(180deg,
+    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
+    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px rgba(255,0,214,0.45));
+  font-family: 'Audiowide', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+/* Panel header (brand + tagline) */
+.slt-nav-panel-header {
+  padding: 8px 6px 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px dashed rgba(0,240,255,0.25);
+  text-align: center;
+}
+.slt-nav-panel-tagline {
+  display: block;
+  font-family: 'VT323', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--slt-blue);
+  text-shadow: 0 0 6px var(--slt-cyan);
+  margin-top: 4px;
+}
+
+.slt-nav-chevron {
+  display: inline-block;
+  font-size: 10px;
+  transition: transform .25s ease;
+}
+.slt-nav[data-open="true"] .slt-nav-chevron { transform: rotate(180deg); }
+
+/* The collapsible panel */
+.slt-nav-panel {
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.92) 0%, rgba(45,10,94,0.88) 100%);
+  border: 1.5px solid var(--slt-cyan);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(255,0,214,0.3) inset,
+    0 0 22px rgba(0,240,255,0.35),
+    0 8px 32px rgba(0,0,0,0.6);
+  padding: 8px;
+  -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+  position: relative;
+
+  /* Animated entry */
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .22s cubic-bezier(.2,.9,.3,1.2);
+}
+.slt-nav-panel::before {
+  content: '';
+  position: absolute; inset: 4px;
+  border: 1px dashed rgba(0,240,255,0.22);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.slt-nav[data-open="true"] .slt-nav-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.slt-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0; padding: 0;
+}
+
+.slt-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--slt-cyan);
+  background: rgba(10,0,36,0.4);
+  border: 1.5px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .15s;
+  text-shadow: 0 0 6px rgba(0,240,255,0.4);
+}
+.slt-nav-btn:hover {
+  border-color: var(--slt-magenta);
+  color: var(--slt-magenta);
+  background: rgba(255,0,214,0.08);
+  text-shadow: 0 0 8px var(--slt-magenta);
+  box-shadow: 0 0 12px rgba(255,0,214,0.4);
+  transform: translateX(-2px);
+}
+.slt-nav-btn.current {
+  border-color: var(--slt-gold);
+  color: var(--slt-gold);
+  background: linear-gradient(180deg,
+    rgba(255,46,154,0.35) 0%, rgba(107,31,177,0.45) 100%);
+  text-shadow: 0 0 10px var(--slt-gold);
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 14px rgba(255,0,214,0.5);
+  cursor: default;
+}
+.slt-nav-btn.current:hover { transform: none; }
+
+.slt-nav-badge {
+  width: 26px; height: 26px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  font-size: 11px;
+  font-family: 'Audiowide', sans-serif;
+  background: rgba(255,0,214,0.08);
+  flex-shrink: 0;
+}
+.slt-nav-btn.current .slt-nav-badge {
+  background: rgba(255,214,107,0.2);
+  box-shadow: 0 0 10px var(--slt-gold), inset 0 0 8px rgba(255,214,107,0.4);
+}
+
+.slt-nav-name { line-height: 1.1; flex: 1; }
+.slt-nav-name small {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: normal;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  margin-top: 3px;
+  opacity: 0.75;
+}
+
+@media (max-width: 540px) {
+  .slt-nav { top: 8px; right: 8px; }
+  .slt-nav-panel { width: 240px; }
+}
+
+/* ---- Smooth cross-page transitions --------------------------------
+   Both fade-in and fade-out are CSS animations. Using an animation
+   for fade-out is important: a CSS transition cannot override an
+   already-running animation on the same property, so on themed pages
+   (which run slt-page-in on load) the leaving fade has to win via
+   another animation declaration that supersedes it. */
+body.slt-themed { animation: slt-page-in .28s ease-out both; }
+@keyframes slt-page-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
+@keyframes slt-page-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+
+/* =====================================================================
+   Synthwave UI overrides — applied on every tool that opts in via
+   .slt-themed (i.e. everything except Anim Combiner, which already
+   ships its own native synthwave styling and sets SLT_NO_BG=true).
+   We ride on top of each tool's existing CSS using !important so
+   the cascade lands on us regardless of source order or specificity.
+   ===================================================================== */
+
+/* ---- Big synthwave title block (matches Anim Combiner) -----------
+   Drop this on top of each themed tool:
+     <header class="slt-titlebar">
+       <div class="slt-subtitle">/// 1986 :: TAGLINE ///</div>
+       <h1 class="slt-title">SL TOOL NAME</h1>
+       <div class="slt-subtitle slt-subtitle-edition">★ S Y N T H W A V E ★</div>
+       <p class="slt-lede">One-line description.</p>
+     </header>                                                       */
+body.slt-themed .slt-titlebar {
+  text-align: center;
+  margin: 8px auto 32px;
+  max-width: 940px;
+  position: relative;
+  z-index: 1;
+}
+body.slt-themed .slt-title {
+  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
+  font-weight: normal !important;
+  font-size: clamp(36px, 7vw, 64px) !important;
+  line-height: 1.05 !important;
+  letter-spacing: 2px !important;
+  /* scaleY(1.15) below renders the title ~15% taller than its layout
+     box. Padding-bottom would scale WITH the transform (no help), so
+     we use margin-bottom — which sits outside the transform — to
+     reserve breathing room before the lede. 0.6em is enough for up
+     to ~3 wrapped lines at any clamp size. */
+  margin: 8px 0 0.6em !important;
+  padding-bottom: 0.15em !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  text-wrap: balance;
+  background: linear-gradient(180deg,
+    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
+    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%) !important;
+  -webkit-background-clip: text !important;
+          background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 14px rgba(255,0,214,0.55))
+          drop-shadow(0 4px 0 rgba(0,240,255,0.7))
+          drop-shadow(0 8px 0 rgba(107,31,177,0.8)) !important;
+  text-shadow: none !important;
+  transform: scaleY(1.15) !important;
+  transform-origin: center top !important;
+  border: none !important;
+}
+body.slt-themed .slt-subtitle {
+  font-family: 'VT323', monospace !important;
+  font-size: 22px !important;
+  text-align: center !important;
+  color: var(--slt-blue) !important;
+  letter-spacing: 4px !important;
+  margin: 4px 0 8px !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+}
+body.slt-themed .slt-subtitle-edition {
+  font-size: 14px !important;
+  letter-spacing: 6px !important;
+  opacity: 0.7 !important;
+}
+body.slt-themed .slt-lede {
+  text-align: center !important;
+  color: #c5e9ff !important;
+  margin: 18px auto 0 !important;
+  max-width: 640px !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  text-shadow: 0 0 5px rgba(0,240,255,0.3) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+body.slt-themed .slt-lede code {
+  color: var(--slt-gold) !important;
+  background: rgba(255,214,107,0.08) !important;
+  padding: 1px 6px !important;
+  border: 1px solid rgba(255,214,107,0.3) !important;
+  border-radius: 3px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Headings ----------------------------------------------------- */
+body.slt-themed h1 {
+  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
+  font-weight: normal !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(180deg,
+    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
+    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%) !important;
+  -webkit-background-clip: text !important;
+          background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 14px rgba(255,0,214,0.55))
+          drop-shadow(0 4px 0 rgba(0,240,255,0.7))
+          drop-shadow(0 8px 0 rgba(107,31,177,0.8)) !important;
+  text-shadow: none !important;
+  border: none !important;
+}
+body.slt-themed h1 small {
+  display: block !important;
+  font-family: 'VT323', monospace !important;
+  font-size: 18px !important;
+  letter-spacing: 4px !important;
+  font-weight: normal !important;
+  text-transform: uppercase !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--slt-blue) !important;
+  color: var(--slt-blue) !important;
+  filter: none !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+  margin: 4px 0 0 0 !important;
+  opacity: 0.85 !important;
+}
+body.slt-themed h2 {
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: var(--slt-magenta) !important;
+  text-shadow: 0 0 10px var(--slt-magenta) !important;
+  border-bottom-color: var(--slt-magenta) !important;
+}
+body.slt-themed h3 {
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 8px rgba(255,214,107,0.4) !important;
+}
+
+/* ---- Panels / cards / canvas wrappers ----------------------------- */
+body.slt-themed .panel,
+body.slt-themed .preview-area,
+body.slt-themed .canvas-wrap,
+body.slt-themed details.advanced {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%) !important;
+  border: 1.5px solid var(--slt-cyan) !important;
+  border-radius: 4px !important;
+  box-shadow:
+    0 0 0 1px rgba(255,0,214,0.3) inset,
+    0 0 18px rgba(0,240,255,0.35),
+    0 0 40px rgba(255,0,214,0.18) !important;
+  backdrop-filter: blur(2px) !important;
+  position: relative;
+}
+
+/* ---- Inputs / selects / textareas --------------------------------- */
+body.slt-themed input[type="text"],
+body.slt-themed input[type="number"],
+body.slt-themed input[type="search"],
+body.slt-themed input[type="email"],
+body.slt-themed input[type="tel"],
+body.slt-themed input[type="url"],
+body.slt-themed input[type="password"],
+body.slt-themed select,
+body.slt-themed textarea {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 0 0 4px rgba(0,240,255,0.5) !important;
+  outline: none !important;
+}
+body.slt-themed input[type="text"]:focus,
+body.slt-themed input[type="number"]:focus,
+body.slt-themed input[type="search"]:focus,
+body.slt-themed select:focus,
+body.slt-themed textarea:focus {
+  border-color: var(--slt-magenta) !important;
+  box-shadow: 0 0 12px var(--slt-magenta) !important;
+}
+body.slt-themed input::placeholder,
+body.slt-themed textarea::placeholder {
+  color: rgba(0,240,255,0.4) !important;
+}
+body.slt-themed select option {
+  background: var(--slt-bg-1) !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed input[type="color"] {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed input[type="checkbox"],
+body.slt-themed input[type="radio"],
+body.slt-themed input[type="range"] {
+  accent-color: var(--slt-magenta) !important;
+}
+
+/* ---- Buttons ------------------------------------------------------
+   Default <button> = primary synthwave style. Several tool-specific
+   classes get their own treatment further below (small toggle pads,
+   navigation arrows, thumbnail close, etc.). The .slt-nav-* classes
+   are excluded so the floating nav stays compact. */
+body.slt-themed button:not(.layout-btn):not(.deco-btn):not(.mode-btn):not(.preset-btn):not(.navbtn):not(.thumb-x):not(.aspect-sel):not(.apply-all):not(.clear-bar):not(.warn):not(.slt-nav-handle):not(.slt-nav-btn) {
+  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: #fff7b0 !important;
+  background: linear-gradient(180deg,
+    var(--slt-pink) 0%, var(--slt-magenta) 60%, var(--slt-purple) 100%) !important;
+  border: 2px solid var(--slt-gold) !important;
+  border-radius: 3px !important;
+  text-shadow: 0 0 8px var(--slt-gold), 0 2px 0 rgba(0,0,0,0.5) !important;
+  box-shadow:
+    0 0 0 2px var(--slt-magenta) inset,
+    0 0 16px var(--slt-magenta),
+    0 0 32px rgba(255,0,214,0.3),
+    0 4px 0 rgba(0,0,0,0.4) !important;
+  transition: filter .15s, transform .05s, box-shadow .15s !important;
+}
+body.slt-themed button:not(:disabled):hover {
+  filter: brightness(1.15) saturate(1.2) !important;
+}
+body.slt-themed button:not(:disabled):active {
+  transform: translateY(2px) !important;
+}
+body.slt-themed button:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(0.3) !important;
+}
+body.slt-themed button.secondary,
+body.slt-themed button.btn-secondary {
+  background: rgba(10,0,36,0.6) !important;
+  color: var(--slt-cyan) !important;
+  border: 1.5px solid var(--slt-cyan) !important;
+  text-shadow: 0 0 6px var(--slt-cyan) !important;
+  box-shadow:
+    0 0 0 1px var(--slt-cyan) inset,
+    0 0 12px rgba(0,240,255,0.25) !important;
+}
+body.slt-themed button.small {
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  padding: 6px 12px !important;
+  border-width: 1.5px !important;
+}
+
+/* ---- Toggle/option pad buttons (div-based grids) ------------------ */
+body.slt-themed .layout-btn,
+body.slt-themed .deco-btn,
+body.slt-themed .mode-btn,
+body.slt-themed .preset-btn,
+body.slt-themed .navbtn {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1.5px solid var(--slt-cyan) !important;
+  color: var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 6px rgba(0,240,255,0.4) !important;
+  transition: all .15s !important;
+  box-shadow: none !important;
+}
+body.slt-themed .layout-btn:hover,
+body.slt-themed .deco-btn:hover,
+body.slt-themed .mode-btn:hover,
+body.slt-themed .preset-btn:hover,
+body.slt-themed .navbtn:hover:not(:disabled) {
+  border-color: var(--slt-magenta) !important;
+  color: var(--slt-magenta) !important;
+  background: rgba(20,5,50,0.6) !important;
+  box-shadow: 0 0 12px var(--slt-magenta), inset 0 0 8px rgba(255,0,214,0.18) !important;
+  transform: translateY(-1px) !important;
+}
+body.slt-themed .layout-btn.active,
+body.slt-themed .deco-btn.active,
+body.slt-themed .mode-btn.active,
+body.slt-themed .preset-btn.active {
+  background: linear-gradient(180deg,
+    rgba(255,46,154,0.4) 0%, rgba(107,31,177,0.5) 100%) !important;
+  border-color: var(--slt-gold) !important;
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 10px var(--slt-gold) !important;
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 18px var(--slt-magenta) !important;
+}
+body.slt-themed .layout-btn.active .layout-icon { color: var(--slt-gold) !important; }
+body.slt-themed .navbtn .arrow { color: var(--slt-magenta) !important; text-shadow: 0 0 8px var(--slt-magenta) !important; }
+body.slt-themed .navbtn:disabled { opacity: 0.3 !important; }
+
+/* ---- Apply-all + aspect-sel pills --------------------------------- */
+body.slt-themed .apply-all {
+  background: rgba(10,0,36,0.8) !important;
+  color: var(--slt-magenta) !important;
+  border: 1px solid var(--slt-magenta) !important;
+  border-radius: 2px !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  text-shadow: 0 0 6px var(--slt-magenta) !important;
+  box-shadow: 0 0 8px rgba(255,0,214,0.3) !important;
+}
+body.slt-themed .apply-all:hover:not(:disabled) {
+  background: rgba(255,0,214,0.15) !important;
+  box-shadow: 0 0 14px var(--slt-magenta) !important;
+}
+body.slt-themed .aspect-sel {
+  background: rgba(10,0,36,0.8) !important;
+  color: var(--slt-cyan) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Big banner clear button -------------------------------------- */
+body.slt-themed .clear-bar {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%) !important;
+  color: var(--slt-magenta) !important;
+  border: 1.5px solid var(--slt-magenta) !important;
+  border-top: none !important;
+  border-radius: 0 0 4px 4px !important;
+  text-shadow: 0 0 8px var(--slt-magenta) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 0 14px rgba(255,0,214,0.3) !important;
+}
+body.slt-themed .clear-bar:hover {
+  background: linear-gradient(180deg,
+    rgba(255,46,154,0.4) 0%, rgba(107,31,177,0.5) 100%) !important;
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 10px var(--slt-gold) !important;
+  box-shadow: 0 0 22px var(--slt-magenta) !important;
+}
+body.slt-themed .clear-bar.confirm {
+  background: linear-gradient(180deg,
+    var(--slt-pink) 0%, var(--slt-magenta) 60%, var(--slt-purple) 100%) !important;
+  color: #fff7b0 !important;
+  border-color: var(--slt-gold) !important;
+}
+
+/* ---- Thumbnail close button (small X) ----------------------------- */
+body.slt-themed .thumb-x {
+  background: var(--slt-magenta) !important;
+  color: #fff !important;
+  border: 2px solid #1a0640 !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 8px var(--slt-magenta) !important;
+}
+
+/* ---- Info rows (key/value display) -------------------------------- */
+body.slt-themed .info-row {
+  border-bottom: 1px dashed rgba(0,240,255,0.25) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed .info-row span:first-child {
+  color: var(--slt-blue) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+}
+body.slt-themed .info-row span:last-child {
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 6px rgba(255,214,107,0.3) !important;
+}
+
+/* ---- Stats grid (SL Text/HUD) ------------------------------------- */
+body.slt-themed .stat {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed .stat .label {
+  color: var(--slt-blue) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+body.slt-themed .stat .value {
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 8px rgba(255,214,107,0.5) !important;
+  font-family: 'Audiowide', sans-serif !important;
+}
+body.slt-themed .stat.warn .value { color: #ff6b6b !important; text-shadow: 0 0 8px #ff6b6b !important; }
+body.slt-themed .stat.good .value { color: #6bff8e !important; text-shadow: 0 0 8px #6bff8e !important; }
+
+/* ---- Status banner ------------------------------------------------ */
+body.slt-themed #status,
+body.slt-themed .status {
+  font-family: 'VT323', monospace !important;
+  font-size: 16px !important;
+  letter-spacing: 1px !important;
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed #status.ok,
+body.slt-themed .status.ok {
+  color: #6bff8e !important;
+  background: rgba(107,255,142,0.08) !important;
+  border-color: #6bff8e !important;
+  text-shadow: 0 0 8px #6bff8e !important;
+}
+body.slt-themed #status.error,
+body.slt-themed .status.error,
+body.slt-themed #status.err,
+body.slt-themed .status.err {
+  color: #ff6b6b !important;
+  background: rgba(255,107,107,0.08) !important;
+  border-color: #ff6b6b !important;
+  text-shadow: 0 0 8px #ff6b6b !important;
+}
+
+/* ---- Help / detail blocks ----------------------------------------- */
+body.slt-themed details:not(.advanced) {
+  border: 1px solid rgba(0,240,255,0.3) !important;
+  border-radius: 4px !important;
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.7) 0%, rgba(45,10,94,0.6) 100%) !important;
+  padding: 10px 14px !important;
+}
+body.slt-themed details > summary {
+  cursor: pointer !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  color: var(--slt-cyan) !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+  font-size: 12px !important;
+}
+body.slt-themed details.advanced > summary {
+  color: var(--slt-magenta) !important;
+  text-shadow: 0 0 10px var(--slt-magenta) !important;
+}
+body.slt-themed .help,
+body.slt-themed details p,
+body.slt-themed details .help {
+  color: #b0d8ff !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+body.slt-themed details code,
+body.slt-themed .help code {
+  color: var(--slt-magenta) !important;
+  background: rgba(255,0,214,0.08) !important;
+  border: 1px solid rgba(255,0,214,0.3) !important;
+  padding: 1px 4px !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Filename / monospace label ----------------------------------- */
+body.slt-themed .filename {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px dashed var(--slt-cyan) !important;
+  color: var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  text-shadow: 0 0 4px rgba(0,240,255,0.5) !important;
+}
+
+/* ---- Drop zone (label.drop) --------------------------------------- */
+body.slt-themed .drop {
+  border: 2px dashed var(--slt-cyan) !important;
+  border-radius: 3px !important;
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(0,240,255,0.04) 0px, rgba(0,240,255,0.04) 8px,
+      transparent 8px, transparent 16px) !important;
+  color: var(--slt-cyan) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+}
+body.slt-themed .drop:hover {
+  border-color: var(--slt-magenta) !important;
+  box-shadow: 0 0 24px var(--slt-magenta), inset 0 0 24px rgba(255,0,214,0.18) !important;
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(255,0,214,0.08) 0px, rgba(255,0,214,0.08) 8px,
+      transparent 8px, transparent 16px) !important;
+}
+
+/* ---- Thumbnails strip (Anim Priority + Sprite Sheet) -------------- */
+body.slt-themed .thumbs {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.6) 0%, rgba(45,10,94,0.55) 100%) !important;
+  border: 1.5px solid var(--slt-magenta) !important;
+  border-bottom: none !important;
+  border-radius: 4px 4px 0 0 !important;
+  box-shadow: 0 0 14px rgba(255,0,214,0.2) !important;
+}
+body.slt-themed .thumb {
+  background: rgba(10,0,36,0.5) !important;
+  border: 2px solid transparent !important;
+  border-radius: 2px !important;
+  transition: all .15s !important;
+}
+body.slt-themed .thumb:hover {
+  border-color: var(--slt-cyan) !important;
+  box-shadow: 0 0 12px rgba(0,240,255,0.4) !important;
+}
+body.slt-themed .thumb.active {
+  border-color: var(--slt-magenta) !important;
+  background: rgba(45,10,94,0.6) !important;
+  box-shadow: 0 0 18px var(--slt-magenta) !important;
+}
+body.slt-themed .thumb-icon {
+  background: rgba(20,5,50,0.85) !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed .thumb-icon .pri-badge {
+  background: var(--slt-magenta) !important;
+  color: #fff !important;
+  font-family: 'Audiowide', sans-serif !important;
+  box-shadow: 0 0 6px var(--slt-magenta) !important;
+}
+body.slt-themed .thumb-icon.changed .pri-badge {
+  background: #6bff8e !important;
+  box-shadow: 0 0 6px #6bff8e !important;
+}
+body.slt-themed .thumb-label {
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Decorations btn-row (HUD per-button list) -------------------- */
+body.slt-themed .btn-row {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid rgba(0,240,255,0.3) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed .btn-row .idx {
+  color: var(--slt-blue) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* ---- Info / tip box ----------------------------------------------- */
+body.slt-themed .info-box {
+  background: rgba(0,240,255,0.06) !important;
+  border: 1px solid rgba(0,240,255,0.4) !important;
+  border-left: 3px solid var(--slt-magenta) !important;
+  color: #b0d8ff !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+body.slt-themed .info-box b {
+  color: var(--slt-gold) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  text-shadow: 0 0 6px rgba(255,214,107,0.4) !important;
+}
+body.slt-themed .info-box code {
+  color: var(--slt-magenta) !important;
+  background: rgba(255,0,214,0.08) !important;
+  border: 1px solid rgba(255,0,214,0.3) !important;
+  border-radius: 2px !important;
+  padding: 1px 4px !important;
+}
+
+/* ---- Toggle row (SL Text Creator) --------------------------------- */
+body.slt-themed .toggle-row {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  color: var(--slt-cyan) !important;
+}
+
+/* ---- Placeholder / 3D viewer placeholder -------------------------- */
+body.slt-themed .ph {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.85) 0%, rgba(10,0,36,0.95) 100%) !important;
+  border-radius: 0 !important;
+}
+body.slt-themed .ph-icon { filter: drop-shadow(0 0 18px var(--slt-magenta)) !important; }
+body.slt-themed .ph-title {
+  color: var(--slt-magenta) !important;
+  font-family: 'Audiowide', sans-serif !important;
+  text-shadow: 0 0 14px var(--slt-magenta) !important;
+}
+body.slt-themed .ph-sub {
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+body.slt-themed .ph-heart {
+  filter: drop-shadow(0 0 22px var(--slt-magenta)) !important;
+}
+
+/* ---- Playback controls -------------------------------------------- */
+body.slt-themed .playback {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px dashed var(--slt-cyan) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed .playback button {
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  padding: 4px 12px !important;
+}
+body.slt-themed .playback .timebar {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px solid rgba(0,240,255,0.4) !important;
+}
+body.slt-themed .playback .timebar .fill {
+  background: linear-gradient(90deg, var(--slt-cyan), var(--slt-magenta)) !important;
+  box-shadow: 0 0 8px var(--slt-magenta) !important;
+}
+body.slt-themed .playback .timetext {
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Credit footer ------------------------------------------------ */
+body.slt-themed .credit {
+  color: var(--slt-blue) !important;
+  font-family: 'VT323', monospace !important;
+  letter-spacing: 2px !important;
+  opacity: 0.8;
+}
+body.slt-themed .credit b,
+body.slt-themed .credit a {
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 6px rgba(255,214,107,0.4) !important;
+}
+
+/* ---- Scrollbar (WebKit) ------------------------------------------- */
+body.slt-themed ::-webkit-scrollbar { width: 12px; height: 12px; }
+body.slt-themed ::-webkit-scrollbar-track { background: rgba(10,0,36,0.5); }
+body.slt-themed ::-webkit-scrollbar-thumb {
+  background: var(--slt-magenta);
+  border: 2px solid rgba(10,0,36,0.7);
+  border-radius: 2px;
+}
+body.slt-themed ::-webkit-scrollbar-thumb:hover {
+  background: var(--slt-pink);
+}
+
+/* ---- Generic body text default colour ----------------------------- */
+body.slt-themed { color: var(--slt-cyan); }
+body.slt-themed label { color: var(--slt-cyan); }
+body.slt-themed .hint { color: var(--slt-blue) !important; opacity: 0.8 !important; }
+
+
+/* =====================================================================
+   Layout consolidations
+   ---------------------------------------------------------------------
+   These rules used to be duplicated in each tool's inline <style>.
+   Pulling them up here means the tools only carry truly unique sizes
+   (e.g. #threeCanvas dimensions, panel max-widths) — everything that
+   was identical across two or more tools now lives in one place.
+   ===================================================================== */
+
+/* ---- Universal resets / form a11y (was in every themed tool) ---- */
+body.slt-themed { color-scheme: dark; }
+body.slt-themed * {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+body.slt-themed input,
+body.slt-themed select,
+body.slt-themed button { outline: none; }
+body.slt-themed input:focus-visible,
+body.slt-themed select:focus-visible,
+body.slt-themed button:focus-visible {
+  outline: 2px solid var(--slt-magenta);
+  outline-offset: 1px;
+}
+body.slt-themed input:-webkit-autofill,
+body.slt-themed input:-webkit-autofill:hover,
+body.slt-themed input:-webkit-autofill:focus,
+body.slt-themed input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(10, 0, 36, 0.9) inset !important;
+  -webkit-text-fill-color: var(--slt-cyan) !important;
+  caret-color: var(--slt-cyan);
+  transition: background-color 9999s ease-out;
+}
+
+/* ---- Workspace layout (Anim Priority + Sprite Sheet share these) - */
+
+/* Canvas wrapper + 3D/2D placeholder */
+body.slt-themed .canvas-wrap {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+body.slt-themed .canvas-stack {
+  position: relative;
+  display: flex;
+}
+body.slt-themed .ph {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px;
+  pointer-events: none;
+}
+body.slt-themed .ph-icon,
+body.slt-themed .ph-heart {
+  font-size: 56px;
+  line-height: 1;
+}
+body.slt-themed .ph-title { font-size: 22px; letter-spacing: 0.3px; }
+body.slt-themed .ph-sub { font-size: 14px; }
+
+/* Canvas previous/next nav arrows */
+body.slt-themed .canvas-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+}
+body.slt-themed .navbtn {
+  width: 90px;
+  padding: 18px 8px;
+  cursor: pointer;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+body.slt-themed .navbtn .arrow { font-size: 30px; line-height: 1; }
+
+/* Side panel + key/value rows */
+body.slt-themed .panel { width: 320px; padding: 18px; }
+body.slt-themed .panel h3 { margin: 0 0 8px; font-size: 13px; }
+body.slt-themed .info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+body.slt-themed .info-row:last-child { border-bottom: none !important; }
+
+/* Filename label */
+body.slt-themed .filename {
+  padding: 10px 12px;
+  font-size: 12px;
+  word-break: break-all;
+  margin-top: 10px;
+}
+
+/* Thumbnail strip + items */
+body.slt-themed .thumbs {
+  display: flex;
+  gap: 22px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+  padding: 20px 18px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body.slt-themed .thumbs,
+body.slt-themed .thumbs * { cursor: crosshair; }
+body.slt-themed .thumbs .thumb-x { cursor: pointer; }
+body.slt-themed .thumb {
+  position: relative;
+  padding: 4px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body.slt-themed .thumb-label {
+  font-size: 10px;
+  text-align: center;
+  max-width: 76px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 4px;
+  font-weight: 600;
+}
+body.slt-themed .thumb-x {
+  position: absolute;
+  top: 0; right: 0;
+  transform: translate(50%, -50%) !important;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  z-index: 5;
+}
+body.slt-themed .thumb.marked {
+  outline: 3px solid #ff4757;
+  outline-offset: 2px;
+}
+
+/* Big "Clear ALL" banner button (sits below the thumbnail strip) */
+body.slt-themed .clear-bar {
+  width: 100%;
+  display: block;
+  margin: 0;
+  padding: 18px 24px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 800;
+  transition: background .18s, color .18s, box-shadow .18s, letter-spacing .18s;
+}
+@keyframes slt-pulse-clear {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.005); }
+}
+body.slt-themed .clear-bar.confirm {
+  animation: slt-pulse-clear 1s ease-in-out infinite;
+  letter-spacing: 1.2px;
+}
+
+/* Drag-select rectangle */
+body.slt-themed .marquee {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  border: 1.5px solid var(--slt-cyan);
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 0 0.5px var(--slt-magenta);
+  border-radius: 2px;
+}
+
+/* Aspect select pill + small "Apply to all" button */
+body.slt-themed .aspect-sel {
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+body.slt-themed .apply-all {
+  padding: 4px 14px;
+  font-size: 11px;
+  cursor: pointer;
+  margin: 0;
+  width: auto;
+  transition: transform .12s, box-shadow .12s, background .12s;
+}
+body.slt-themed .apply-all:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+body.slt-themed .apply-all.flash {
+  animation: slt-apply-flash .6s ease;
+}
+@keyframes slt-apply-flash {
+  50% { box-shadow: 0 0 18px var(--slt-magenta); }
+}
+
+/* Custom dropdown chevron for .aspect-sel */
+body.slt-themed select.aspect-sel {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%2300f0ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 22px;
+}
+
+/* ⓘ tooltip on hover */
+body.slt-themed .warn {
+  display: inline-block;
+  margin-left: 6px;
+  cursor: help;
+  font-size: 15px;
+  position: relative;
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+}
+body.slt-themed .warn:hover::before {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  background: linear-gradient(180deg, rgba(20, 5, 50, 0.95) 0%, rgba(45, 10, 94, 0.92) 100%);
+  color: var(--slt-cyan);
+  padding: 12px 16px;
+  border-radius: 2px;
+  border: 1.5px solid var(--slt-magenta);
+  white-space: pre-line;
+  width: 270px;
+  font-size: 11px;
+  line-height: 1.55;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(255, 0, 214, 0.4);
+}
+body.slt-themed .warn:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  right: 4px;
+  margin-bottom: 1px;
+  border: 7px solid transparent;
+  border-top-color: var(--slt-magenta);
+  z-index: 100;
+}
+
+/* Footer credit (used by some workspace tools) */
+body.slt-themed .credit {
+  text-align: center;
+  margin-top: 28px;
+  padding: 12px 20px;
+  font-size: 12px;
+}
+
+/* Hint text */
+body.slt-themed .hint {
+  font-size: 12px;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* ---- Form layout (3D Text Creator + HUD Buttons Creator) -------- */
+
+/* Two-column container (left panel + right preview) */
+body.slt-themed .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 20px;
+}
+body.slt-themed .container > h1 {
+  grid-column: 1 / -1;
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+body.slt-themed .container > h1 small { font-size: 14px; }
+
+/* Form-row inside .panel (label + input/select pair).
+   Scoped to `.panel .row` so we don't clash with the workspace `.row`
+   that Animation Priority and Sprite Sheet use as a flex layout. */
+body.slt-themed .panel .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+body.slt-themed .panel .row label { flex: 1; font-size: 13px; }
+body.slt-themed .panel .row input[type="number"],
+body.slt-themed .panel .row input[type="text"],
+body.slt-themed .panel .row select {
+  padding: 6px 8px;
+  font-size: 13px;
+}
+body.slt-themed .panel .row input[type="color"] {
+  width: 36px;
+  height: 28px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Right-hand preview area */
+body.slt-themed .preview-area {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Stats grid */
+body.slt-themed .stats {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+body.slt-themed .stat { padding: 8px; text-align: center; }
+body.slt-themed .stat .label { font-size: 11px; }
+body.slt-themed .stat .value { font-size: 18px; font-weight: bold; }
+
+/* Help / details */
+body.slt-themed details { margin-top: 12px; }
+body.slt-themed summary {
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 0;
+}
+body.slt-themed details p {
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 6px 0;
+}
+
+/* Toggle pad buttons (deco-btn / preset-btn / layout-btn / mode-btn share base layout) */
+body.slt-themed .deco-btn,
+body.slt-themed .preset-btn,
+body.slt-themed .layout-btn,
+body.slt-themed .mode-btn {
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+  margin: 0;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+</style>
+<!-- SHARED-CSS:END -->
+<script>window.SLT_CURRENT = 'sprite-sheet';</script>
+<style>
+  /* Tool-local CSS — only the truly unique bits.
+     All shared theming + layout lives in ../_shared/sl-nav.css. */
+  body { padding: 14px 24px 24px; }
+
+  /* Workspace `.row` (canvas + side panel layout). Different meaning
+     from the form `.row` used by 3D Text / HUD inside `.panel`,
+     hence kept tool-local. */
+  .row { display: flex; gap: 20px; margin-top: 0 !important; align-items: stretch;
+    flex-wrap: wrap; justify-content: center; }
+
+  /* Drop zone sizing (theme paints the look) */
+  .drop {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 32px 24px; text-align: center; cursor: pointer;
+    transition: all .18s ease;
+  }
+  .drop input { display: none; }
+  .drop-icon { width: 40px; height: 40px; opacity: .9; }
+  .drop:hover .drop-icon, .drop.drag .drop-icon { opacity: 1; }
+  #dropText { font-size: 15px; font-weight: 600; }
+
+  /* Sprite-sheet canvas inside the canvas-stack */
+  canvas { display: block; cursor: crosshair; image-rendering: pixelated; border-radius: 2px; }
+
+  /* Wide action buttons in this tool (Load GIFs / Export). */
+  button { width: 100%; padding: 12px; cursor: pointer; font-size: 15px;
+    margin-top: 12px; letter-spacing: .3px; }
+  button:hover:not(:disabled) { transform: translateY(-1px); }
+
+  /* Tool-specific: thumbnail content is a per-frame canvas (Anim Priority
+     uses .thumb-icon instead). */
+  .thumb canvas { display: block; width: 76px; height: 76px; border-radius: 2px; }
+  .thumb.marked canvas { filter: brightness(0.55) saturate(0.6); }
+
+  /* Background colour picker (tool-specific UI) */
+  .bg-controls { display: flex; align-items: center; gap: 8px; }
+  .bg-swatch {
+    width: 22px; height: 22px; border-radius: 2px;
+    border: 1.5px solid var(--slt-cyan); cursor: pointer;
+    margin: 0; padding: 0; flex-shrink: 0;
+    background-color: transparent;
+    background-image:
+      linear-gradient(45deg, rgba(0,240,255,0.25) 25%, transparent 25%, transparent 75%, rgba(0,240,255,0.25) 75%, rgba(0,240,255,0.25)),
+      linear-gradient(45deg, rgba(0,240,255,0.25) 25%, rgba(10,0,36,0.8) 25%, rgba(10,0,36,0.8) 75%, rgba(0,240,255,0.25) 75%, rgba(0,240,255,0.25));
+    background-size: 10px 10px;
+    background-position: 0 0, 5px 5px;
+  }
+  .bg-swatch:hover { border-color: var(--slt-magenta); box-shadow: 0 0 8px var(--slt-magenta); }
+  .bg-popup {
+    position: absolute; z-index: 20;
+    background: linear-gradient(180deg, rgba(20,5,50,0.95) 0%, rgba(45,10,94,0.92) 100%);
+    border: 1.5px solid var(--slt-cyan);
+    border-radius: 2px; padding: 12px;
+    box-shadow: 0 8px 24px rgba(0,240,255,0.3), 0 0 0 1px rgba(255,0,214,0.3) inset;
+    display: none;
+  }
+  .bg-popup.show { display: block; }
+  .bg-grid { display: grid; grid-template-columns: repeat(6, 24px); gap: 8px; }
+  .bg-custom {
+    display: flex; gap: 6px; align-items: center;
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px dashed rgba(0,240,255,0.3);
+  }
+  .bg-custom input[type="color"] {
+    width: 28px; height: 28px; padding: 0;
+    border-radius: 2px; cursor: pointer; flex-shrink: 0;
+  }
+  .bg-custom input[type="color"]::-webkit-color-swatch { border: none; border-radius: 2px; }
+  .bg-custom input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; border-radius: 2px; }
+  .bg-custom input[type="text"] {
+    flex: 1; padding: 5px 10px; min-width: 0; font-size: 11px;
+  }
+  .bg-pick {
+    width: 24px; height: 24px; border-radius: 2px;
+    cursor: pointer; border: 1.5px solid transparent;
+    margin: 0; padding: 0;
+    transition: transform .12s, border-color .12s;
+  }
+  .bg-pick:hover { border-color: var(--slt-magenta); transform: scale(1.15); }
+  .bg-pick.active { border-color: var(--slt-gold); box-shadow: 0 0 0 2px var(--slt-magenta); }
+  .bg-pick.transparent {
+    background-color: transparent;
+    background-image:
+      linear-gradient(45deg, rgba(0,240,255,0.25) 25%, transparent 25%, transparent 75%, rgba(0,240,255,0.25) 75%, rgba(0,240,255,0.25)),
+      linear-gradient(45deg, rgba(0,240,255,0.25) 25%, rgba(10,0,36,0.8) 25%, rgba(10,0,36,0.8) 75%, rgba(0,240,255,0.25) 75%, rgba(0,240,255,0.25));
+    background-size: 12px 12px;
+    background-position: 0 0, 6px 6px;
+  }
+
+  /* Subtitle line over the credit footer (theme handles colours) */
+  #subtitle { text-align: center; margin: 0 0 26px; font-size: 14px;
+    font-weight: 600; letter-spacing: 1px; }
+</style>
+</head>
+<body class="slt-themed">
+<div class="slt-scanlines"></div>
+<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<script>
+/* =====================================================================
+   SL Tools :: Navigation bootstrapper
+   - Detects which sibling tools exist (modular: missing folder = hidden)
+   - Renders a synthwave nav bar at the top
+   - Adds the sun + grid + scanlines background layers
+
+   How it works
+   ------------
+   Each tool folder contains a tiny `_meta.js` that registers its own
+   metadata into window.__SLT_AVAILABLE. We try to load that file via
+   <script> tags. file:// allows local <script> loads, and onerror fires
+   reliably when the file is missing — so removing a tool folder makes
+   it disappear from the nav automatically.
+
+   Adding a new tool:
+   - Add an entry below in REGISTRY
+   - Drop the folder with its main HTML and a `_meta.js`
+
+   Each tool's HTML opts in by including:
+     <link rel="stylesheet" href="../_shared/sl-nav.css">
+     <script>window.SLT_CURRENT = "anim-combiner";<\/script>
+     <script src="../_shared/sl-nav.js"><\/script>
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  // Ordered registry of all tools known to this navigation system.
+  // Each `folder` is the directory name that sits next to this tool.
+  // `file` is the main HTML in that folder.
+  const REGISTRY = [
+    {
+      id: 'anim-combiner',
+      name: 'Animation Combiner',
+      subtitle: 'body + hands → combo',
+      folder: 'SL Animation Combiner',
+      file: 'sl_animation_combiner.html',
+      badge: 'AC',
+    },
+    {
+      id: 'anim-priority',
+      name: 'Animation Priority Changer',
+      subtitle: 'set priority on .anim files',
+      folder: 'SL Animation Priority Changer',
+      file: 'sl_animation_priority_changer.html',
+      badge: 'AP',
+    },
+    {
+      id: 'sprite-sheet',
+      name: 'Sprite Sheet Maker',
+      subtitle: 'gif → sprite sheet',
+      folder: 'SL Sprite Sheet Maker',
+      file: 'sl_sprite_sheet_maker.html',
+      badge: 'SS',
+    },
+    {
+      id: 'sl-text',
+      name: '3D Text Creator',
+      subtitle: 'text → 3D mesh',
+      folder: 'SL 3D Text Creator',
+      file: 'sl_3d_text_creator.html',
+      badge: 'TX',
+    },
+    {
+      id: 'sl-hud',
+      name: 'HUD Buttons Creator',
+      subtitle: 'buttons grid → mesh',
+      folder: 'SL HUD Buttons Creator',
+      file: 'sl_hud_buttons_creator.html',
+      badge: 'HD',
+    },
+  ];
+
+  window.__SLT_AVAILABLE = window.__SLT_AVAILABLE || {};
+
+  // ---------------------------------------------------------------------
+  // The body theme + sun + grid + scanlines are now applied entirely
+  // via CSS. Each themed tool sets <body class="slt-themed"> in its
+  // HTML and pre-renders <div class="slt-scanlines"></div> so there's
+  // no flash of unstyled content. This script's only job is to render
+  // the navigation bar after probing for sibling tools.
+  // ---------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------
+  // Step 2: detect which sibling tools exist
+  //   For each tool that isn't the current one, try to load its
+  //   `_meta.js` via a dynamic <script> tag. onerror fires when the
+  //   file (or folder) is missing.
+  // ---------------------------------------------------------------------
+  function detectTool(tool) {
+    return new Promise((resolve) => {
+      // current tool always "available"
+      if (tool.id === window.SLT_CURRENT) {
+        window.__SLT_AVAILABLE[tool.id] = { ...tool, current: true };
+        return resolve(true);
+      }
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = '../' + encodeURI(tool.folder) + '/_meta.js';
+      let settled = false;
+      const finish = (ok) => {
+        if (settled) return;
+        settled = true;
+        s.parentNode && s.parentNode.removeChild(s);
+        resolve(ok);
+      };
+      s.onload = () => finish(true);
+      s.onerror = () => finish(false);
+      // safety timeout in case the browser silently stalls
+      setTimeout(() => finish(false), 2500);
+      document.head.appendChild(s);
+    });
+  }
+
+  async function detectAll() {
+    const results = await Promise.all(
+      REGISTRY.map((t) => detectTool(t).then((ok) => ({ tool: t, ok })))
+    );
+    return results.filter((r) => r.ok).map((r) => r.tool);
+  }
+
+  // ---------------------------------------------------------------------
+  // Step 3: render the floating nav (collapsible dropdown menu)
+  //
+  //   <nav class="slt-nav" data-open="false">
+  //     <button class="slt-nav-handle">★ SL TOOLS ★ [TX] ▾</button>
+  //     <div class="slt-nav-panel"><ul>…</ul></div>
+  //   </nav>
+  //
+  //   The handle is the always-visible pill in the top-right corner.
+  //   Clicking it expands the panel below; clicking outside or pressing
+  //   Escape collapses it. Open/closed state is persisted in
+  //   localStorage so it stays the way the user prefers across pages.
+  // ---------------------------------------------------------------------
+  const STATE_KEY = 'slt-nav-open';
+
+  function renderNav(tools) {
+    const current = tools.find((t) => t.id === window.SLT_CURRENT);
+    const currentBadge = current ? current.badge : '★';
+
+    const nav = document.createElement('nav');
+    nav.className = 'slt-nav';
+    nav.setAttribute('aria-label', 'SL Tools');
+    nav.setAttribute('data-open', 'false');
+
+    // Handle (always visible)
+    const handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = 'slt-nav-handle';
+    handle.setAttribute('aria-expanded', 'false');
+    handle.setAttribute('aria-controls', 'slt-nav-panel');
+    handle.innerHTML =
+      '<span class="slt-nav-current">' + currentBadge + '</span>' +
+      '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
+    handle.title = 'SL Tools — click to switch';
+    nav.appendChild(handle);
+
+    // Collapsible panel (the actual menu)
+    const panel = document.createElement('div');
+    panel.className = 'slt-nav-panel';
+    panel.id = 'slt-nav-panel';
+
+    // Brand header inside the panel
+    const header = document.createElement('div');
+    header.className = 'slt-nav-panel-header';
+    header.innerHTML =
+      '<span class="slt-nav-handle-brand">★ SL TOOLS ★</span>' +
+      '<small class="slt-nav-panel-tagline">NEON ROUTINE</small>';
+    panel.appendChild(header);
+
+    const list = document.createElement('ul');
+    list.className = 'slt-nav-list';
+
+    for (const tool of tools) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.className = 'slt-nav-btn';
+      if (tool.id === window.SLT_CURRENT) {
+        a.classList.add('current');
+        a.setAttribute('aria-current', 'page');
+        a.href = '#';
+        a.addEventListener('click', (e) => e.preventDefault());
+      } else {
+        a.href = '../' + encodeURI(tool.folder) + '/' + encodeURI(tool.file);
+        // smooth fade-out before navigating
+        a.addEventListener('click', smoothNavigate);
+      }
+      a.title = tool.name + ' — ' + tool.subtitle;
+      a.innerHTML =
+        '<span class="slt-nav-badge">' + tool.badge + '</span>' +
+        '<span class="slt-nav-name">' + tool.name +
+          '<small>' + tool.subtitle + '</small></span>';
+      li.appendChild(a);
+      list.appendChild(li);
+    }
+
+    panel.appendChild(list);
+    nav.appendChild(panel);
+
+    document.body.insertBefore(nav, document.body.firstChild);
+
+    // Toggle behavior
+    function setOpen(open) {
+      nav.setAttribute('data-open', open ? 'true' : 'false');
+      handle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      try { localStorage.setItem(STATE_KEY, open ? '1' : '0'); } catch (e) {}
+    }
+    handle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setOpen(nav.getAttribute('data-open') !== 'true');
+    });
+    document.addEventListener('click', (e) => {
+      if (!nav.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+
+    // Restore previous state
+    try {
+      if (localStorage.getItem(STATE_KEY) === '1') setOpen(true);
+    } catch (e) {}
+  }
+
+  // ---------------------------------------------------------------------
+  // Smooth page transition: fade the current page out before navigating.
+  // The destination page fades back in via CSS animation on body load.
+  // ---------------------------------------------------------------------
+  function smoothNavigate(e) {
+    // Allow ctrl/cmd/middle-click to open in a new tab without hijack
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+    e.preventDefault();
+    const href = e.currentTarget.href;
+    document.documentElement.classList.add('slt-leaving');
+    setTimeout(() => { window.location.href = href; }, 180);
+  }
+
+  // ---------------------------------------------------------------------
+  // Bootstrap once the DOM is ready
+  // ---------------------------------------------------------------------
+  function boot() {
+    detectAll().then(renderNav).catch((err) => {
+      console.warn('[SL Tools nav] detection failed:', err);
+      // fallback: still show current tool only
+      const current = REGISTRY.find((t) => t.id === window.SLT_CURRENT);
+      if (current) renderNav([current]);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+
+</script>
+<!-- SHARED-JS:END -->
+
+<header class="slt-titlebar">
+  <div class="slt-subtitle">/// 1986 :: SPRITE PIPELINE ///</div>
+  <h1 class="slt-title">SL Sprite Sheet Maker</h1>
+  <p class="slt-lede">Drop GIFs in, get a single PNG sprite sheet out — sized for SL textures with smart cropping and palette optimisation.</p>
+</header>
+
+<label class="drop" id="drop" style="display:none">
+  <svg class="drop-icon" viewBox="0 0 24 24" fill="none" stroke="url(#dropg)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <defs><linearGradient id="dropg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ff85c1"/><stop offset="100%" stop-color="#c2185b"/></linearGradient></defs>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+    <polyline points="17 8 12 3 7 8"></polyline>
+    <line x1="12" y1="3" x2="12" y2="15"></line>
+  </svg>
+  <span id="dropText">💕 Click to load GIFs (up to 100) — or drop them here ✨</span>
+</label>
+
+<div id="workspace">
+ <div class="row">
+  <div class="canvas-wrap">
+    <div class="canvas-nav">
+      <button id="prev" class="navbtn" disabled><span class="arrow">←</span><span>Previous</span></button>
+      <div class="canvas-stack">
+        <canvas id="cnv"></canvas>
+        <div id="placeholder" class="ph">
+          <div class="ph-heart">💖</div>
+          <div class="ph-title">No GIFs loaded yet</div>
+          <div class="ph-sub">Click "Load GIFs" to start ✨</div>
+        </div>
+      </div>
+      <button id="next" class="navbtn" disabled><span class="arrow">→</span><span>Next</span></button>
+    </div>
+  </div>
+  <div class="panel">
+    <button id="loadNew" type="button" style="margin-top:0">
+      <span id="loadNewText">Load GIFs</span>
+    </button>
+    <input type="file" id="file" accept="image/gif" multiple style="display:none">
+    <h3 style="margin-top:14px">Source</h3>
+    <div class="info-row"><span>File</span><span id="i-file">—</span></div>
+    <div class="info-row"><span>Dimensions</span><span id="i-dim">—</span></div>
+    <div class="info-row"><span>Frames</span><span id="i-frames">—</span></div>
+    <div class="info-row"><span>Original FPS</span><span id="i-fps">—</span></div>
+
+    <h3 style="margin-top:14px">Crop</h3>
+    <div class="info-row"><span>Ratio</span>
+      <select id="aspectSel" class="aspect-sel">
+        <option value="1:1">1:1 (square)</option>
+        <option value="2:1">2:1 (landscape)</option>
+      </select>
+    </div>
+    <div class="info-row"><span>Apply to all GIFs</span>
+      <button id="aspectGlobal" type="button" class="apply-all">Apply</button>
+    </div>
+    <div class="info-row"><span>Box</span><span id="i-crop">drag on canvas…</span></div>
+    <div class="info-row">
+      <span>Use frames <span class="warn" data-tip="Skip frames evenly to reduce file size on heavy GIFs. e.g. 'every 2nd' uses half the frames at half the playback rate (same duration). Useful when a GIF has more frames than visually needed.">ℹ️</span></span>
+      <select id="stepSel" class="aspect-sel">
+        <option value="1">all</option>
+        <option value="2">every 2nd (½)</option>
+        <option value="3">every 3rd (⅓)</option>
+        <option value="4">every 4th (¼)</option>
+        <option value="5">every 5th (⅕)</option>
+      </select>
+    </div>
+
+    <h3 style="margin-top:14px">Output</h3>
+    <div class="info-row">
+      <span>Size <span class="warn" data-tip="Always 1024×1024 for avatar wearables and small in-world screens (HUDs, attachments, picture frames, signs). You'll regret 2048 here! Viewers drop textures under memory pressure, so 2048 reloads blurry every time someone zooms out and back.&#10;&#10;Use 2048×2048 only for large rezzed objects (big screens, billboards).">⚠️</span></span>
+      <select id="baseSel" class="aspect-sel">
+        <option value="1024">1024 (standard)</option>
+        <option value="2048">2048 (2K)</option>
+      </select>
+    </div>
+    <div class="info-row"><span>Apply to all GIFs</span>
+      <button id="baseGlobal" type="button" class="apply-all">Apply</button>
+    </div>
+    <div class="info-row">
+      <span>Background</span>
+      <button id="bgSwatch" class="bg-swatch" title="Pick background color"></button>
+    </div>
+    <div class="info-row"><span>Apply to all GIFs</span>
+      <button id="bgGlobal" type="button" class="apply-all">Apply</button>
+    </div>
+    <div class="info-row">
+      <span>Trim to fit <span class="warn" data-tip="Drops a few frames so the grid becomes more square AND has no empty cells. e.g. 21 frames: default → 3×7 (very wide), with trim → 4×5 (cuts 1 frame, more balanced). Off = keep all frames, accept rectangular layouts or 1–2 empty cells.">ℹ️</span></span>
+      <input type="checkbox" id="trimToFit" style="cursor:pointer; accent-color:#ff1493; width:16px; height:16px;">
+    </div>
+    <div class="info-row"><span>Apply to all GIFs</span>
+      <button id="trimGlobal" type="button" class="apply-all">Apply</button>
+    </div>
+    <div class="info-row">
+      <span>Optimize size <span class="warn" data-tip="Exports the PNG with a 256-color indexed palette (like GIFs use). Reduces file size by ~50–70%. Since GIFs are already 256-color and SL re-encodes textures internally, quality stays identical.">ℹ️</span></span>
+      <span style="display:flex; align-items:center; gap:8px;">
+        <small style="color:#d896b3;">256 colors</small>
+        <input type="checkbox" id="opt256" checked style="cursor:pointer; accent-color:#ff1493; width:16px; height:16px;">
+      </span>
+    </div>
+    <div class="info-row"><span>Frames used</span><span id="i-used">—</span></div>
+    <div class="info-row"><span>Grid</span><span id="i-grid">—</span></div>
+    <div class="info-row"><span>Canvas</span><span id="i-canvas">—</span></div>
+    <div class="info-row"><span>Cell</span><span id="i-cell">—</span></div>
+    <div class="info-row"><span>FPS</span><span id="i-out-fps">—</span></div>
+    <div class="filename" id="i-name">—</div>
+    <button id="export" disabled>Export current</button>
+    <button id="exportAll" class="btn-secondary" disabled>Export all (0)</button>
+  </div>
+ </div>
+ <div id="thumbs" class="thumbs"></div>
+ <button id="clearAllBtn" type="button" class="clear-bar" style="display:none"
+         title="Selection shortcuts:
+• Drag left-mouse across thumbs → draw selection rectangle
+• Ctrl+drag → add to existing marks
+• Shift+drag → remove from marks
+• Ctrl/Cmd + click → toggle a single mark
+• Shift + click → mark every thumb between the last clicked one and this one (range)">🗑 Clear ALL (0)</button>
+</div>
+<div id="bgPopup" class="bg-popup"></div>
+<footer class="credit">
+  Made with 💕 by <b>Ya</b> · © 2026 · All rights reserved<br>
+  GIF parsing by <a href="https://github.com/matt-way/gifuct-js" target="_blank" rel="noopener">gifuct-js</a> (Matt Way, MIT)
+</footer>
+
+<script>
+/* ============================================================
+   THIRD-PARTY CODE — gifuct-js by Matt Way, MIT License (2015)
+   This entire script block is the unmodified gifuct-js bundle.
+   Source: https://github.com/matt-way/gifuct-js
+   See HTML header comment for the full MIT license text.
+   Ya claims no authorship over the code in this <script> block.
+   ============================================================ */
+/******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// define __esModule on exports
+/******/ 	__webpack_require__.r = function(exports) {
+/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 		}
+/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 	};
+/******/
+/******/ 	// create a fake namespace object
+/******/ 	// mode & 1: value is a module id, require it
+/******/ 	// mode & 2: merge all properties of value into the ns
+/******/ 	// mode & 4: return value when already ns object
+/******/ 	// mode & 8|1: behave like require
+/******/ 	__webpack_require__.t = function(value, mode) {
+/******/ 		if(mode & 1) value = __webpack_require__(value);
+/******/ 		if(mode & 8) return value;
+/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
+/******/ 		var ns = Object.create(null);
+/******/ 		__webpack_require__.r(ns);
+/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
+/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
+/******/ 		return ns;
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	window.gifuct = __webpack_require__(__webpack_require__.s = 1); return window.gifuct;
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _lib_index_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(1);
+/* harmony import */ var _lib_index_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_lib_index_js__WEBPACK_IMPORTED_MODULE_0__);
+
+
+// user canvas
+var c = document.getElementById('c')
+var ctx = c.getContext('2d')
+// gif patch canvas
+var tempCanvas = document.createElement('canvas')
+var tempCtx = tempCanvas.getContext('2d')
+// full gif canvas
+var gifCanvas = document.createElement('canvas')
+var gifCtx = gifCanvas.getContext('2d')
+
+var url = document.getElementById('url')
+// default gif
+url.value = '/demo/horses.gif'
+
+document.getElementById('loadGIF').onclick = loadGIF
+document.getElementById('playpause').onclick = playpause
+document.getElementById('edgedetect').onchange = () => {
+  bEdgeDetect = !bEdgeDetect
+}
+document.getElementById('grayscale').onchange = () => {
+  bGrayscale = !bGrayscale
+}
+document.getElementById('invert').onchange = () => {
+  bInvert = !bInvert
+}
+document.getElementById('pixels').onchange = e => {
+  pixelPercent = e.target.value
+}
+
+// load the default gif
+loadGIF()
+var gif
+
+// load a gif with the current input url value
+function loadGIF() {
+  var oReq = new XMLHttpRequest()
+  oReq.open('GET', url.value, true)
+  oReq.responseType = 'arraybuffer'
+
+  oReq.onload = function(oEvent) {
+    var arrayBuffer = oReq.response // Note: not oReq.responseText
+    if (arrayBuffer) {
+      gif = Object(_lib_index_js__WEBPACK_IMPORTED_MODULE_0__["parseGIF"])(arrayBuffer)
+      var frames = Object(_lib_index_js__WEBPACK_IMPORTED_MODULE_0__["decompressFrames"])(gif, true)
+      // render the gif
+      renderGIF(frames)
+    }
+  }
+
+  oReq.send(null)
+}
+
+var playing = false
+var bEdgeDetect = false
+var bInvert = false
+var bGrayscale = false
+var pixelPercent = 100
+var loadedFrames
+var frameIndex
+
+function playpause() {
+  playing = !playing
+  if (playing) {
+    renderFrame()
+  }
+}
+
+function renderGIF(frames) {
+  loadedFrames = frames
+  frameIndex = 0
+
+  c.width = frames[0].dims.width
+  c.height = frames[0].dims.height
+
+  gifCanvas.width = c.width
+  gifCanvas.height = c.height
+
+  if (!playing) {
+    playpause()
+  }
+}
+
+var frameImageData
+
+function drawPatch(frame) {
+  var dims = frame.dims
+
+  if (
+    !frameImageData ||
+    dims.width != frameImageData.width ||
+    dims.height != frameImageData.height
+  ) {
+    tempCanvas.width = dims.width
+    tempCanvas.height = dims.height
+    frameImageData = tempCtx.createImageData(dims.width, dims.height)
+  }
+
+  // set the patch data as an override
+  frameImageData.data.set(frame.patch)
+
+  // draw the patch back over the canvas
+  tempCtx.putImageData(frameImageData, 0, 0)
+
+  gifCtx.drawImage(tempCanvas, dims.left, dims.top)
+}
+
+var edge = function(data, output) {
+  var odata = output.data
+  var width = gif.lsd.width
+  var height = gif.lsd.height
+
+  var conv = [-1, -1, -1, -1, 8, -1, -1, -1, -1]
+  var halfside = Math.floor(3 / 2)
+
+  for (var y = 0; y < height; y++) {
+    for (var x = 0; x < width; x++) {
+      var r = 0,
+        g = 0,
+        b = 0
+      for (var cy = 0; cy < 3; cy++) {
+        for (var cx = 0; cx < 3; cx++) {
+          var scy = y - halfside + cy
+          var scx = x - halfside + cx
+
+          if (scy >= 0 && scy < height && scx >= 0 && scx < width) {
+            var src = (scy * width + scx) * 4
+            var f = cy * 3 + cx
+            r += data[src] * conv[f]
+            g += data[src + 1] * conv[f]
+            b += data[src + 2] * conv[f]
+          }
+        }
+      }
+
+      var i = (y * width + x) * 4
+      odata[i] = r
+      odata[i + 1] = g
+      odata[i + 2] = b
+      odata[i + 3] = 255
+    }
+  }
+
+  return output
+}
+
+var invert = function(data) {
+  for (var i = 0; i < data.length; i += 4) {
+    data[i] = 255 - data[i] // red
+    data[i + 1] = 255 - data[i + 1] // green
+    data[i + 2] = 255 - data[i + 2] // blue
+    data[i + 3] = 255
+  }
+}
+
+var grayscale = function(data) {
+  for (var i = 0; i < data.length; i += 4) {
+    var avg = (data[i] + data[i + 1] + data[i + 2]) / 3
+    data[i] = avg // red
+    data[i + 1] = avg // green
+    data[i + 2] = avg // blue
+    data[i + 3] = 255
+  }
+}
+
+function manipulate() {
+  var imageData = gifCtx.getImageData(0, 0, gifCanvas.width, gifCanvas.height)
+  var other = gifCtx.createImageData(gifCanvas.width, gifCanvas.height)
+
+  if (bEdgeDetect) {
+    imageData = edge(imageData.data, other)
+  }
+
+  if (bInvert) {
+    invert(imageData.data)
+  }
+
+  if (bGrayscale) {
+    grayscale(imageData.data)
+  }
+
+  // do pixelation
+  var pixelsX = 5 + Math.floor((pixelPercent / 100) * (c.width - 5))
+  var pixelsY = (pixelsX * c.height) / c.width
+
+  if (pixelPercent != 100) {
+    ctx.mozImageSmoothingEnabled = false
+    ctx.webkitImageSmoothingEnabled = false
+    ctx.imageSmoothingEnabled = false
+  }
+
+  ctx.putImageData(imageData, 0, 0)
+  ctx.drawImage(c, 0, 0, c.width, c.height, 0, 0, pixelsX, pixelsY)
+  ctx.drawImage(c, 0, 0, pixelsX, pixelsY, 0, 0, c.width, c.height)
+}
+
+function renderFrame() {
+  // get the frame
+  var frame = loadedFrames[frameIndex]
+
+  var start = new Date().getTime()
+  
+  if (frame.disposalType ===  2) {
+    gifCtx.clearRect(0, 0, c.width, c.height)
+  }
+
+  // draw the patch
+  drawPatch(frame)
+
+  // perform manipulation
+  manipulate()
+
+  // update the frame index
+  frameIndex++
+  if (frameIndex >= loadedFrames.length) {
+    frameIndex = 0
+  }
+
+  var end = new Date().getTime()
+  var diff = end - start
+
+  if (playing) {
+    // delay the next gif frame
+    setTimeout(function() {
+      requestAnimationFrame(renderFrame)
+      //renderFrame();
+    }, Math.max(0, Math.floor(frame.delay - diff)))
+  }
+}
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.decompressFrames = exports.decompressFrame = exports.parseGIF = void 0;
+
+var _gif = _interopRequireDefault(__webpack_require__(2));
+
+var _jsBinarySchemaParser = __webpack_require__(3);
+
+var _uint = __webpack_require__(4);
+
+var _deinterlace = __webpack_require__(5);
+
+var _lzw = __webpack_require__(6);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+var parseGIF = function parseGIF(arrayBuffer) {
+  var byteData = new Uint8Array(arrayBuffer);
+  return (0, _jsBinarySchemaParser.parse)((0, _uint.buildStream)(byteData), _gif["default"]);
+};
+
+exports.parseGIF = parseGIF;
+
+var generatePatch = function generatePatch(image) {
+  var totalPixels = image.pixels.length;
+  var patchData = new Uint8ClampedArray(totalPixels * 4);
+
+  for (var i = 0; i < totalPixels; i++) {
+    var pos = i * 4;
+    var colorIndex = image.pixels[i];
+    var color = image.colorTable[colorIndex] || [0, 0, 0];
+    patchData[pos] = color[0];
+    patchData[pos + 1] = color[1];
+    patchData[pos + 2] = color[2];
+    patchData[pos + 3] = colorIndex !== image.transparentIndex ? 255 : 0;
+  }
+
+  return patchData;
+};
+
+var decompressFrame = function decompressFrame(frame, gct, buildImagePatch) {
+  if (!frame.image) {
+    console.warn('gif frame does not have associated image.');
+    return;
+  }
+
+  var image = frame.image; // get the number of pixels
+
+  var totalPixels = image.descriptor.width * image.descriptor.height; // do lzw decompression
+
+  var pixels = (0, _lzw.lzw)(image.data.minCodeSize, image.data.blocks, totalPixels); // deal with interlacing if necessary
+
+  if (image.descriptor.lct.interlaced) {
+    pixels = (0, _deinterlace.deinterlace)(pixels, image.descriptor.width);
+  }
+
+  var resultImage = {
+    pixels: pixels,
+    dims: {
+      top: frame.image.descriptor.top,
+      left: frame.image.descriptor.left,
+      width: frame.image.descriptor.width,
+      height: frame.image.descriptor.height
+    }
+  }; // color table
+
+  if (image.descriptor.lct && image.descriptor.lct.exists) {
+    resultImage.colorTable = image.lct;
+  } else {
+    resultImage.colorTable = gct;
+  } // add per frame relevant gce information
+
+
+  if (frame.gce) {
+    resultImage.delay = (frame.gce.delay || 10) * 10; // convert to ms
+
+    resultImage.disposalType = frame.gce.extras.disposal; // transparency
+
+    if (frame.gce.extras.transparentColorGiven) {
+      resultImage.transparentIndex = frame.gce.transparentColorIndex;
+    }
+  } // create canvas usable imagedata if desired
+
+
+  if (buildImagePatch) {
+    resultImage.patch = generatePatch(resultImage);
+  }
+
+  return resultImage;
+};
+
+exports.decompressFrame = decompressFrame;
+
+var decompressFrames = function decompressFrames(parsedGif, buildImagePatches) {
+  return parsedGif.frames.filter(function (f) {
+    return f.image;
+  }).map(function (f) {
+    return decompressFrame(f, parsedGif.gct, buildImagePatches);
+  });
+};
+
+exports.decompressFrames = decompressFrames;
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports["default"] = void 0;
+
+var _ = __webpack_require__(3);
+
+var _uint = __webpack_require__(4);
+
+// a set of 0x00 terminated subblocks
+var subBlocksSchema = {
+  blocks: function blocks(stream) {
+    var terminator = 0x00;
+    var chunks = [];
+    var streamSize = stream.data.length;
+    var total = 0;
+
+    for (var size = (0, _uint.readByte)()(stream); size !== terminator; size = (0, _uint.readByte)()(stream)) {
+      // catch corrupted files with no terminator
+      if (stream.pos + size >= streamSize) {
+        var availableSize = streamSize - stream.pos;
+        chunks.push((0, _uint.readBytes)(availableSize)(stream));
+        total += availableSize;
+        break;
+      }
+
+      chunks.push((0, _uint.readBytes)(size)(stream));
+      total += size;
+    }
+
+    var result = new Uint8Array(total);
+    var offset = 0;
+
+    for (var i = 0; i < chunks.length; i++) {
+      result.set(chunks[i], offset);
+      offset += chunks[i].length;
+    }
+
+    return result;
+  }
+}; // global control extension
+
+var gceSchema = (0, _.conditional)({
+  gce: [{
+    codes: (0, _uint.readBytes)(2)
+  }, {
+    byteSize: (0, _uint.readByte)()
+  }, {
+    extras: (0, _uint.readBits)({
+      future: {
+        index: 0,
+        length: 3
+      },
+      disposal: {
+        index: 3,
+        length: 3
+      },
+      userInput: {
+        index: 6
+      },
+      transparentColorGiven: {
+        index: 7
+      }
+    })
+  }, {
+    delay: (0, _uint.readUnsigned)(true)
+  }, {
+    transparentColorIndex: (0, _uint.readByte)()
+  }, {
+    terminator: (0, _uint.readByte)()
+  }]
+}, function (stream) {
+  var codes = (0, _uint.peekBytes)(2)(stream);
+  return codes[0] === 0x21 && codes[1] === 0xf9;
+}); // image pipeline block
+
+var imageSchema = (0, _.conditional)({
+  image: [{
+    code: (0, _uint.readByte)()
+  }, {
+    descriptor: [{
+      left: (0, _uint.readUnsigned)(true)
+    }, {
+      top: (0, _uint.readUnsigned)(true)
+    }, {
+      width: (0, _uint.readUnsigned)(true)
+    }, {
+      height: (0, _uint.readUnsigned)(true)
+    }, {
+      lct: (0, _uint.readBits)({
+        exists: {
+          index: 0
+        },
+        interlaced: {
+          index: 1
+        },
+        sort: {
+          index: 2
+        },
+        future: {
+          index: 3,
+          length: 2
+        },
+        size: {
+          index: 5,
+          length: 3
+        }
+      })
+    }]
+  }, (0, _.conditional)({
+    lct: (0, _uint.readArray)(3, function (stream, result, parent) {
+      return Math.pow(2, parent.descriptor.lct.size + 1);
+    })
+  }, function (stream, result, parent) {
+    return parent.descriptor.lct.exists;
+  }), {
+    data: [{
+      minCodeSize: (0, _uint.readByte)()
+    }, subBlocksSchema]
+  }]
+}, function (stream) {
+  return (0, _uint.peekByte)()(stream) === 0x2c;
+}); // plain text block
+
+var textSchema = (0, _.conditional)({
+  text: [{
+    codes: (0, _uint.readBytes)(2)
+  }, {
+    blockSize: (0, _uint.readByte)()
+  }, {
+    preData: function preData(stream, result, parent) {
+      return (0, _uint.readBytes)(parent.text.blockSize)(stream);
+    }
+  }, subBlocksSchema]
+}, function (stream) {
+  var codes = (0, _uint.peekBytes)(2)(stream);
+  return codes[0] === 0x21 && codes[1] === 0x01;
+}); // application block
+
+var applicationSchema = (0, _.conditional)({
+  application: [{
+    codes: (0, _uint.readBytes)(2)
+  }, {
+    blockSize: (0, _uint.readByte)()
+  }, {
+    id: function id(stream, result, parent) {
+      return (0, _uint.readString)(parent.blockSize)(stream);
+    }
+  }, subBlocksSchema]
+}, function (stream) {
+  var codes = (0, _uint.peekBytes)(2)(stream);
+  return codes[0] === 0x21 && codes[1] === 0xff;
+}); // comment block
+
+var commentSchema = (0, _.conditional)({
+  comment: [{
+    codes: (0, _uint.readBytes)(2)
+  }, subBlocksSchema]
+}, function (stream) {
+  var codes = (0, _uint.peekBytes)(2)(stream);
+  return codes[0] === 0x21 && codes[1] === 0xfe;
+});
+var schema = [{
+  header: [{
+    signature: (0, _uint.readString)(3)
+  }, {
+    version: (0, _uint.readString)(3)
+  }]
+}, {
+  lsd: [{
+    width: (0, _uint.readUnsigned)(true)
+  }, {
+    height: (0, _uint.readUnsigned)(true)
+  }, {
+    gct: (0, _uint.readBits)({
+      exists: {
+        index: 0
+      },
+      resolution: {
+        index: 1,
+        length: 3
+      },
+      sort: {
+        index: 4
+      },
+      size: {
+        index: 5,
+        length: 3
+      }
+    })
+  }, {
+    backgroundColorIndex: (0, _uint.readByte)()
+  }, {
+    pixelAspectRatio: (0, _uint.readByte)()
+  }]
+}, (0, _.conditional)({
+  gct: (0, _uint.readArray)(3, function (stream, result) {
+    return Math.pow(2, result.lsd.gct.size + 1);
+  })
+}, function (stream, result) {
+  return result.lsd.gct.exists;
+}), // content frames
+{
+  frames: (0, _.loop)([gceSchema, applicationSchema, commentSchema, imageSchema, textSchema], function (stream) {
+    var nextCode = (0, _uint.peekByte)()(stream); // rather than check for a terminator, we should check for the existence
+    // of an ext or image block to avoid infinite loops
+    //var terminator = 0x3B;
+    //return nextCode !== terminator;
+
+    return nextCode === 0x21 || nextCode === 0x2c;
+  })
+}];
+var _default = schema;
+exports["default"] = _default;
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.loop = exports.conditional = exports.parse = void 0;
+
+var parse = function parse(stream, schema) {
+  var result = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+  var parent = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : result;
+
+  if (Array.isArray(schema)) {
+    schema.forEach(function (partSchema) {
+      return parse(stream, partSchema, result, parent);
+    });
+  } else if (typeof schema === 'function') {
+    schema(stream, result, parent, parse);
+  } else {
+    var key = Object.keys(schema)[0];
+
+    if (Array.isArray(schema[key])) {
+      parent[key] = {};
+      parse(stream, schema[key], result, parent[key]);
+    } else {
+      parent[key] = schema[key](stream, result, parent, parse);
+    }
+  }
+
+  return result;
+};
+
+exports.parse = parse;
+
+var conditional = function conditional(schema, conditionFunc) {
+  return function (stream, result, parent, parse) {
+    if (conditionFunc(stream, result, parent)) {
+      parse(stream, schema, result, parent);
+    }
+  };
+};
+
+exports.conditional = conditional;
+
+var loop = function loop(schema, continueFunc) {
+  return function (stream, result, parent, parse) {
+    var arr = [];
+
+    while (continueFunc(stream, result, parent)) {
+      var newParent = {};
+      parse(stream, schema, result, newParent);
+      arr.push(newParent);
+    }
+
+    return arr;
+  };
+};
+
+exports.loop = loop;
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.readBits = exports.readArray = exports.readUnsigned = exports.readString = exports.peekBytes = exports.readBytes = exports.peekByte = exports.readByte = exports.buildStream = void 0;
+
+// Default stream and parsers for Uint8TypedArray data type
+var buildStream = function buildStream(uint8Data) {
+  return {
+    data: uint8Data,
+    pos: 0
+  };
+};
+
+exports.buildStream = buildStream;
+
+var readByte = function readByte() {
+  return function (stream) {
+    return stream.data[stream.pos++];
+  };
+};
+
+exports.readByte = readByte;
+
+var peekByte = function peekByte() {
+  var offset = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 0;
+  return function (stream) {
+    return stream.data[stream.pos + offset];
+  };
+};
+
+exports.peekByte = peekByte;
+
+var readBytes = function readBytes(length) {
+  return function (stream) {
+    return stream.data.subarray(stream.pos, stream.pos += length);
+  };
+};
+
+exports.readBytes = readBytes;
+
+var peekBytes = function peekBytes(length) {
+  return function (stream) {
+    return stream.data.subarray(stream.pos, stream.pos + length);
+  };
+};
+
+exports.peekBytes = peekBytes;
+
+var readString = function readString(length) {
+  return function (stream) {
+    return Array.from(readBytes(length)(stream)).map(function (value) {
+      return String.fromCharCode(value);
+    }).join('');
+  };
+};
+
+exports.readString = readString;
+
+var readUnsigned = function readUnsigned(littleEndian) {
+  return function (stream) {
+    var bytes = readBytes(2)(stream);
+    return littleEndian ? (bytes[1] << 8) + bytes[0] : (bytes[0] << 8) + bytes[1];
+  };
+};
+
+exports.readUnsigned = readUnsigned;
+
+var readArray = function readArray(byteSize, totalOrFunc) {
+  return function (stream, result, parent) {
+    var total = typeof totalOrFunc === 'function' ? totalOrFunc(stream, result, parent) : totalOrFunc;
+    var parser = readBytes(byteSize);
+    var arr = new Array(total);
+
+    for (var i = 0; i < total; i++) {
+      arr[i] = parser(stream);
+    }
+
+    return arr;
+  };
+};
+
+exports.readArray = readArray;
+
+var subBitsTotal = function subBitsTotal(bits, startIndex, length) {
+  var result = 0;
+
+  for (var i = 0; i < length; i++) {
+    result += bits[startIndex + i] && Math.pow(2, length - i - 1);
+  }
+
+  return result;
+};
+
+var readBits = function readBits(schema) {
+  return function (stream) {
+    var _byte = readByte()(stream); // convert the byte to bit array
+
+
+    var bits = new Array(8);
+
+    for (var i = 0; i < 8; i++) {
+      bits[7 - i] = !!(_byte & 1 << i);
+    } // convert the bit array to values based on the schema
+
+
+    return Object.keys(schema).reduce(function (res, key) {
+      var def = schema[key];
+
+      if (def.length) {
+        res[key] = subBitsTotal(bits, def.index, def.length);
+      } else {
+        res[key] = bits[def.index];
+      }
+
+      return res;
+    }, {});
+  };
+};
+
+exports.readBits = readBits;
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.deinterlace = void 0;
+
+/**
+ * Deinterlace function from https://github.com/shachaf/jsgif
+ */
+var deinterlace = function deinterlace(pixels, width) {
+  var newPixels = new Array(pixels.length);
+  var rows = pixels.length / width;
+
+  var cpRow = function cpRow(toRow, fromRow) {
+    var fromPixels = pixels.slice(fromRow * width, (fromRow + 1) * width);
+    newPixels.splice.apply(newPixels, [toRow * width, width].concat(fromPixels));
+  }; // See appendix E.
+
+
+  var offsets = [0, 4, 2, 1];
+  var steps = [8, 8, 4, 2];
+  var fromRow = 0;
+
+  for (var pass = 0; pass < 4; pass++) {
+    for (var toRow = offsets[pass]; toRow < rows; toRow += steps[pass]) {
+      cpRow(toRow, fromRow);
+      fromRow++;
+    }
+  }
+
+  return newPixels;
+};
+
+exports.deinterlace = deinterlace;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.lzw = void 0;
+
+/**
+ * javascript port of java LZW decompression
+ * Original java author url: https://gist.github.com/devunwired/4479231
+ */
+var lzw = function lzw(minCodeSize, data, pixelCount) {
+  var MAX_STACK_SIZE = 4096;
+  var nullCode = -1;
+  var npix = pixelCount;
+  var available, clear, code_mask, code_size, end_of_information, in_code, old_code, bits, code, i, datum, data_size, first, top, bi, pi;
+  var dstPixels = new Array(pixelCount);
+  var prefix = new Array(MAX_STACK_SIZE);
+  var suffix = new Array(MAX_STACK_SIZE);
+  var pixelStack = new Array(MAX_STACK_SIZE + 1); // Initialize GIF data stream decoder.
+
+  data_size = minCodeSize;
+  clear = 1 << data_size;
+  end_of_information = clear + 1;
+  available = clear + 2;
+  old_code = nullCode;
+  code_size = data_size + 1;
+  code_mask = (1 << code_size) - 1;
+
+  for (code = 0; code < clear; code++) {
+    prefix[code] = 0;
+    suffix[code] = code;
+  } // Decode GIF pixel stream.
+
+
+  var datum, bits, count, first, top, pi, bi;
+  datum = bits = count = first = top = pi = bi = 0;
+
+  for (i = 0; i < npix;) {
+    if (top === 0) {
+      if (bits < code_size) {
+        // get the next byte
+        datum += data[bi] << bits;
+        bits += 8;
+        bi++;
+        continue;
+      } // Get the next code.
+
+
+      code = datum & code_mask;
+      datum >>= code_size;
+      bits -= code_size; // Interpret the code
+
+      if (code > available || code == end_of_information) {
+        break;
+      }
+
+      if (code == clear) {
+        // Reset decoder.
+        code_size = data_size + 1;
+        code_mask = (1 << code_size) - 1;
+        available = clear + 2;
+        old_code = nullCode;
+        continue;
+      }
+
+      if (old_code == nullCode) {
+        pixelStack[top++] = suffix[code];
+        old_code = code;
+        first = code;
+        continue;
+      }
+
+      in_code = code;
+
+      if (code == available) {
+        pixelStack[top++] = first;
+        code = old_code;
+      }
+
+      while (code > clear) {
+        pixelStack[top++] = suffix[code];
+        code = prefix[code];
+      }
+
+      first = suffix[code] & 0xff;
+      pixelStack[top++] = first; // add a new string to the table, but only if space is available
+      // if not, just continue with current table until a clear code is found
+      // (deferred clear code implementation as per GIF spec)
+
+      if (available < MAX_STACK_SIZE) {
+        prefix[available] = old_code;
+        suffix[available] = first;
+        available++;
+
+        if ((available & code_mask) === 0 && available < MAX_STACK_SIZE) {
+          code_size++;
+          code_mask += available;
+        }
+      }
+
+      old_code = in_code;
+    } // Pop a pixel off the pixel stack.
+
+
+    top--;
+    dstPixels[pi++] = pixelStack[top];
+    i++;
+  }
+
+  for (i = pi; i < npix; i++) {
+    dstPixels[i] = 0; // clear missing pixels
+  }
+
+  return dstPixels;
+};
+
+exports.lzw = lzw;
+
+/***/ })
+/******/ ]);
+</script>
+<script>
+/* Ya's GIF→SL Sprite Sheet Maker · © 2026 Ya · All rights reserved.
+   Personal use only — see HTML header for license. */
+'use strict';
+const { parseGIF, decompressFrames } = window.gifuct;
+const cnv = document.getElementById('cnv');
+const ctx = cnv.getContext('2d');
+const exportBtn = document.getElementById('export');
+const exportAllBtn = document.getElementById('exportAll');
+const drop = document.getElementById('drop');
+const dropText = document.getElementById('dropText');
+const thumbsBox = document.getElementById('thumbs');
+const prevBtn = document.getElementById('prev');
+const nextBtn = document.getElementById('next');
+const loadNewBtn = document.getElementById('loadNew');
+
+prevBtn.addEventListener('click', () => { if (currentIdx > 0) selectGif(currentIdx - 1); });
+nextBtn.addEventListener('click', () => { if (currentIdx < gifs.length - 1) selectGif(currentIdx + 1); });
+
+// ---------- Multi-select + big Clear bar (with 2-click confirmation) ----------
+const clearAllBtn = document.getElementById('clearAllBtn');
+const markedGifs = new Set();        // tracks gif object refs marked for deletion
+let _clearArmed = false;
+let _clearTimer = null;
+// ---------- Marquee (Windows-style drag-select) ----------
+let marqueeStart = null;        // { x, y } page coords
+let marqueeEl = null;
+let marqueeMode = 'replace';    // 'replace' | 'add' | 'remove'
+let preMarqueeMarked = null;    // snapshot of markedGifs at drag start
+let suppressNextClick = false;  // prevent the click after a drag from also selecting
+let lastClickedIdx = -1;        // anchor for Shift+Click range selection
+const MARQUEE_THRESHOLD = 4;    // px before a click becomes a drag
+
+thumbsBox.addEventListener('mousedown', (e) => {
+  if (e.button !== 0) return;
+  // Don't start marquee on the X button (it has its own handler)
+  if (e.target.closest('.thumb-x')) return;
+
+  marqueeStart = { x: e.clientX, y: e.clientY };
+  preMarqueeMarked = new Set(markedGifs);
+  marqueeMode = e.shiftKey ? 'remove' : ((e.ctrlKey || e.metaKey) ? 'add' : 'replace');
+});
+
+window.addEventListener('mousemove', (e) => {
+  if (!marqueeStart) return;
+  const dx = e.clientX - marqueeStart.x;
+  const dy = e.clientY - marqueeStart.y;
+  if (!marqueeEl && Math.hypot(dx, dy) > MARQUEE_THRESHOLD) {
+    marqueeEl = document.createElement('div');
+    marqueeEl.className = 'marquee';
+    document.body.appendChild(marqueeEl);
+    suppressNextClick = true;  // the eventual click should not also select
+    document.body.style.cursor = 'crosshair';  // visual feedback while drawing
+  }
+  if (!marqueeEl) return;
+  const left = Math.min(marqueeStart.x, e.clientX);
+  const top  = Math.min(marqueeStart.y, e.clientY);
+  const w = Math.abs(dx), h = Math.abs(dy);
+  marqueeEl.style.left = left + 'px';
+  marqueeEl.style.top  = top + 'px';
+  marqueeEl.style.width  = w + 'px';
+  marqueeEl.style.height = h + 'px';
+
+  // Compute which thumbs intersect the marquee
+  const inBox = new Set();
+  Array.from(thumbsBox.children).forEach((wrap, idx) => {
+    const tr = wrap.getBoundingClientRect();
+    const intersects = !(tr.right < left || tr.left > left + w ||
+                         tr.bottom < top || tr.top > top + h);
+    if (intersects) inBox.add(gifs[idx]);
+  });
+
+  // Apply mode
+  if (marqueeMode === 'replace') {
+    markedGifs.clear();
+    inBox.forEach(g => markedGifs.add(g));
+  } else if (marqueeMode === 'add') {
+    markedGifs.clear();
+    preMarqueeMarked.forEach(g => markedGifs.add(g));
+    inBox.forEach(g => markedGifs.add(g));
+  } else if (marqueeMode === 'remove') {
+    markedGifs.clear();
+    preMarqueeMarked.forEach(g => markedGifs.add(g));
+    inBox.forEach(g => markedGifs.delete(g));
+  }
+  refreshThumbMarks();
+  if (_clearArmed) resetClearBtn();
+});
+
+window.addEventListener('mouseup', (e) => {
+  const wasDrag = !!marqueeEl;
+  if (marqueeEl) { marqueeEl.remove(); marqueeEl = null; }
+  document.body.style.cursor = '';
+
+  // No drag: handle modifier-clicks on a single thumb
+  if (marqueeStart && !wasDrag) {
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const thumb = el && el.closest && el.closest('.thumb');
+    if (thumb && thumbsBox.contains(thumb)) {
+      const idx = Array.from(thumbsBox.children).indexOf(thumb);
+      if (idx >= 0) {
+        if (e.shiftKey && lastClickedIdx >= 0 && lastClickedIdx < gifs.length) {
+          // Shift+Click → mark every thumb between anchor and clicked
+          const lo = Math.min(lastClickedIdx, idx);
+          const hi = Math.max(lastClickedIdx, idx);
+          for (let i = lo; i <= hi; i++) markedGifs.add(gifs[i]);
+          refreshThumbMarks();
+          if (_clearArmed) resetClearBtn();
+          suppressNextClick = true;
+        } else if (e.ctrlKey || e.metaKey || e.shiftKey) {
+          // Ctrl-click (or Shift-click without anchor) → toggle this one
+          const g = gifs[idx];
+          if (markedGifs.has(g)) markedGifs.delete(g); else markedGifs.add(g);
+          lastClickedIdx = idx;
+          refreshThumbMarks();
+          if (_clearArmed) resetClearBtn();
+          suppressNextClick = true;
+        } else {
+          // Plain click — anchor for future Shift+Click
+          lastClickedIdx = idx;
+        }
+      }
+    }
+  }
+  marqueeStart = null;
+  preMarqueeMarked = null;
+});
+window.addEventListener('blur', () => {
+  if (marqueeEl) { marqueeEl.remove(); marqueeEl = null; }
+  marqueeStart = null; preMarqueeMarked = null; suppressNextClick = false;
+});
+
+function updateThumbsFooter() {
+  if (gifs.length > 0) {
+    clearAllBtn.style.display = '';
+  } else {
+    clearAllBtn.style.display = 'none';
+    markedGifs.clear();
+  }
+  if (_clearArmed) resetClearBtn();
+  else updateClearBarText();
+}
+
+function updateClearBarText() {
+  const m = markedGifs.size;
+  clearAllBtn.textContent = m > 0
+    ? `🗑 Clear (${m})`
+    : `🗑 Clear ALL (${gifs.length})`;
+}
+
+function resetClearBtn() {
+  _clearArmed = false;
+  clearTimeout(_clearTimer);
+  clearAllBtn.classList.remove('confirm');
+  updateClearBarText();
+}
+
+function refreshThumbMarks() {
+  Array.from(thumbsBox.children).forEach((wrap, i) => {
+    wrap.classList.toggle('marked', markedGifs.has(gifs[i]));
+  });
+  updateClearBarText();
+}
+
+function toggleMarked(g) {
+  if (markedGifs.has(g)) markedGifs.delete(g);
+  else markedGifs.add(g);
+  refreshThumbMarks();
+  if (_clearArmed) resetClearBtn();
+}
+
+clearAllBtn.addEventListener('click', () => {
+  if (!_clearArmed) {
+    _clearArmed = true;
+    clearAllBtn.classList.add('confirm');
+    const m = markedGifs.size;
+    clearAllBtn.textContent = m > 0
+      ? `Click again to remove ${m} GIF${m === 1 ? '' : 's'}`
+      : `Click again to remove ALL ${gifs.length} GIFs`;
+    _clearTimer = setTimeout(resetClearBtn, 3000);
+    return;
+  }
+  // confirmed
+  clearTimeout(_clearTimer);
+  _clearArmed = false;
+  clearAllBtn.classList.remove('confirm');
+
+  if (markedGifs.size > 0) {
+    // remove only the marked ones
+    const removedCurrent = currentIdx >= 0 && markedGifs.has(gifs[currentIdx]);
+    gifs = gifs.filter(g => !markedGifs.has(g));
+    markedGifs.clear();
+    thumbsBox.innerHTML = '';
+    gifs.forEach(g => addThumb(g));
+    exportAllBtn.textContent = `Export all (${gifs.length})`;
+    if (gifs.length === 0) wipeWorkspace();
+    else {
+      if (removedCurrent || currentIdx >= gifs.length) currentIdx = 0;
+      selectGif(currentIdx);
+    }
+  } else {
+    // remove all
+    gifs = [];
+    markedGifs.clear();
+    thumbsBox.innerHTML = '';
+    wipeWorkspace();
+  }
+  updateThumbsFooter();
+});
+
+function wipeWorkspace() {
+  currentIdx = -1;
+  cropRect = null;
+  frames = [];
+  if (animRequest) cancelAnimationFrame(animRequest);
+  drawPlaceholder();
+  exportBtn.disabled = true;
+  exportAllBtn.disabled = true;
+  exportAllBtn.textContent = 'Export all (0)';
+  prevBtn.disabled = true;
+  nextBtn.disabled = true;
+  ['i-file','i-dim','i-frames','i-fps','i-used','i-grid','i-canvas','i-cell','i-out-fps']
+    .forEach(id => document.getElementById(id).textContent = '—');
+  document.getElementById('i-crop').textContent = '—';
+  document.getElementById('i-name').textContent = '—';
+}
+
+// Load GIFs button: open the hidden file input
+const loadNewText = document.getElementById('loadNewText');
+function setLoadText(t) { loadNewText.textContent = t; }
+function setLoadDisabled(d) { loadNewBtn.disabled = !!d; }
+loadNewBtn.addEventListener('click', () => {
+  const fi = document.getElementById('file');
+  fi.value = '';
+  fi.click();
+});
+
+const aspectSel = document.getElementById('aspectSel');
+const aspectGlobal = document.getElementById('aspectGlobal');
+
+function applyAspectTo(g, a) {
+  g.aspect = a;
+  let cw, ch;
+  if (g.w / g.h >= a) { ch = g.h; cw = ch * a; } else { cw = g.w; ch = cw / a; }
+  cw = Math.min(cw, g.w); ch = Math.min(ch, g.h);
+  g.crop.x = (g.w - cw) / 2;
+  g.crop.y = (g.h - ch) / 2;
+  g.crop.w = cw;
+  g.crop.h = ch;
+}
+
+function currentAspectFromSelect() {
+  const [aw, ah] = aspectSel.value.split(':').map(Number);
+  return aw / ah;
+}
+
+// Dropdown change → only the currently selected GIF
+aspectSel.addEventListener('change', () => {
+  if (currentIdx < 0) return;
+  applyAspectTo(gifs[currentIdx], currentAspectFromSelect());
+  draw(); updateInfo();
+});
+
+// "Apply" button → push current ratio onto every GIF (one-time click)
+aspectGlobal.addEventListener('click', () => {
+  if (!gifs.length) return;
+  const a = currentAspectFromSelect();
+  gifs.forEach(g => applyAspectTo(g, a));
+  draw(); updateInfo();
+  flashApply(aspectGlobal);
+});
+
+function flashApply(btn) {
+  btn.classList.add('flash');
+  const orig = btn.textContent;
+  btn.textContent = 'Applied ✓';
+  setTimeout(() => { btn.classList.remove('flash'); btn.textContent = orig; }, 900);
+}
+
+// ---------- output base size (per-GIF, with optional global toggle) ----------
+const baseSel = document.getElementById('baseSel');
+const baseGlobal = document.getElementById('baseGlobal');
+
+function currentBaseFromSelect() {
+  return parseInt(baseSel.value, 10) || 1024;
+}
+
+// Dropdown change → only the currently selected GIF
+baseSel.addEventListener('change', () => {
+  if (currentIdx < 0) return;
+  gifs[currentIdx].base = currentBaseFromSelect();
+  draw(); updateInfo();
+});
+
+// "Apply" button → push current size onto every GIF (one-time click)
+baseGlobal.addEventListener('click', () => {
+  if (!gifs.length) return;
+  const b = currentBaseFromSelect();
+  gifs.forEach(g => { g.base = b; });
+  draw(); updateInfo();
+  flashApply(baseGlobal);
+});
+
+// ---------- frame step ----------
+const stepSel = document.getElementById('stepSel');
+stepSel.addEventListener('change', () => {
+  if (currentIdx < 0) return;
+  gifs[currentIdx].frameStep = parseInt(stepSel.value, 10) || 1;
+  draw(); updateInfo();
+});
+
+// ---------- trim to fit ----------
+const trimToFit = document.getElementById('trimToFit');
+const trimGlobal = document.getElementById('trimGlobal');
+trimToFit.addEventListener('change', () => {
+  if (currentIdx < 0) return;
+  gifs[currentIdx].trim = trimToFit.checked;
+  animStart = 0;  // restart preview loop so trimmed timing aligns
+  draw(); updateInfo();
+});
+trimGlobal.addEventListener('click', () => {
+  if (!gifs.length) return;
+  const t = trimToFit.checked;
+  gifs.forEach(g => { g.trim = t; });
+  animStart = 0;
+  draw(); updateInfo();
+  flashApply(trimGlobal);
+});
+
+// ---------- background color picker ----------
+const BG_COLORS = [
+  null,        // transparent
+  '#ffffff', '#000000', '#808080', '#cccccc', '#404040',
+  '#ff4757', '#ff7f50', '#ffd700', '#7fff00', '#00b894', '#00cec9',
+  '#0984e3', '#5f3dc4', '#a55eea', '#ff85c1', '#fd79a8', '#8b4513',
+];
+const bgSwatch = document.getElementById('bgSwatch');
+const bgGlobal = document.getElementById('bgGlobal');
+const bgPopup = document.getElementById('bgPopup');
+
+const bgGrid = document.createElement('div');
+bgGrid.className = 'bg-grid';
+bgPopup.appendChild(bgGrid);
+
+BG_COLORS.forEach(color => {
+  const sw = document.createElement('button');
+  sw.type = 'button';
+  sw.className = 'bg-pick' + (color === null ? ' transparent' : '');
+  if (color !== null) sw.style.background = color;
+  sw.title = color === null ? 'Transparent' : color;
+  sw.dataset.color = color === null ? '' : color;
+  sw.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (currentIdx < 0) return;
+    gifs[currentIdx].bgColor = color;
+    updateBgSwatch();
+    closeBgPopup();
+    draw(); updateInfo();
+  });
+  bgGrid.appendChild(sw);
+});
+
+const bgCustom = document.createElement('div');
+bgCustom.className = 'bg-custom';
+bgCustom.innerHTML = `
+  <input type="color" id="bgColorInput" value="#ffffff" title="Pick a color">
+  <input type="text" id="bgHexInput" placeholder="#hex or rgb(r,g,b)" maxlength="22"
+         autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+`;
+bgPopup.appendChild(bgCustom);
+
+const bgColorInput = bgCustom.querySelector('#bgColorInput');
+const bgHexInput = bgCustom.querySelector('#bgHexInput');
+
+function parseColorInput(s) {
+  if (s == null) return null;
+  s = s.trim().toLowerCase();
+  if (!s) return null;
+  if (/^#[0-9a-f]{6}$/.test(s)) return s;
+  if (/^[0-9a-f]{6}$/.test(s)) return '#' + s;
+  if (/^#[0-9a-f]{3}$/.test(s)) return '#' + s[1] + s[1] + s[2] + s[2] + s[3] + s[3];
+  if (/^[0-9a-f]{3}$/.test(s)) return '#' + s[0] + s[0] + s[1] + s[1] + s[2] + s[2];
+  let m = s.match(/^rgb\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})\s*\)$/);
+  if (!m) m = s.match(/^(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})$/);
+  if (m) {
+    const r = +m[1], g = +m[2], b = +m[3];
+    if (r > 255 || g > 255 || b > 255) return null;
+    return '#' + [r, g, b].map(n => n.toString(16).padStart(2, '0')).join('');
+  }
+  return null;
+}
+
+function applyCustomColor(color) {
+  if (currentIdx < 0) return;
+  gifs[currentIdx].bgColor = color;
+  updateBgSwatch();
+  draw(); updateInfo();
+}
+
+bgColorInput.addEventListener('input', () => applyCustomColor(bgColorInput.value));
+bgHexInput.addEventListener('keydown', (e) => {
+  e.stopPropagation();
+  if (e.key === 'Enter') {
+    const c = parseColorInput(bgHexInput.value);
+    if (c) {
+      applyCustomColor(c);
+      bgColorInput.value = c;
+      bgHexInput.value = c;
+      bgHexInput.style.borderColor = '';
+    } else {
+      bgHexInput.style.borderColor = '#ff4757';
+    }
+  }
+});
+bgHexInput.addEventListener('blur', () => {
+  const c = parseColorInput(bgHexInput.value);
+  if (c) {
+    applyCustomColor(c);
+    bgColorInput.value = c;
+    bgHexInput.value = c;
+    bgHexInput.style.borderColor = '';
+  } else if (bgHexInput.value.trim() === '') {
+    bgHexInput.style.borderColor = '';
+  }
+});
+bgHexInput.addEventListener('click', e => e.stopPropagation());
+bgColorInput.addEventListener('click', e => e.stopPropagation());
+
+function setSwatchColor(el, color) {
+  if (color === null || color === undefined) {
+    el.style.background = '';
+    el.style.backgroundColor = 'transparent';
+    el.style.backgroundImage =
+      'linear-gradient(45deg, #ffd1dc 25%, transparent 25%, transparent 75%, #ffd1dc 75%, #ffd1dc),' +
+      'linear-gradient(45deg, #ffd1dc 25%, #fff5f8 25%, #fff5f8 75%, #ffd1dc 75%, #ffd1dc)';
+    el.style.backgroundSize = '10px 10px';
+    el.style.backgroundPosition = '0 0, 5px 5px';
+  } else {
+    el.style.backgroundImage = '';
+    el.style.background = color;
+  }
+}
+
+function updateBgSwatch() {
+  if (currentIdx < 0) { setSwatchColor(bgSwatch, null); return; }
+  const cur = gifs[currentIdx].bgColor;
+  setSwatchColor(bgSwatch, cur);
+  bgPopup.querySelectorAll('.bg-pick').forEach(p => {
+    const c = p.dataset.color || null;
+    p.classList.toggle('active', (c || null) === (cur || null));
+  });
+  if (cur) {
+    bgColorInput.value = cur;
+    bgHexInput.value = cur;
+  } else {
+    bgColorInput.value = '#ffffff';
+    bgHexInput.value = '';
+  }
+  bgHexInput.style.borderColor = '';
+}
+
+function openBgPopup() {
+  const r = bgSwatch.getBoundingClientRect();
+  bgPopup.classList.add('show');
+  requestAnimationFrame(() => {
+    const pw = bgPopup.offsetWidth;
+    bgPopup.style.left = (window.scrollX + r.left + r.width / 2 - pw / 2) + 'px';
+    bgPopup.style.top = (window.scrollY + r.bottom + 6) + 'px';
+  });
+}
+function closeBgPopup() { bgPopup.classList.remove('show'); }
+
+bgSwatch.addEventListener('click', (e) => {
+  e.stopPropagation();
+  if (currentIdx < 0) return;
+  if (bgPopup.classList.contains('show')) closeBgPopup();
+  else { updateBgSwatch(); openBgPopup(); }
+});
+
+document.addEventListener('click', (e) => {
+  if (!bgPopup.contains(e.target) && e.target !== bgSwatch) closeBgPopup();
+});
+
+bgGlobal.addEventListener('click', () => {
+  if (!gifs.length || currentIdx < 0) return;
+  const c = gifs[currentIdx].bgColor;
+  gifs.forEach(g => { g.bgColor = c; });
+  draw(); updateInfo();
+  flashApply(bgGlobal);
+});
+
+// Empty-state placeholder
+const placeholderEl = document.getElementById('placeholder');
+function drawPlaceholder() {
+  // Canvas just becomes a sized backdrop; the HTML overlay (#placeholder) renders the content sharp
+  cnv.width = 600; cnv.height = 400;
+  ctx.clearRect(0, 0, cnv.width, cnv.height);
+  cnv.style.cursor = 'default';
+  if (placeholderEl) placeholderEl.style.display = '';
+  syncPanelHeight();
+}
+
+function syncPanelHeight() { /* no-op: align-items:stretch handles equal heights via CSS */ }
+drawPlaceholder();
+
+const MAX_GIFS = 100;
+let gifs = [];            // [{ name, frames, w, h, crop, fpsOrig }]
+let currentIdx = -1;
+
+// "current" aliases pointing to gifs[currentIdx]
+let frames = [];
+let gifW = 0, gifH = 0;
+let displayScale = 1;
+let cropRect = null;
+let currentName = '';
+
+let interaction = { mode: 'idle' };
+let currentFrameIdx = 0;
+let animStart = 0;
+let totalDuration = 0;
+let animRequest = 0;
+const HANDLE_PX = 10;
+
+// ---------- file load ----------
+document.getElementById('file').addEventListener('change', e => loadFiles(e.target.files));
+['dragenter','dragover'].forEach(ev =>
+  drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev =>
+  drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+drop.addEventListener('drop', e => {
+  if (e.dataTransfer.files.length) loadFiles(e.dataTransfer.files);
+});
+
+async function loadFiles(fileList) {
+  const allFiles = Array.from(fileList).filter(f => /\.gif$/i.test(f.name));
+  if (!allFiles.length) return;
+
+  // Append to existing list, capped at MAX_GIFS total
+  const remaining = MAX_GIFS - gifs.length;
+  if (remaining <= 0) {
+    setLoadText(`Limit ${MAX_GIFS} reached`);
+    setTimeout(() => setLoadText('Load GIFs'), 2200);
+    return;
+  }
+  const list = allFiles.slice(0, remaining);
+  const wasEmpty = gifs.length === 0;
+
+  document.getElementById('workspace').style.display = 'block';
+
+  for (let i = 0; i < list.length; i++) {
+    const file = list[i];
+    const msg = `Loading ${i+1}/${list.length}: ${file.name}…`;
+    dropText.textContent = msg;
+    setLoadText(`Loading ${i+1}/${list.length}…`);
+    setLoadDisabled(true);
+    try {
+      const buf = await file.arrayBuffer();
+      const gif = parseGIF(buf);
+      const decompressed = decompressFrames(gif, true);
+      const w = gif.lsd.width, h = gif.lsd.height;
+      const fr = coalesce(gif, decompressed);
+      // Use current dropdown ratio as default for new GIFs
+      const aspect = currentAspectFromSelect();
+      let cw, ch;
+      if (w / h >= aspect) { ch = h; cw = ch * aspect; } else { cw = w; ch = cw / aspect; }
+      const g = {
+        name: file.name,
+        frames: fr,
+        w, h,
+        aspect,
+        base: currentBaseFromSelect(),
+        bgColor: '#000000',  // default to black background
+        frameStep: 1,
+        trim: false,
+        crop: { x: (w - cw) / 2, y: (h - ch) / 2, w: cw, h: ch },
+        fpsOrig: avgFpsOf(fr),
+      };
+      gifs.push(g);
+      addThumb(g);
+      updateThumbsFooter();
+      await new Promise(r => setTimeout(r, 0));
+    } catch (err) {
+      console.error('Failed to load', file.name, err);
+    }
+  }
+
+  setLoadDisabled(false);
+  if (gifs.length === 0) {
+    setLoadText('Failed — try again');
+    setTimeout(() => setLoadText('Load GIFs'), 2500);
+    return;
+  }
+  setLoadText('Load GIFs');
+  exportAllBtn.disabled = false;
+  exportAllBtn.textContent = `Export all (${gifs.length})`;
+
+  if (wasEmpty) {
+    // first GIF(s) ever loaded → select the first
+    selectGif(0);
+  } else {
+    // appended → keep current selection, just refresh nav button states
+    highlightThumb(currentIdx);
+    nextBtn.disabled = currentIdx >= gifs.length - 1;
+    prevBtn.disabled = currentIdx <= 0;
+  }
+}
+
+function coalesce(gif, decompressed) {
+  const w = gif.lsd.width, h = gif.lsd.height;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const cc = c.getContext('2d');
+  let saved = null;
+  const out = [];
+  for (const f of decompressed) {
+    if (f.disposalType === 3) saved = cc.getImageData(0, 0, w, h);
+    const p = document.createElement('canvas');
+    p.width = f.dims.width; p.height = f.dims.height;
+    const pc = p.getContext('2d');
+    const id = pc.createImageData(f.dims.width, f.dims.height);
+    id.data.set(f.patch);
+    pc.putImageData(id, 0, 0);
+    cc.drawImage(p, f.dims.left, f.dims.top);
+    out.push({ imageData: cc.getImageData(0, 0, w, h), delay: f.delay });
+    if (f.disposalType === 2) cc.clearRect(f.dims.left, f.dims.top, f.dims.width, f.dims.height);
+    else if (f.disposalType === 3 && saved) cc.putImageData(saved, 0, 0);
+  }
+  return out;
+}
+
+// ---------- thumbnails ----------
+function addThumb(g) {
+  const wrap = document.createElement('div');
+  wrap.className = 'thumb';
+  const c = document.createElement('canvas');
+  c.width = 76; c.height = 76;
+  const cc = c.getContext('2d');
+  cc.fillStyle = '#000'; cc.fillRect(0, 0, 76, 76);
+  const tmp = document.createElement('canvas');
+  tmp.width = g.w; tmp.height = g.h;
+  tmp.getContext('2d').putImageData(g.frames[0].imageData, 0, 0);
+  const scale = Math.min(76 / g.w, 76 / g.h);
+  const dw = g.w * scale, dh = g.h * scale;
+  cc.drawImage(tmp, (76 - dw) / 2, (76 - dh) / 2, dw, dh);
+  const lbl = document.createElement('div');
+  lbl.className = 'thumb-label';
+  lbl.textContent = g.name.replace(/\.gif$/i, '');
+  lbl.title = g.name;
+  // Remove (X) button (top-right)
+  const x = document.createElement('button');
+  x.className = 'thumb-x';
+  x.type = 'button';
+  x.title = 'Remove this GIF';
+  x.textContent = '×';
+  x.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const i = gifs.indexOf(g);
+    if (i >= 0) removeGif(i);
+  });
+  wrap.appendChild(c);
+  wrap.appendChild(lbl);
+  wrap.appendChild(x);
+  if (markedGifs.has(g)) wrap.classList.add('marked');
+
+  // Plain click → select for edit. Suppressed if a drag/marquee just happened
+  // or if Ctrl/Shift was held (those cases are handled in mouseup as marks).
+  wrap.addEventListener('click', (e) => {
+    if (suppressNextClick) { suppressNextClick = false; e.stopPropagation(); return; }
+    if (e.ctrlKey || e.metaKey || e.shiftKey) { e.stopPropagation(); return; }
+    const i = gifs.indexOf(g);
+    if (i >= 0) { lastClickedIdx = i; selectGif(i); }
+  });
+  thumbsBox.appendChild(wrap);
+}
+
+function removeGif(idx) {
+  if (idx < 0 || idx >= gifs.length) return;
+  gifs.splice(idx, 1);
+  // Rebuild thumbnails so indices match the new array
+  thumbsBox.innerHTML = '';
+  gifs.forEach(g => addThumb(g));
+  exportAllBtn.textContent = `Export all (${gifs.length})`;
+  updateThumbsFooter();
+  if (gifs.length === 0) {
+    currentIdx = -1;
+    cropRect = null;
+    frames = [];
+    if (animRequest) cancelAnimationFrame(animRequest);
+    drawPlaceholder();
+    exportBtn.disabled = true;
+    exportAllBtn.disabled = true;
+    prevBtn.disabled = true;
+    nextBtn.disabled = true;
+    // reset info
+    ['i-file','i-dim','i-frames','i-fps','i-used','i-grid','i-canvas','i-cell','i-out-fps']
+      .forEach(id => document.getElementById(id).textContent = '—');
+    document.getElementById('i-crop').textContent = '—';
+    document.getElementById('i-name').textContent = '—';
+    return;
+  }
+  // Adjust currentIdx if it points beyond the new array
+  if (currentIdx >= gifs.length) currentIdx = gifs.length - 1;
+  if (currentIdx < 0) currentIdx = 0;
+  selectGif(currentIdx);
+}
+
+function highlightThumb(idx) {
+  Array.from(thumbsBox.children).forEach((el, i) => {
+    el.classList.toggle('active', i === idx);
+  });
+}
+
+// ---------- gif selection ----------
+function selectGif(idx) {
+  if (idx < 0 || idx >= gifs.length) return;
+  currentIdx = idx;
+  const g = gifs[idx];
+  frames = g.frames;
+  gifW = g.w;
+  gifH = g.h;
+  cropRect = g.crop;        // reference – edits persist on the gif
+  currentName = g.name;
+
+  const maxW = 800, maxH = 600;
+  displayScale = Math.min(maxW / gifW, maxH / gifH, 4);
+  cnv.width = Math.round(gifW * displayScale);
+  cnv.height = Math.round(gifH * displayScale);
+  totalDuration = frames.reduce((a, f) => a + Math.max(20, f.delay || 0), 0);
+  if (totalDuration <= 0) totalDuration = frames.length * 50;
+  animStart = 0;
+  currentFrameIdx = 0;
+  exportBtn.disabled = false;
+  prevBtn.disabled = idx <= 0;
+  nextBtn.disabled = idx >= gifs.length - 1;
+  if (placeholderEl) placeholderEl.style.display = 'none';
+  // sync dropdowns to current gif
+  aspectSel.value = (g.aspect === 2) ? '2:1' : '1:1';
+  baseSel.value = String(g.base || 1024);
+  stepSel.value = String(g.frameStep || 1);
+  trimToFit.checked = !!g.trim;
+  updateBgSwatch();
+  highlightThumb(idx);
+  draw(); updateInfo();
+  syncPanelHeight();
+  if (animRequest) cancelAnimationFrame(animRequest);
+  animRequest = requestAnimationFrame(animTick);
+}
+
+function animTick(ts) {
+  if (!frames.length) return;
+  if (!animStart) animStart = ts;
+  // When trim drops frames, play only the kept ones (uniform timing across the
+  // original duration — matches the export, which averages to a single FPS).
+  const g = currentIdx >= 0 ? gifs[currentIdx] : null;
+  const p = g && g.trim ? plan() : null;
+  const active = (p && p.indices && p.indices.length && p.indices.length < frames.length)
+    ? p.indices : null;
+  const elapsed = (ts - animStart) % totalDuration;
+  if (active) {
+    const idx = Math.min(active.length - 1,
+      Math.floor((elapsed / totalDuration) * active.length));
+    currentFrameIdx = active[idx];
+  } else {
+    let acc = 0;
+    for (let i = 0; i < frames.length; i++) {
+      acc += Math.max(20, frames[i].delay || 0);
+      if (elapsed < acc) { currentFrameIdx = i; break; }
+    }
+  }
+  draw();
+  animRequest = requestAnimationFrame(animTick);
+}
+
+function draw() {
+  if (!frames.length) return;
+  const tmp = document.createElement('canvas');
+  tmp.width = gifW; tmp.height = gifH;
+  tmp.getContext('2d').putImageData(frames[currentFrameIdx].imageData, 0, 0);
+  ctx.imageSmoothingEnabled = true;
+  ctx.clearRect(0, 0, cnv.width, cnv.height);
+  const bg = currentIdx >= 0 ? gifs[currentIdx].bgColor : null;
+  if (bg) {
+    ctx.fillStyle = bg;
+    ctx.fillRect(0, 0, cnv.width, cnv.height);
+  }
+  ctx.drawImage(tmp, 0, 0, cnv.width, cnv.height);
+  if (cropRect) {
+    const sx = cropRect.x * displayScale, sy = cropRect.y * displayScale;
+    const sw = cropRect.w * displayScale, sh = cropRect.h * displayScale;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(0, 0, cnv.width, sy);
+    ctx.fillRect(0, sy + sh, cnv.width, cnv.height - sy - sh);
+    ctx.fillRect(0, sy, sx, sh);
+    ctx.fillRect(sx + sw, sy, cnv.width - sx - sw, sh);
+    ctx.strokeStyle = '#ff8800';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(sx, sy, sw, sh);
+    const p = plan();
+    ctx.strokeStyle = 'rgba(255,136,0,0.3)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < p.cols; i++) {
+      ctx.beginPath();
+      ctx.moveTo(sx + (sw * i / p.cols), sy);
+      ctx.lineTo(sx + (sw * i / p.cols), sy + sh);
+      ctx.stroke();
+    }
+    for (let i = 1; i < p.rows; i++) {
+      ctx.beginPath();
+      ctx.moveTo(sx, sy + (sh * i / p.rows));
+      ctx.lineTo(sx + sw, sy + (sh * i / p.rows));
+      ctx.stroke();
+    }
+    // corner handles
+    ctx.fillStyle = '#ff8800';
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    const hh = HANDLE_PX;
+    [[sx,sy],[sx+sw,sy],[sx,sy+sh],[sx+sw,sy+sh]].forEach(([cx,cy]) => {
+      ctx.fillRect(cx - hh/2, cy - hh/2, hh, hh);
+      ctx.strokeRect(cx - hh/2, cy - hh/2, hh, hh);
+    });
+  }
+}
+
+// ---------- crop interaction ----------
+function pointerToSrc(e) {
+  const r = cnv.getBoundingClientRect();
+  return {
+    x: (e.clientX - r.left) / displayScale,
+    y: (e.clientY - r.top) / displayScale,
+    sx: e.clientX - r.left,
+    sy: e.clientY - r.top
+  };
+}
+
+function hitTest(srcX, srcY, screenX, screenY) {
+  if (!cropRect) return { mode: 'new' };
+  const tol = HANDLE_PX;
+  const sx = cropRect.x * displayScale, sy = cropRect.y * displayScale;
+  const sw = cropRect.w * displayScale, sh = cropRect.h * displayScale;
+  const corners = [
+    { name: 'nw', cx: sx,      cy: sy      },
+    { name: 'ne', cx: sx + sw, cy: sy      },
+    { name: 'sw', cx: sx,      cy: sy + sh },
+    { name: 'se', cx: sx + sw, cy: sy + sh },
+  ];
+  for (const c of corners) {
+    if (Math.abs(screenX - c.cx) <= tol && Math.abs(screenY - c.cy) <= tol)
+      return { mode: 'resize', corner: c.name };
+  }
+  if (srcX >= cropRect.x && srcX <= cropRect.x + cropRect.w &&
+      srcY >= cropRect.y && srcY <= cropRect.y + cropRect.h)
+    return { mode: 'move' };
+  return { mode: 'new' };
+}
+
+function cursorFor(mode, corner) {
+  if (mode === 'move') return 'move';
+  if (mode === 'resize') {
+    if (corner === 'nw' || corner === 'se') return 'nwse-resize';
+    if (corner === 'ne' || corner === 'sw') return 'nesw-resize';
+  }
+  return 'crosshair';
+}
+
+cnv.addEventListener('mousemove', e => {
+  if (!frames.length) return;
+  if (interaction.mode !== 'idle') return;  // active drag handled below
+  const p = pointerToSrc(e);
+  const h = hitTest(p.x, p.y, p.sx, p.sy);
+  cnv.style.cursor = cursorFor(h.mode, h.corner);
+});
+
+cnv.addEventListener('mousedown', e => {
+  if (!frames.length) return;
+  const p = pointerToSrc(e);
+  const h = hitTest(p.x, p.y, p.sx, p.sy);
+  if (h.mode === 'move') {
+    interaction = { mode: 'move', startX: p.x, startY: p.y,
+                    cropX: cropRect.x, cropY: cropRect.y };
+  } else if (h.mode === 'resize') {
+    let ax, ay;  // anchor = opposite corner
+    if (h.corner === 'nw') { ax = cropRect.x + cropRect.w; ay = cropRect.y + cropRect.h; }
+    if (h.corner === 'ne') { ax = cropRect.x;              ay = cropRect.y + cropRect.h; }
+    if (h.corner === 'sw') { ax = cropRect.x + cropRect.w; ay = cropRect.y;              }
+    if (h.corner === 'se') { ax = cropRect.x;              ay = cropRect.y;              }
+    interaction = { mode: 'resize', anchorX: ax, anchorY: ay };
+  } else {
+    interaction = { mode: 'new', startX: p.x, startY: p.y };
+  }
+  cnv.style.cursor = cursorFor(h.mode, h.corner);
+});
+
+window.addEventListener('mousemove', e => {
+  if (interaction.mode === 'idle') return;
+  const p = pointerToSrc(e);
+  const aspect = (currentIdx >= 0 ? gifs[currentIdx].aspect : 1) || 1;
+  if (interaction.mode === 'move') {
+    const dx = p.x - interaction.startX;
+    const dy = p.y - interaction.startY;
+    cropRect.x = Math.max(0, Math.min(gifW - cropRect.w, interaction.cropX + dx));
+    cropRect.y = Math.max(0, Math.min(gifH - cropRect.h, interaction.cropY + dy));
+  } else if (interaction.mode === 'resize') {
+    const ax = interaction.anchorX, ay = interaction.anchorY;
+    const maxX = p.x < ax ? ax : gifW - ax;
+    const maxY = p.y < ay ? ay : gifH - ay;
+    const dx = Math.min(Math.abs(p.x - ax), maxX);
+    const dy = Math.min(Math.abs(p.y - ay), maxY);
+    let cw, ch;
+    if (dy === 0 || dx / dy >= aspect) { ch = dy; cw = ch * aspect; }
+    else { cw = dx; ch = cw / aspect; }
+    ch = Math.max(8, ch); cw = Math.max(8 * aspect, cw);
+    const nx = p.x < ax ? ax - cw : ax;
+    const ny = p.y < ay ? ay - ch : ay;
+    cropRect.x = nx; cropRect.y = ny; cropRect.w = cw; cropRect.h = ch;
+  } else if (interaction.mode === 'new') {
+    const dx = Math.abs(p.x - interaction.startX);
+    const dy = Math.abs(p.y - interaction.startY);
+    let cw, ch;
+    if (dy === 0 || dx / dy >= aspect) { ch = dy; cw = ch * aspect; }
+    else { cw = dx; ch = cw / aspect; }
+    cw = Math.min(cw, gifW); ch = Math.min(ch, gifH);
+    let x = p.x >= interaction.startX ? interaction.startX : interaction.startX - cw;
+    let y = p.y >= interaction.startY ? interaction.startY : interaction.startY - ch;
+    x = Math.max(0, Math.min(gifW - cw, x));
+    y = Math.max(0, Math.min(gifH - ch, y));
+    cropRect.x = x; cropRect.y = y; cropRect.w = cw; cropRect.h = ch;
+  }
+  updateInfo();
+});
+
+window.addEventListener('mouseup', () => {
+  if (interaction.mode !== 'idle') {
+    interaction = { mode: 'idle' };
+    cnv.style.cursor = 'crosshair';
+  }
+});
+
+// ---------- planning ----------
+function avgFpsOf(framesArr) {
+  const ds = framesArr.map(f => f.delay).filter(d => d > 0);
+  if (!ds.length) return 20;
+  return 1000 / (ds.reduce((a,b) => a+b, 0) / ds.length);
+}
+
+function _gcd(a, b) { return b === 0 ? a : _gcd(b, a % b); }
+function _lcm(a, b) { return a * b / _gcd(a, b); }
+
+// Find best (cols, rows) for filling the canvas with minimum waste, both ≤ 8.
+function bestRectGrid(n) {
+  let best = null;
+  for (let c = 1; c <= 8; c++) {
+    const r = Math.ceil(n / c);
+    if (r > 8) continue;
+    const waste = c * r - n;
+    const aspectDist = Math.max(c, r) / Math.min(c, r);
+    const score = waste * 100 + aspectDist;
+    if (best === null || score < best.score) best = { c, r, score, waste };
+  }
+  return best || { c: 8, r: 8, waste: 64 - n };
+}
+
+// Find best (cols, rows, k) where c*r = k ≤ n and c,r ≤ 8.
+// Trims (n - k) frames evenly so the grid fills perfectly with no empty cells.
+// Score = cuts + aspectDist — prefers fewer cuts and squarer layouts.
+function bestPerfectGrid(n) {
+  if (n <= 0) return { c: 1, r: 1, k: 1, cuts: 0, score: 1 };
+  let best = null;
+  for (let k = Math.min(n, 64); k >= 1; k--) {
+    const cuts = n - k;
+    // Min possible score at this k = cuts + 1 (best case: k is a perfect square).
+    if (best !== null && cuts + 1 >= best.score) break;
+    for (let c = 1; c <= 8; c++) {
+      if (k % c !== 0) continue;
+      const r = k / c;
+      if (r > 8) continue;
+      const aspectDist = Math.max(c, r) / Math.min(c, r);
+      const score = cuts + aspectDist;
+      if (best === null || score < best.score) {
+        best = { c, r, k, cuts, score };
+      }
+    }
+  }
+  return best || { c: 1, r: 1, k: 1, cuts: n - 1, score: n };
+}
+
+function planFor(g) {
+  const totalFrames = g.frames.length;
+  const fpsOrig = g.fpsOrig || avgFpsOf(g.frames);
+  const step = Math.max(1, g.frameStep || 1);
+
+  // Apply frame step: take every Nth frame from the original
+  const stepped = [];
+  for (let i = 0; i < totalFrames; i += step) stepped.push(i);
+
+  const n = stepped.length;
+  let target_n, indices, newFps;
+  if (n <= 64) {
+    target_n = n;
+    indices = stepped.slice();
+    newFps = fpsOrig / step;  // playing fewer frames at lower fps preserves duration
+  } else {
+    target_n = 64;
+    // pick 64 evenly from stepped
+    const picks = Array.from({length: 64}, (_, i) => Math.round(i * (n - 1) / 63));
+    indices = [...new Set(picks.map(i => stepped[i]))].sort((a, b) => a - b);
+    target_n = indices.length;
+    // duration of stepped = n * (step / fpsOrig). Want target_n / newFps = same duration
+    newFps = (fpsOrig / step) * (target_n / n);
+  }
+
+  // Trim to fit: drop frames evenly so the grid fills perfectly with no empty cells.
+  let trimGrid = null;
+  if (g.trim && target_n >= 2) {
+    trimGrid = bestPerfectGrid(target_n);
+    if (trimGrid.k < target_n) {
+      const k = trimGrid.k;
+      const before_n = target_n;
+      const beforeIndices = indices;
+      const picks = Array.from({length: k}, (_, i) =>
+        Math.round(i * (before_n - 1) / (k - 1))
+      );
+      indices = [...new Set(picks.map(i => beforeIndices[i]))].sort((a, b) => a - b);
+      target_n = indices.length;
+      // Same duration, fewer frames → lower fps.
+      newFps = newFps * (target_n / before_n);
+    }
+  }
+
+  const aspect = g.aspect || (g.crop.w / g.crop.h) || 1;  // w/h
+  const base = g.base || 1024;
+
+  let cols, rows, canvasW, canvasH, cellW, cellH;
+
+  // Always fill the canvas: pick a rectangular grid (trimmed if requested,
+  // otherwise the smallest rect that fits all frames) and stretch cells to fill.
+  if (trimGrid) {
+    cols = trimGrid.c; rows = trimGrid.r;
+  } else {
+    const grid = bestRectGrid(target_n);
+    cols = grid.c; rows = grid.r;
+  }
+  if (aspect === 1) {
+    // square canvas, both dims must be divisible by both cols and rows
+    const step2 = _lcm(cols, rows);
+    const L = Math.max(step2, Math.floor(base / step2) * step2);
+    canvasW = canvasH = Math.min(L, base);
+  } else {
+    // canvas aspect ≠ 1: search for largest valid h
+    const baseH = Math.floor(base / Math.max(aspect, 1 / aspect)); // shorter side limit
+    let foundH = 0, foundW = 0;
+    const targetAspect = aspect;
+    for (let h = baseH; h >= 1; h--) {
+      if (h % rows !== 0) continue;
+      const w = Math.round(h * targetAspect);
+      if (w > base) continue;
+      if (w % cols !== 0) continue;
+      foundH = h; foundW = w; break;
+    }
+    canvasW = foundW || cols * Math.floor(base / cols);
+    canvasH = foundH || rows * Math.floor(base / rows);
+  }
+  cellW = canvasW / cols;
+  cellH = canvasH / rows;
+
+  const fps = Math.max(1, Math.round(newFps));
+  const end = target_n - 1;
+  const nameBase = (g.name || 'output')
+    .replace(/\.[^.]+$/, '')
+    .replace(/[\\/:*?"<>|]/g, '_');
+  return {
+    n, total: totalFrames, target_n, indices, N: cols, cols, rows,
+    canvasW, canvasH, cellW, cellH, fps, fpsOrig, end, aspect, step,
+    filename: `${cols}-${rows}-0-${end}-${fps}_${nameBase}.png`
+  };
+}
+
+function plan() { return currentIdx >= 0 ? planFor(gifs[currentIdx]) : null; }
+
+function updateInfo() {
+  if (!frames.length) return;
+  const p = plan();
+  document.getElementById('i-file').textContent = currentName.length > 28 ? currentName.slice(0,25)+'…' : currentName;
+  document.getElementById('i-dim').textContent = `${gifW} × ${gifH}`;
+  document.getElementById('i-frames').textContent = frames.length;
+  document.getElementById('i-fps').textContent = p.fpsOrig.toFixed(1);
+  document.getElementById('i-crop').textContent = cropRect
+    ? `${Math.round(cropRect.w)}×${Math.round(cropRect.h)} @ (${Math.round(cropRect.x)},${Math.round(cropRect.y)})`
+    : '—';
+  document.getElementById('i-used').textContent = p.target_n + (p.target_n < frames.length ? ` (sub from ${frames.length})` : '');
+  document.getElementById('i-grid').textContent = `${p.cols} × ${p.rows}`;
+  document.getElementById('i-canvas').textContent = `${p.canvasW} × ${p.canvasH}`;
+  document.getElementById('i-cell').textContent = `${p.cellW}×${p.cellH}px`;
+  document.getElementById('i-out-fps').textContent = p.fps;
+  document.getElementById('i-name').textContent = p.filename;
+}
+
+// ---------- render sheet to blob ----------
+async function renderSheetBlob(g) {
+  const p = planFor(g);
+  const out = document.createElement('canvas');
+  out.width = p.canvasW; out.height = p.canvasH;
+  const oc = out.getContext('2d');
+  oc.imageSmoothingEnabled = true;
+  oc.imageSmoothingQuality = 'high';
+
+  if (g.bgColor) {
+    oc.fillStyle = g.bgColor;
+    oc.fillRect(0, 0, p.canvasW, p.canvasH);
+  }
+
+  const tmp = document.createElement('canvas');
+  tmp.width = g.w; tmp.height = g.h;
+  const tc = tmp.getContext('2d');
+  for (let i = 0; i < p.indices.length; i++) {
+    const idx = p.indices[i];
+    tc.putImageData(g.frames[idx].imageData, 0, 0);
+    const col = i % p.cols, row = Math.floor(i / p.cols);
+    oc.drawImage(tmp,
+      g.crop.x, g.crop.y, g.crop.w, g.crop.h,
+      col * p.cellW, row * p.cellH, p.cellW, p.cellH);
+  }
+
+  let blob;
+  if (opt256 && opt256.checked) {
+    blob = await canvasToIndexedPngBlob(out);
+  } else {
+    blob = await new Promise(resolve => out.toBlob(resolve, 'image/png'));
+  }
+  return { blob, filename: p.filename };
+}
+
+function downloadBlob(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+// Export current = single PNG
+exportBtn.addEventListener('click', async () => {
+  if (currentIdx < 0) return;
+  const r = await renderSheetBlob(gifs[currentIdx]);
+  downloadBlob(r.blob, r.filename);
+});
+
+// Export all = single ZIP, one user confirmation
+exportAllBtn.addEventListener('click', async () => {
+  if (!gifs.length) return;
+  exportBtn.disabled = true;
+  exportAllBtn.disabled = true;
+  prevBtn.disabled = true; nextBtn.disabled = true;
+  const entries = [];
+  for (let i = 0; i < gifs.length; i++) {
+    exportAllBtn.textContent = `Rendering ${i+1}/${gifs.length}…`;
+    await new Promise(r => setTimeout(r, 0));  // yield to UI
+    const r = await renderSheetBlob(gifs[i]);
+    const buf = new Uint8Array(await r.blob.arrayBuffer());
+    entries.push({ name: r.filename, data: buf });
+  }
+  exportAllBtn.textContent = 'Building ZIP…';
+  await new Promise(r => setTimeout(r, 0));
+  const zipBlob = makeZip(entries);
+  downloadBlob(zipBlob, 'sprite_sheets.zip');
+  exportAllBtn.textContent = `Export all (${gifs.length})`;
+  exportBtn.disabled = false;
+  exportAllBtn.disabled = false;
+  prevBtn.disabled = currentIdx <= 0;
+  nextBtn.disabled = currentIdx >= gifs.length - 1;
+});
+
+// ---------- minimal ZIP encoder (STORE only, files are PNGs already compressed) ----------
+const _crcTable = (() => {
+  const t = new Uint32Array(256);
+  for (let i = 0; i < 256; i++) {
+    let c = i;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[i] = c;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let crc = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++)
+    crc = (crc >>> 8) ^ _crcTable[(crc ^ bytes[i]) & 0xFF];
+  return (crc ^ 0xFFFFFFFF) >>> 0;
+}
+function makeZip(files) {
+  const enc = new TextEncoder();
+  const now = new Date();
+  const dosTime = ((now.getHours() & 31) << 11) | ((now.getMinutes() & 63) << 5) | ((now.getSeconds() >>> 1) & 31);
+  const dosDate = (((now.getFullYear() - 1980) & 127) << 9) | (((now.getMonth() + 1) & 15) << 5) | (now.getDate() & 31);
+  const parts = [], central = [];
+  let offset = 0;
+  for (const f of files) {
+    const nameBytes = enc.encode(f.name);
+    const crc = crc32(f.data);
+    const size = f.data.length;
+    const lfh = new Uint8Array(30 + nameBytes.length);
+    const dv = new DataView(lfh.buffer);
+    dv.setUint32(0, 0x04034b50, true);
+    dv.setUint16(4, 20, true); dv.setUint16(6, 0, true); dv.setUint16(8, 0, true);
+    dv.setUint16(10, dosTime, true); dv.setUint16(12, dosDate, true);
+    dv.setUint32(14, crc, true); dv.setUint32(18, size, true); dv.setUint32(22, size, true);
+    dv.setUint16(26, nameBytes.length, true); dv.setUint16(28, 0, true);
+    lfh.set(nameBytes, 30);
+    parts.push(lfh, f.data);
+
+    const cdh = new Uint8Array(46 + nameBytes.length);
+    const cdv = new DataView(cdh.buffer);
+    cdv.setUint32(0, 0x02014b50, true);
+    cdv.setUint16(4, 20, true); cdv.setUint16(6, 20, true);
+    cdv.setUint16(8, 0, true); cdv.setUint16(10, 0, true);
+    cdv.setUint16(12, dosTime, true); cdv.setUint16(14, dosDate, true);
+    cdv.setUint32(16, crc, true); cdv.setUint32(20, size, true); cdv.setUint32(24, size, true);
+    cdv.setUint16(28, nameBytes.length, true);
+    cdv.setUint16(30, 0, true); cdv.setUint16(32, 0, true);
+    cdv.setUint16(34, 0, true); cdv.setUint16(36, 0, true);
+    cdv.setUint32(38, 0, true); cdv.setUint32(42, offset, true);
+    cdh.set(nameBytes, 46);
+    central.push(cdh);
+
+    offset += lfh.length + size;
+  }
+  const cdSize = central.reduce((a, c) => a + c.length, 0);
+  const cdOffset = offset;
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0, 0x06054b50, true);
+  ev.setUint16(4, 0, true); ev.setUint16(6, 0, true);
+  ev.setUint16(8, files.length, true); ev.setUint16(10, files.length, true);
+  ev.setUint32(12, cdSize, true); ev.setUint32(16, cdOffset, true);
+  ev.setUint16(20, 0, true);
+  return new Blob([...parts, ...central, eocd], { type: 'application/zip' });
+}
+
+// ========== Indexed-PNG (256-color) encoder ==========
+const opt256 = document.getElementById('opt256');
+
+function _be32(v) {
+  return new Uint8Array([(v >>> 24) & 0xFF, (v >>> 16) & 0xFF, (v >>> 8) & 0xFF, v & 0xFF]);
+}
+function _concat(...arrs) {
+  let total = 0;
+  for (const a of arrs) total += a.length;
+  const out = new Uint8Array(total);
+  let p = 0;
+  for (const a of arrs) { out.set(a, p); p += a.length; }
+  return out;
+}
+function _pngChunk(type, data) {
+  const t = new TextEncoder().encode(type);
+  const len = _be32(data.length);
+  const crc = _be32(crc32(_concat(t, data)));
+  return _concat(len, t, data, crc);
+}
+async function _deflate(bytes) {
+  const cs = new CompressionStream('deflate');
+  const w = cs.writable.getWriter();
+  w.write(bytes); w.close();
+  const r = cs.readable.getReader();
+  const chunks = [];
+  while (true) {
+    const { done, value } = await r.read();
+    if (done) break;
+    chunks.push(value);
+  }
+  return _concat(...chunks);
+}
+
+function _quantize(imgData, maxColors = 256) {
+  const data = imgData.data;
+  const w = imgData.width, h = imgData.height;
+
+  // Treat low-alpha pixels as "fully transparent" — they get a dedicated palette
+  // entry (0,0,0,0) so they won't be misrendered as a tinted color.
+  const ALPHA_THRESHOLD = 8;
+
+  const opaqueCounts = new Map();
+  let hasTransparent = false;
+  for (let i = 0; i < data.length; i += 4) {
+    const a = data[i+3];
+    if (a < ALPHA_THRESHOLD) { hasTransparent = true; continue; }
+    // Snap fully-opaque-ish pixels to alpha=255 so quantization doesn't blend
+    // alpha into the color clusters and produce muddy mid-alpha entries.
+    const aQ = a >= 248 ? 255 : a;
+    const key = ((aQ << 24) >>> 0) | (data[i] << 16) | (data[i+1] << 8) | data[i+2];
+    opaqueCounts.set(key, (opaqueCounts.get(key) | 0) + 1);
+  }
+
+  const opaqueUnique = [];
+  for (const [k, c] of opaqueCounts) {
+    opaqueUnique.push({
+      r: (k >>> 16) & 0xFF, g: (k >>> 8) & 0xFF, b: k & 0xFF, a: (k >>> 24) & 0xFF, count: c
+    });
+  }
+
+  function bounds(box) {
+    let mnR = 255, mxR = 0, mnG = 255, mxG = 0, mnB = 255, mxB = 0, mnA = 255, mxA = 0;
+    for (const c of box.colors) {
+      if (c.r < mnR) mnR = c.r; if (c.r > mxR) mxR = c.r;
+      if (c.g < mnG) mnG = c.g; if (c.g > mxG) mxG = c.g;
+      if (c.b < mnB) mnB = c.b; if (c.b > mxB) mxB = c.b;
+      if (c.a < mnA) mnA = c.a; if (c.a > mxA) mxA = c.a;
+    }
+    box.rR = mxR - mnR; box.rG = mxG - mnG; box.rB = mxB - mnB; box.rA = mxA - mnA;
+    return box;
+  }
+
+  const targetColors = hasTransparent ? maxColors - 1 : maxColors;
+
+  let palette;
+  if (opaqueUnique.length <= targetColors) {
+    palette = opaqueUnique;
+  } else {
+    let boxes = [bounds({ colors: opaqueUnique })];
+    while (boxes.length < targetColors) {
+      let bestI = -1, bestRange = 0, bestAxis = 'r';
+      for (let i = 0; i < boxes.length; i++) {
+        const b = boxes[i];
+        if (b.colors.length < 2) continue;
+        const m = Math.max(b.rR, b.rG, b.rB, b.rA);
+        if (m > bestRange) {
+          bestRange = m; bestI = i;
+          bestAxis = m === b.rR ? 'r' : (m === b.rG ? 'g' : (m === b.rB ? 'b' : 'a'));
+        }
+      }
+      if (bestI < 0) break;
+      const box = boxes[bestI];
+      box.colors.sort((x, y) => x[bestAxis] - y[bestAxis]);
+      const mid = box.colors.length >> 1;
+      const left = bounds({ colors: box.colors.slice(0, mid) });
+      const right = bounds({ colors: box.colors.slice(mid) });
+      boxes.splice(bestI, 1, left, right);
+    }
+    palette = boxes.map(box => {
+      let tw = 0, sR = 0, sG = 0, sB = 0, sA = 0;
+      for (const c of box.colors) {
+        const w = c.count || 1;
+        tw += w; sR += c.r * w; sG += c.g * w; sB += c.b * w; sA += c.a * w;
+      }
+      return { r: Math.round(sR/tw), g: Math.round(sG/tw), b: Math.round(sB/tw), a: Math.round(sA/tw) };
+    });
+  }
+
+  // Final palette: index 0 reserved for transparent (if needed), opaque entries follow.
+  const finalPalette = [];
+  if (hasTransparent) finalPalette.push({ r: 0, g: 0, b: 0, a: 0 });
+  for (const p of palette) finalPalette.push(p);
+
+  const N = finalPalette.length;
+  const paletteRgb = new Uint8Array(N * 3);
+  const paletteA = new Uint8Array(N);
+  let anyAlpha = false;
+  for (let i = 0; i < N; i++) {
+    paletteRgb[i*3] = finalPalette[i].r;
+    paletteRgb[i*3+1] = finalPalette[i].g;
+    paletteRgb[i*3+2] = finalPalette[i].b;
+    paletteA[i] = finalPalette[i].a;
+    if (finalPalette[i].a < 255) anyAlpha = true;
+  }
+
+  // Map every pixel: alpha-below-threshold → reserved transparent entry; others → nearest opaque.
+  const indices = new Uint8Array(w * h);
+  const cache = new Map();
+  const startK = hasTransparent ? 1 : 0;
+  for (let i = 0, j = 0; i < data.length; i += 4, j++) {
+    const a = data[i+3];
+    if (a < ALPHA_THRESHOLD) {
+      indices[j] = 0;  // points at the reserved transparent entry
+      continue;
+    }
+    const r = data[i], g = data[i+1], b = data[i+2];
+    const aQ = a >= 248 ? 255 : a;
+    const key = ((aQ << 24) >>> 0) | (r << 16) | (g << 8) | b;
+    let idx = cache.get(key);
+    if (idx === undefined) {
+      let best = startK, bestD = Infinity;
+      for (let k = startK; k < N; k++) {
+        const dr = r - paletteRgb[k*3];
+        const dg = g - paletteRgb[k*3+1];
+        const db = b - paletteRgb[k*3+2];
+        const da = aQ - paletteA[k];
+        const d = dr*dr + dg*dg + db*db + da*da;
+        if (d < bestD) { bestD = d; best = k; if (d === 0) break; }
+      }
+      idx = best;
+      cache.set(key, idx);
+    }
+    indices[j] = idx;
+  }
+
+  return { width: w, height: h, indices, paletteRgb, paletteA: anyAlpha ? paletteA : null };
+}
+
+async function canvasToIndexedPngBlob(canvas) {
+  const ctx = canvas.getContext('2d');
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const q = _quantize(img, 256);
+  const sig = new Uint8Array([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]);
+  const ihdr = new Uint8Array(13);
+  const dv = new DataView(ihdr.buffer);
+  dv.setUint32(0, q.width, false); dv.setUint32(4, q.height, false);
+  ihdr[8] = 8; ihdr[9] = 3; ihdr[10] = 0; ihdr[11] = 0; ihdr[12] = 0;
+  const w = q.width, h = q.height;
+  const raw = new Uint8Array(h * (1 + w));
+  let p = 0, ip = 0;
+  for (let y = 0; y < h; y++) {
+    raw[p++] = 0;
+    for (let x = 0; x < w; x++) raw[p++] = q.indices[ip++];
+  }
+  const compressed = await _deflate(raw);
+
+  // sRGB chunk: 1-byte rendering intent (0 = Perceptual)
+  const srgb = new Uint8Array([0]);
+  // gAMA chunk: 4-byte big-endian gamma * 100000 (45455 for sRGB)
+  const gama = _be32(45455);
+  // cHRM chunk: 8 × 4-byte big-endian sRGB chromaticities × 100000 (whitepoint + R/G/B primaries)
+  const chrm = _concat(
+    _be32(31270), _be32(32900),  // whitepoint x, y
+    _be32(64000), _be32(33000),  // red x, y
+    _be32(30000), _be32(60000),  // green x, y
+    _be32(15000), _be32(6000)    // blue x, y
+  );
+
+  const chunks = [
+    _pngChunk('IHDR', ihdr),
+    // Color space tags BEFORE PLTE — tells viewers (esp. Safari on P3 displays)
+    // to render this image as sRGB instead of guessing.
+    _pngChunk('sRGB', srgb),
+    _pngChunk('gAMA', gama),
+    _pngChunk('cHRM', chrm),
+    _pngChunk('PLTE', q.paletteRgb),
+  ];
+  if (q.paletteA) chunks.push(_pngChunk('tRNS', q.paletteA));
+  chunks.push(_pngChunk('IDAT', compressed));
+  chunks.push(_pngChunk('IEND', new Uint8Array(0)));
+  return new Blob([_concat(sig, ...chunks)], { type: 'image/png' });
+}
+</script>
+</body>
+</html>

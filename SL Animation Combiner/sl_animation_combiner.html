@@ -1,0 +1,2409 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SL Animation Combiner :: Synthwave Edition</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<style>
+/* =====================================================================
+   SL Tools :: Synthwave shared theme + navigation
+   Loaded by all tools to give a consistent neon look + tool switcher.
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=VT323&display=swap');
+
+:root {
+  --slt-pink:    #ff2e9a;
+  --slt-magenta: #ff00d6;
+  --slt-cyan:    #00f0ff;
+  --slt-blue:    #5ddcff;
+  --slt-purple:  #6b1fb1;
+  --slt-gold:    #ffd66b;
+  --slt-bg-1:    #0a0024;
+  --slt-bg-2:    #1a0640;
+  --slt-bg-3:    #2d0a5e;
+}
+
+/* ---- Body + background layers (pure CSS — no JS needed) ----
+   The themed body paints the radial bg + overlays a striped
+   "sun" via ::before and an animated grid floor via ::after.
+   Scanlines live on a tiny <div class="slt-scanlines"> element
+   that each themed tool pre-renders so it never has to flash
+   in via JavaScript. */
+body.slt-themed {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 50% 0%,
+    var(--slt-bg-3) 0%, var(--slt-bg-2) 35%, var(--slt-bg-1) 80%) !important;
+  background-attachment: fixed !important;
+  color: var(--slt-cyan);
+  font-family: 'Share Tech Mono', 'VT323', monospace;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+}
+
+body.slt-themed::before {
+  content: '';
+  position: fixed;
+  left: 50%; top: 14vh;
+  transform: translateX(-50%);
+  width: 380px; height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%,
+    #ffe66b 0%, #ff8e2a 35%, #ff2e9a 60%, #6b1fb1 95%);
+  box-shadow: 0 0 80px rgba(255,142,42,0.45), 0 0 200px rgba(255,46,154,0.35);
+  z-index: 0;
+  opacity: 0.85;
+  -webkit-mask-image: repeating-linear-gradient(180deg,
+    black 0, black 22px, transparent 22px, transparent 28px,
+    black 28px, black 42px, transparent 42px, transparent 50px,
+    black 50px, black 70px, transparent 70px, transparent 80px,
+    black 80px);
+          mask-image: repeating-linear-gradient(180deg,
+    black 0, black 22px, transparent 22px, transparent 28px,
+    black 28px, black 42px, transparent 42px, transparent 50px,
+    black 50px, black 70px, transparent 70px, transparent 80px,
+    black 80px);
+  pointer-events: none;
+}
+
+body.slt-themed::after {
+  content: '';
+  position: fixed;
+  bottom: -10vh; left: 50%;
+  transform: translateX(-50%) perspective(420px) rotateX(58deg);
+  transform-origin: top center;
+  width: 220vw; height: 100vh;
+  background:
+    repeating-linear-gradient(0deg,
+      transparent 0, transparent 38px,
+      rgba(255, 0, 214, 0.7) 38px, rgba(255, 0, 214, 0.7) 40px),
+    repeating-linear-gradient(90deg,
+      transparent 0, transparent 38px,
+      rgba(0, 240, 255, 0.55) 38px, rgba(0, 240, 255, 0.55) 40px);
+  pointer-events: none;
+  animation: slt-grid-scroll 1.6s linear infinite;
+  opacity: 0.65;
+  z-index: 0;
+}
+@keyframes slt-grid-scroll {
+  0%   { background-position: 0 0,    0 0; }
+  100% { background-position: 0 40px, 0 0; }
+}
+
+.slt-scanlines {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0)    0px, rgba(0,0,0,0)    2px,
+    rgba(0,0,0,0.18) 3px, rgba(0,0,0,0)    4px);
+  z-index: 9999;
+  mix-blend-mode: multiply;
+}
+
+/* Lift every element above the bg pseudo-elements. */
+body.slt-themed > *:not(.slt-scanlines):not(.slt-nav) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Floating navigation pill (top-right) ---------------------------
+   The nav is `position: fixed` so it floats above the page and stays
+   in view while you scroll. It has two states:
+     data-open="false" → only the small handle pill is visible
+     data-open="true"  → the panel hangs below, listing all tools
+   State persists in localStorage between page loads.            */
+
+.slt-nav {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  font-family: 'Orbitron', 'Audiowide', sans-serif;
+}
+
+/* The always-visible handle pill — kept small so it doesn't crowd
+   page titles. */
+.slt-nav-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  margin: 0;
+  padding: 5px 10px 5px 5px;
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.92) 0%, rgba(45,10,94,0.88) 100%);
+  border: 1.5px solid var(--slt-cyan);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--slt-cyan);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(0,240,255,0.5);
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(255,0,214,0.3) inset,
+    0 0 14px rgba(0,240,255,0.35),
+    0 4px 16px rgba(0,0,0,0.5);
+  transition: box-shadow .18s, transform .12s, border-color .18s, color .18s;
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+}
+.slt-nav-handle:hover {
+  border-color: var(--slt-magenta);
+  color: var(--slt-magenta);
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 22px var(--slt-magenta),
+    0 4px 18px rgba(0,0,0,0.5);
+  transform: translateY(1px);
+}
+.slt-nav[data-open="true"] .slt-nav-handle {
+  border-color: var(--slt-gold);
+  color: var(--slt-gold);
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 18px var(--slt-magenta),
+    0 4px 18px rgba(0,0,0,0.5);
+}
+
+/* Current-tool badge inside the handle */
+.slt-nav-current {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border: 1.5px solid var(--slt-gold);
+  border-radius: 999px;
+  background: rgba(255,214,107,0.18);
+  color: var(--slt-gold);
+  font-family: 'Audiowide', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0;
+  text-shadow: 0 0 6px var(--slt-gold);
+  box-shadow: 0 0 8px rgba(255,214,107,0.5);
+}
+
+/* Brand text (gradient) — used inside the panel header */
+.slt-nav-handle-brand {
+  display: block;
+  background: linear-gradient(180deg,
+    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
+    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px rgba(255,0,214,0.45));
+  font-family: 'Audiowide', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+/* Panel header (brand + tagline) */
+.slt-nav-panel-header {
+  padding: 8px 6px 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px dashed rgba(0,240,255,0.25);
+  text-align: center;
+}
+.slt-nav-panel-tagline {
+  display: block;
+  font-family: 'VT323', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--slt-blue);
+  text-shadow: 0 0 6px var(--slt-cyan);
+  margin-top: 4px;
+}
+
+.slt-nav-chevron {
+  display: inline-block;
+  font-size: 10px;
+  transition: transform .25s ease;
+}
+.slt-nav[data-open="true"] .slt-nav-chevron { transform: rotate(180deg); }
+
+/* The collapsible panel */
+.slt-nav-panel {
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.92) 0%, rgba(45,10,94,0.88) 100%);
+  border: 1.5px solid var(--slt-cyan);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(255,0,214,0.3) inset,
+    0 0 22px rgba(0,240,255,0.35),
+    0 8px 32px rgba(0,0,0,0.6);
+  padding: 8px;
+  -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+  position: relative;
+
+  /* Animated entry */
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .22s cubic-bezier(.2,.9,.3,1.2);
+}
+.slt-nav-panel::before {
+  content: '';
+  position: absolute; inset: 4px;
+  border: 1px dashed rgba(0,240,255,0.22);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.slt-nav[data-open="true"] .slt-nav-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.slt-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0; padding: 0;
+}
+
+.slt-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--slt-cyan);
+  background: rgba(10,0,36,0.4);
+  border: 1.5px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .15s;
+  text-shadow: 0 0 6px rgba(0,240,255,0.4);
+}
+.slt-nav-btn:hover {
+  border-color: var(--slt-magenta);
+  color: var(--slt-magenta);
+  background: rgba(255,0,214,0.08);
+  text-shadow: 0 0 8px var(--slt-magenta);
+  box-shadow: 0 0 12px rgba(255,0,214,0.4);
+  transform: translateX(-2px);
+}
+.slt-nav-btn.current {
+  border-color: var(--slt-gold);
+  color: var(--slt-gold);
+  background: linear-gradient(180deg,
+    rgba(255,46,154,0.35) 0%, rgba(107,31,177,0.45) 100%);
+  text-shadow: 0 0 10px var(--slt-gold);
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 14px rgba(255,0,214,0.5);
+  cursor: default;
+}
+.slt-nav-btn.current:hover { transform: none; }
+
+.slt-nav-badge {
+  width: 26px; height: 26px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  font-size: 11px;
+  font-family: 'Audiowide', sans-serif;
+  background: rgba(255,0,214,0.08);
+  flex-shrink: 0;
+}
+.slt-nav-btn.current .slt-nav-badge {
+  background: rgba(255,214,107,0.2);
+  box-shadow: 0 0 10px var(--slt-gold), inset 0 0 8px rgba(255,214,107,0.4);
+}
+
+.slt-nav-name { line-height: 1.1; flex: 1; }
+.slt-nav-name small {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: normal;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  margin-top: 3px;
+  opacity: 0.75;
+}
+
+@media (max-width: 540px) {
+  .slt-nav { top: 8px; right: 8px; }
+  .slt-nav-panel { width: 240px; }
+}
+
+/* ---- Smooth cross-page transitions --------------------------------
+   Both fade-in and fade-out are CSS animations. Using an animation
+   for fade-out is important: a CSS transition cannot override an
+   already-running animation on the same property, so on themed pages
+   (which run slt-page-in on load) the leaving fade has to win via
+   another animation declaration that supersedes it. */
+body.slt-themed { animation: slt-page-in .28s ease-out both; }
+@keyframes slt-page-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
+@keyframes slt-page-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+
+/* =====================================================================
+   Synthwave UI overrides — applied on every tool that opts in via
+   .slt-themed (i.e. everything except Anim Combiner, which already
+   ships its own native synthwave styling and sets SLT_NO_BG=true).
+   We ride on top of each tool's existing CSS using !important so
+   the cascade lands on us regardless of source order or specificity.
+   ===================================================================== */
+
+/* ---- Big synthwave title block (matches Anim Combiner) -----------
+   Drop this on top of each themed tool:
+     <header class="slt-titlebar">
+       <div class="slt-subtitle">/// 1986 :: TAGLINE ///</div>
+       <h1 class="slt-title">SL TOOL NAME</h1>
+       <div class="slt-subtitle slt-subtitle-edition">★ S Y N T H W A V E ★</div>
+       <p class="slt-lede">One-line description.</p>
+     </header>                                                       */
+body.slt-themed .slt-titlebar {
+  text-align: center;
+  margin: 8px auto 32px;
+  max-width: 940px;
+  position: relative;
+  z-index: 1;
+}
+body.slt-themed .slt-title {
+  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
+  font-weight: normal !important;
+  font-size: clamp(36px, 7vw, 64px) !important;
+  line-height: 1.05 !important;
+  letter-spacing: 2px !important;
+  /* scaleY(1.15) below renders the title ~15% taller than its layout
+     box. Padding-bottom would scale WITH the transform (no help), so
+     we use margin-bottom — which sits outside the transform — to
+     reserve breathing room before the lede. 0.6em is enough for up
+     to ~3 wrapped lines at any clamp size. */
+  margin: 8px 0 0.6em !important;
+  padding-bottom: 0.15em !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  text-wrap: balance;
+  background: linear-gradient(180deg,
+    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
+    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%) !important;
+  -webkit-background-clip: text !important;
+          background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 14px rgba(255,0,214,0.55))
+          drop-shadow(0 4px 0 rgba(0,240,255,0.7))
+          drop-shadow(0 8px 0 rgba(107,31,177,0.8)) !important;
+  text-shadow: none !important;
+  transform: scaleY(1.15) !important;
+  transform-origin: center top !important;
+  border: none !important;
+}
+body.slt-themed .slt-subtitle {
+  font-family: 'VT323', monospace !important;
+  font-size: 22px !important;
+  text-align: center !important;
+  color: var(--slt-blue) !important;
+  letter-spacing: 4px !important;
+  margin: 4px 0 8px !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+}
+body.slt-themed .slt-subtitle-edition {
+  font-size: 14px !important;
+  letter-spacing: 6px !important;
+  opacity: 0.7 !important;
+}
+body.slt-themed .slt-lede {
+  text-align: center !important;
+  color: #c5e9ff !important;
+  margin: 18px auto 0 !important;
+  max-width: 640px !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  text-shadow: 0 0 5px rgba(0,240,255,0.3) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+body.slt-themed .slt-lede code {
+  color: var(--slt-gold) !important;
+  background: rgba(255,214,107,0.08) !important;
+  padding: 1px 6px !important;
+  border: 1px solid rgba(255,214,107,0.3) !important;
+  border-radius: 3px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Headings ----------------------------------------------------- */
+body.slt-themed h1 {
+  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
+  font-weight: normal !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(180deg,
+    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
+    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%) !important;
+  -webkit-background-clip: text !important;
+          background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 14px rgba(255,0,214,0.55))
+          drop-shadow(0 4px 0 rgba(0,240,255,0.7))
+          drop-shadow(0 8px 0 rgba(107,31,177,0.8)) !important;
+  text-shadow: none !important;
+  border: none !important;
+}
+body.slt-themed h1 small {
+  display: block !important;
+  font-family: 'VT323', monospace !important;
+  font-size: 18px !important;
+  letter-spacing: 4px !important;
+  font-weight: normal !important;
+  text-transform: uppercase !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--slt-blue) !important;
+  color: var(--slt-blue) !important;
+  filter: none !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+  margin: 4px 0 0 0 !important;
+  opacity: 0.85 !important;
+}
+body.slt-themed h2 {
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: var(--slt-magenta) !important;
+  text-shadow: 0 0 10px var(--slt-magenta) !important;
+  border-bottom-color: var(--slt-magenta) !important;
+}
+body.slt-themed h3 {
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 8px rgba(255,214,107,0.4) !important;
+}
+
+/* ---- Panels / cards / canvas wrappers ----------------------------- */
+body.slt-themed .panel,
+body.slt-themed .preview-area,
+body.slt-themed .canvas-wrap,
+body.slt-themed details.advanced {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%) !important;
+  border: 1.5px solid var(--slt-cyan) !important;
+  border-radius: 4px !important;
+  box-shadow:
+    0 0 0 1px rgba(255,0,214,0.3) inset,
+    0 0 18px rgba(0,240,255,0.35),
+    0 0 40px rgba(255,0,214,0.18) !important;
+  backdrop-filter: blur(2px) !important;
+  position: relative;
+}
+
+/* ---- Inputs / selects / textareas --------------------------------- */
+body.slt-themed input[type="text"],
+body.slt-themed input[type="number"],
+body.slt-themed input[type="search"],
+body.slt-themed input[type="email"],
+body.slt-themed input[type="tel"],
+body.slt-themed input[type="url"],
+body.slt-themed input[type="password"],
+body.slt-themed select,
+body.slt-themed textarea {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 0 0 4px rgba(0,240,255,0.5) !important;
+  outline: none !important;
+}
+body.slt-themed input[type="text"]:focus,
+body.slt-themed input[type="number"]:focus,
+body.slt-themed input[type="search"]:focus,
+body.slt-themed select:focus,
+body.slt-themed textarea:focus {
+  border-color: var(--slt-magenta) !important;
+  box-shadow: 0 0 12px var(--slt-magenta) !important;
+}
+body.slt-themed input::placeholder,
+body.slt-themed textarea::placeholder {
+  color: rgba(0,240,255,0.4) !important;
+}
+body.slt-themed select option {
+  background: var(--slt-bg-1) !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed input[type="color"] {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed input[type="checkbox"],
+body.slt-themed input[type="radio"],
+body.slt-themed input[type="range"] {
+  accent-color: var(--slt-magenta) !important;
+}
+
+/* ---- Buttons ------------------------------------------------------
+   Default <button> = primary synthwave style. Several tool-specific
+   classes get their own treatment further below (small toggle pads,
+   navigation arrows, thumbnail close, etc.). The .slt-nav-* classes
+   are excluded so the floating nav stays compact. */
+body.slt-themed button:not(.layout-btn):not(.deco-btn):not(.mode-btn):not(.preset-btn):not(.navbtn):not(.thumb-x):not(.aspect-sel):not(.apply-all):not(.clear-bar):not(.warn):not(.slt-nav-handle):not(.slt-nav-btn) {
+  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: #fff7b0 !important;
+  background: linear-gradient(180deg,
+    var(--slt-pink) 0%, var(--slt-magenta) 60%, var(--slt-purple) 100%) !important;
+  border: 2px solid var(--slt-gold) !important;
+  border-radius: 3px !important;
+  text-shadow: 0 0 8px var(--slt-gold), 0 2px 0 rgba(0,0,0,0.5) !important;
+  box-shadow:
+    0 0 0 2px var(--slt-magenta) inset,
+    0 0 16px var(--slt-magenta),
+    0 0 32px rgba(255,0,214,0.3),
+    0 4px 0 rgba(0,0,0,0.4) !important;
+  transition: filter .15s, transform .05s, box-shadow .15s !important;
+}
+body.slt-themed button:not(:disabled):hover {
+  filter: brightness(1.15) saturate(1.2) !important;
+}
+body.slt-themed button:not(:disabled):active {
+  transform: translateY(2px) !important;
+}
+body.slt-themed button:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(0.3) !important;
+}
+body.slt-themed button.secondary,
+body.slt-themed button.btn-secondary {
+  background: rgba(10,0,36,0.6) !important;
+  color: var(--slt-cyan) !important;
+  border: 1.5px solid var(--slt-cyan) !important;
+  text-shadow: 0 0 6px var(--slt-cyan) !important;
+  box-shadow:
+    0 0 0 1px var(--slt-cyan) inset,
+    0 0 12px rgba(0,240,255,0.25) !important;
+}
+body.slt-themed button.small {
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  padding: 6px 12px !important;
+  border-width: 1.5px !important;
+}
+
+/* ---- Toggle/option pad buttons (div-based grids) ------------------ */
+body.slt-themed .layout-btn,
+body.slt-themed .deco-btn,
+body.slt-themed .mode-btn,
+body.slt-themed .preset-btn,
+body.slt-themed .navbtn {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1.5px solid var(--slt-cyan) !important;
+  color: var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 6px rgba(0,240,255,0.4) !important;
+  transition: all .15s !important;
+  box-shadow: none !important;
+}
+body.slt-themed .layout-btn:hover,
+body.slt-themed .deco-btn:hover,
+body.slt-themed .mode-btn:hover,
+body.slt-themed .preset-btn:hover,
+body.slt-themed .navbtn:hover:not(:disabled) {
+  border-color: var(--slt-magenta) !important;
+  color: var(--slt-magenta) !important;
+  background: rgba(20,5,50,0.6) !important;
+  box-shadow: 0 0 12px var(--slt-magenta), inset 0 0 8px rgba(255,0,214,0.18) !important;
+  transform: translateY(-1px) !important;
+}
+body.slt-themed .layout-btn.active,
+body.slt-themed .deco-btn.active,
+body.slt-themed .mode-btn.active,
+body.slt-themed .preset-btn.active {
+  background: linear-gradient(180deg,
+    rgba(255,46,154,0.4) 0%, rgba(107,31,177,0.5) 100%) !important;
+  border-color: var(--slt-gold) !important;
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 10px var(--slt-gold) !important;
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 18px var(--slt-magenta) !important;
+}
+body.slt-themed .layout-btn.active .layout-icon { color: var(--slt-gold) !important; }
+body.slt-themed .navbtn .arrow { color: var(--slt-magenta) !important; text-shadow: 0 0 8px var(--slt-magenta) !important; }
+body.slt-themed .navbtn:disabled { opacity: 0.3 !important; }
+
+/* ---- Apply-all + aspect-sel pills --------------------------------- */
+body.slt-themed .apply-all {
+  background: rgba(10,0,36,0.8) !important;
+  color: var(--slt-magenta) !important;
+  border: 1px solid var(--slt-magenta) !important;
+  border-radius: 2px !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  text-shadow: 0 0 6px var(--slt-magenta) !important;
+  box-shadow: 0 0 8px rgba(255,0,214,0.3) !important;
+}
+body.slt-themed .apply-all:hover:not(:disabled) {
+  background: rgba(255,0,214,0.15) !important;
+  box-shadow: 0 0 14px var(--slt-magenta) !important;
+}
+body.slt-themed .aspect-sel {
+  background: rgba(10,0,36,0.8) !important;
+  color: var(--slt-cyan) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Big banner clear button -------------------------------------- */
+body.slt-themed .clear-bar {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%) !important;
+  color: var(--slt-magenta) !important;
+  border: 1.5px solid var(--slt-magenta) !important;
+  border-top: none !important;
+  border-radius: 0 0 4px 4px !important;
+  text-shadow: 0 0 8px var(--slt-magenta) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 0 14px rgba(255,0,214,0.3) !important;
+}
+body.slt-themed .clear-bar:hover {
+  background: linear-gradient(180deg,
+    rgba(255,46,154,0.4) 0%, rgba(107,31,177,0.5) 100%) !important;
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 10px var(--slt-gold) !important;
+  box-shadow: 0 0 22px var(--slt-magenta) !important;
+}
+body.slt-themed .clear-bar.confirm {
+  background: linear-gradient(180deg,
+    var(--slt-pink) 0%, var(--slt-magenta) 60%, var(--slt-purple) 100%) !important;
+  color: #fff7b0 !important;
+  border-color: var(--slt-gold) !important;
+}
+
+/* ---- Thumbnail close button (small X) ----------------------------- */
+body.slt-themed .thumb-x {
+  background: var(--slt-magenta) !important;
+  color: #fff !important;
+  border: 2px solid #1a0640 !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 8px var(--slt-magenta) !important;
+}
+
+/* ---- Info rows (key/value display) -------------------------------- */
+body.slt-themed .info-row {
+  border-bottom: 1px dashed rgba(0,240,255,0.25) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed .info-row span:first-child {
+  color: var(--slt-blue) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+}
+body.slt-themed .info-row span:last-child {
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 6px rgba(255,214,107,0.3) !important;
+}
+
+/* ---- Stats grid (SL Text/HUD) ------------------------------------- */
+body.slt-themed .stat {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed .stat .label {
+  color: var(--slt-blue) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+body.slt-themed .stat .value {
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 8px rgba(255,214,107,0.5) !important;
+  font-family: 'Audiowide', sans-serif !important;
+}
+body.slt-themed .stat.warn .value { color: #ff6b6b !important; text-shadow: 0 0 8px #ff6b6b !important; }
+body.slt-themed .stat.good .value { color: #6bff8e !important; text-shadow: 0 0 8px #6bff8e !important; }
+
+/* ---- Status banner ------------------------------------------------ */
+body.slt-themed #status,
+body.slt-themed .status {
+  font-family: 'VT323', monospace !important;
+  font-size: 16px !important;
+  letter-spacing: 1px !important;
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed #status.ok,
+body.slt-themed .status.ok {
+  color: #6bff8e !important;
+  background: rgba(107,255,142,0.08) !important;
+  border-color: #6bff8e !important;
+  text-shadow: 0 0 8px #6bff8e !important;
+}
+body.slt-themed #status.error,
+body.slt-themed .status.error,
+body.slt-themed #status.err,
+body.slt-themed .status.err {
+  color: #ff6b6b !important;
+  background: rgba(255,107,107,0.08) !important;
+  border-color: #ff6b6b !important;
+  text-shadow: 0 0 8px #ff6b6b !important;
+}
+
+/* ---- Help / detail blocks ----------------------------------------- */
+body.slt-themed details:not(.advanced) {
+  border: 1px solid rgba(0,240,255,0.3) !important;
+  border-radius: 4px !important;
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.7) 0%, rgba(45,10,94,0.6) 100%) !important;
+  padding: 10px 14px !important;
+}
+body.slt-themed details > summary {
+  cursor: pointer !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  color: var(--slt-cyan) !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+  font-size: 12px !important;
+}
+body.slt-themed details.advanced > summary {
+  color: var(--slt-magenta) !important;
+  text-shadow: 0 0 10px var(--slt-magenta) !important;
+}
+body.slt-themed .help,
+body.slt-themed details p,
+body.slt-themed details .help {
+  color: #b0d8ff !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+body.slt-themed details code,
+body.slt-themed .help code {
+  color: var(--slt-magenta) !important;
+  background: rgba(255,0,214,0.08) !important;
+  border: 1px solid rgba(255,0,214,0.3) !important;
+  padding: 1px 4px !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Filename / monospace label ----------------------------------- */
+body.slt-themed .filename {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px dashed var(--slt-cyan) !important;
+  color: var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  text-shadow: 0 0 4px rgba(0,240,255,0.5) !important;
+}
+
+/* ---- Drop zone (label.drop) --------------------------------------- */
+body.slt-themed .drop {
+  border: 2px dashed var(--slt-cyan) !important;
+  border-radius: 3px !important;
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(0,240,255,0.04) 0px, rgba(0,240,255,0.04) 8px,
+      transparent 8px, transparent 16px) !important;
+  color: var(--slt-cyan) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+}
+body.slt-themed .drop:hover {
+  border-color: var(--slt-magenta) !important;
+  box-shadow: 0 0 24px var(--slt-magenta), inset 0 0 24px rgba(255,0,214,0.18) !important;
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(255,0,214,0.08) 0px, rgba(255,0,214,0.08) 8px,
+      transparent 8px, transparent 16px) !important;
+}
+
+/* ---- Thumbnails strip (Anim Priority + Sprite Sheet) -------------- */
+body.slt-themed .thumbs {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.6) 0%, rgba(45,10,94,0.55) 100%) !important;
+  border: 1.5px solid var(--slt-magenta) !important;
+  border-bottom: none !important;
+  border-radius: 4px 4px 0 0 !important;
+  box-shadow: 0 0 14px rgba(255,0,214,0.2) !important;
+}
+body.slt-themed .thumb {
+  background: rgba(10,0,36,0.5) !important;
+  border: 2px solid transparent !important;
+  border-radius: 2px !important;
+  transition: all .15s !important;
+}
+body.slt-themed .thumb:hover {
+  border-color: var(--slt-cyan) !important;
+  box-shadow: 0 0 12px rgba(0,240,255,0.4) !important;
+}
+body.slt-themed .thumb.active {
+  border-color: var(--slt-magenta) !important;
+  background: rgba(45,10,94,0.6) !important;
+  box-shadow: 0 0 18px var(--slt-magenta) !important;
+}
+body.slt-themed .thumb-icon {
+  background: rgba(20,5,50,0.85) !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed .thumb-icon .pri-badge {
+  background: var(--slt-magenta) !important;
+  color: #fff !important;
+  font-family: 'Audiowide', sans-serif !important;
+  box-shadow: 0 0 6px var(--slt-magenta) !important;
+}
+body.slt-themed .thumb-icon.changed .pri-badge {
+  background: #6bff8e !important;
+  box-shadow: 0 0 6px #6bff8e !important;
+}
+body.slt-themed .thumb-label {
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Decorations btn-row (HUD per-button list) -------------------- */
+body.slt-themed .btn-row {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid rgba(0,240,255,0.3) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed .btn-row .idx {
+  color: var(--slt-blue) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* ---- Info / tip box ----------------------------------------------- */
+body.slt-themed .info-box {
+  background: rgba(0,240,255,0.06) !important;
+  border: 1px solid rgba(0,240,255,0.4) !important;
+  border-left: 3px solid var(--slt-magenta) !important;
+  color: #b0d8ff !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+body.slt-themed .info-box b {
+  color: var(--slt-gold) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  text-shadow: 0 0 6px rgba(255,214,107,0.4) !important;
+}
+body.slt-themed .info-box code {
+  color: var(--slt-magenta) !important;
+  background: rgba(255,0,214,0.08) !important;
+  border: 1px solid rgba(255,0,214,0.3) !important;
+  border-radius: 2px !important;
+  padding: 1px 4px !important;
+}
+
+/* ---- Toggle row (SL Text Creator) --------------------------------- */
+body.slt-themed .toggle-row {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  color: var(--slt-cyan) !important;
+}
+
+/* ---- Placeholder / 3D viewer placeholder -------------------------- */
+body.slt-themed .ph {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.85) 0%, rgba(10,0,36,0.95) 100%) !important;
+  border-radius: 0 !important;
+}
+body.slt-themed .ph-icon { filter: drop-shadow(0 0 18px var(--slt-magenta)) !important; }
+body.slt-themed .ph-title {
+  color: var(--slt-magenta) !important;
+  font-family: 'Audiowide', sans-serif !important;
+  text-shadow: 0 0 14px var(--slt-magenta) !important;
+}
+body.slt-themed .ph-sub {
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+body.slt-themed .ph-heart {
+  filter: drop-shadow(0 0 22px var(--slt-magenta)) !important;
+}
+
+/* ---- Playback controls -------------------------------------------- */
+body.slt-themed .playback {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px dashed var(--slt-cyan) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed .playback button {
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  padding: 4px 12px !important;
+}
+body.slt-themed .playback .timebar {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px solid rgba(0,240,255,0.4) !important;
+}
+body.slt-themed .playback .timebar .fill {
+  background: linear-gradient(90deg, var(--slt-cyan), var(--slt-magenta)) !important;
+  box-shadow: 0 0 8px var(--slt-magenta) !important;
+}
+body.slt-themed .playback .timetext {
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Credit footer ------------------------------------------------ */
+body.slt-themed .credit {
+  color: var(--slt-blue) !important;
+  font-family: 'VT323', monospace !important;
+  letter-spacing: 2px !important;
+  opacity: 0.8;
+}
+body.slt-themed .credit b,
+body.slt-themed .credit a {
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 6px rgba(255,214,107,0.4) !important;
+}
+
+/* ---- Scrollbar (WebKit) ------------------------------------------- */
+body.slt-themed ::-webkit-scrollbar { width: 12px; height: 12px; }
+body.slt-themed ::-webkit-scrollbar-track { background: rgba(10,0,36,0.5); }
+body.slt-themed ::-webkit-scrollbar-thumb {
+  background: var(--slt-magenta);
+  border: 2px solid rgba(10,0,36,0.7);
+  border-radius: 2px;
+}
+body.slt-themed ::-webkit-scrollbar-thumb:hover {
+  background: var(--slt-pink);
+}
+
+/* ---- Generic body text default colour ----------------------------- */
+body.slt-themed { color: var(--slt-cyan); }
+body.slt-themed label { color: var(--slt-cyan); }
+body.slt-themed .hint { color: var(--slt-blue) !important; opacity: 0.8 !important; }
+
+
+/* =====================================================================
+   Layout consolidations
+   ---------------------------------------------------------------------
+   These rules used to be duplicated in each tool's inline <style>.
+   Pulling them up here means the tools only carry truly unique sizes
+   (e.g. #threeCanvas dimensions, panel max-widths) — everything that
+   was identical across two or more tools now lives in one place.
+   ===================================================================== */
+
+/* ---- Universal resets / form a11y (was in every themed tool) ---- */
+body.slt-themed { color-scheme: dark; }
+body.slt-themed * {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+body.slt-themed input,
+body.slt-themed select,
+body.slt-themed button { outline: none; }
+body.slt-themed input:focus-visible,
+body.slt-themed select:focus-visible,
+body.slt-themed button:focus-visible {
+  outline: 2px solid var(--slt-magenta);
+  outline-offset: 1px;
+}
+body.slt-themed input:-webkit-autofill,
+body.slt-themed input:-webkit-autofill:hover,
+body.slt-themed input:-webkit-autofill:focus,
+body.slt-themed input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(10, 0, 36, 0.9) inset !important;
+  -webkit-text-fill-color: var(--slt-cyan) !important;
+  caret-color: var(--slt-cyan);
+  transition: background-color 9999s ease-out;
+}
+
+/* ---- Workspace layout (Anim Priority + Sprite Sheet share these) - */
+
+/* Canvas wrapper + 3D/2D placeholder */
+body.slt-themed .canvas-wrap {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+body.slt-themed .canvas-stack {
+  position: relative;
+  display: flex;
+}
+body.slt-themed .ph {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px;
+  pointer-events: none;
+}
+body.slt-themed .ph-icon,
+body.slt-themed .ph-heart {
+  font-size: 56px;
+  line-height: 1;
+}
+body.slt-themed .ph-title { font-size: 22px; letter-spacing: 0.3px; }
+body.slt-themed .ph-sub { font-size: 14px; }
+
+/* Canvas previous/next nav arrows */
+body.slt-themed .canvas-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+}
+body.slt-themed .navbtn {
+  width: 90px;
+  padding: 18px 8px;
+  cursor: pointer;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+body.slt-themed .navbtn .arrow { font-size: 30px; line-height: 1; }
+
+/* Side panel + key/value rows */
+body.slt-themed .panel { width: 320px; padding: 18px; }
+body.slt-themed .panel h3 { margin: 0 0 8px; font-size: 13px; }
+body.slt-themed .info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+body.slt-themed .info-row:last-child { border-bottom: none !important; }
+
+/* Filename label */
+body.slt-themed .filename {
+  padding: 10px 12px;
+  font-size: 12px;
+  word-break: break-all;
+  margin-top: 10px;
+}
+
+/* Thumbnail strip + items */
+body.slt-themed .thumbs {
+  display: flex;
+  gap: 22px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+  padding: 20px 18px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body.slt-themed .thumbs,
+body.slt-themed .thumbs * { cursor: crosshair; }
+body.slt-themed .thumbs .thumb-x { cursor: pointer; }
+body.slt-themed .thumb {
+  position: relative;
+  padding: 4px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body.slt-themed .thumb-label {
+  font-size: 10px;
+  text-align: center;
+  max-width: 76px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 4px;
+  font-weight: 600;
+}
+body.slt-themed .thumb-x {
+  position: absolute;
+  top: 0; right: 0;
+  transform: translate(50%, -50%) !important;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  z-index: 5;
+}
+body.slt-themed .thumb.marked {
+  outline: 3px solid #ff4757;
+  outline-offset: 2px;
+}
+
+/* Big "Clear ALL" banner button (sits below the thumbnail strip) */
+body.slt-themed .clear-bar {
+  width: 100%;
+  display: block;
+  margin: 0;
+  padding: 18px 24px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 800;
+  transition: background .18s, color .18s, box-shadow .18s, letter-spacing .18s;
+}
+@keyframes slt-pulse-clear {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.005); }
+}
+body.slt-themed .clear-bar.confirm {
+  animation: slt-pulse-clear 1s ease-in-out infinite;
+  letter-spacing: 1.2px;
+}
+
+/* Drag-select rectangle */
+body.slt-themed .marquee {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  border: 1.5px solid var(--slt-cyan);
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 0 0.5px var(--slt-magenta);
+  border-radius: 2px;
+}
+
+/* Aspect select pill + small "Apply to all" button */
+body.slt-themed .aspect-sel {
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+body.slt-themed .apply-all {
+  padding: 4px 14px;
+  font-size: 11px;
+  cursor: pointer;
+  margin: 0;
+  width: auto;
+  transition: transform .12s, box-shadow .12s, background .12s;
+}
+body.slt-themed .apply-all:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+body.slt-themed .apply-all.flash {
+  animation: slt-apply-flash .6s ease;
+}
+@keyframes slt-apply-flash {
+  50% { box-shadow: 0 0 18px var(--slt-magenta); }
+}
+
+/* Custom dropdown chevron for .aspect-sel */
+body.slt-themed select.aspect-sel {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%2300f0ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 22px;
+}
+
+/* ⓘ tooltip on hover */
+body.slt-themed .warn {
+  display: inline-block;
+  margin-left: 6px;
+  cursor: help;
+  font-size: 15px;
+  position: relative;
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+}
+body.slt-themed .warn:hover::before {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  background: linear-gradient(180deg, rgba(20, 5, 50, 0.95) 0%, rgba(45, 10, 94, 0.92) 100%);
+  color: var(--slt-cyan);
+  padding: 12px 16px;
+  border-radius: 2px;
+  border: 1.5px solid var(--slt-magenta);
+  white-space: pre-line;
+  width: 270px;
+  font-size: 11px;
+  line-height: 1.55;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(255, 0, 214, 0.4);
+}
+body.slt-themed .warn:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  right: 4px;
+  margin-bottom: 1px;
+  border: 7px solid transparent;
+  border-top-color: var(--slt-magenta);
+  z-index: 100;
+}
+
+/* Footer credit (used by some workspace tools) */
+body.slt-themed .credit {
+  text-align: center;
+  margin-top: 28px;
+  padding: 12px 20px;
+  font-size: 12px;
+}
+
+/* Hint text */
+body.slt-themed .hint {
+  font-size: 12px;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* ---- Form layout (3D Text Creator + HUD Buttons Creator) -------- */
+
+/* Two-column container (left panel + right preview) */
+body.slt-themed .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 20px;
+}
+body.slt-themed .container > h1 {
+  grid-column: 1 / -1;
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+body.slt-themed .container > h1 small { font-size: 14px; }
+
+/* Form-row inside .panel (label + input/select pair).
+   Scoped to `.panel .row` so we don't clash with the workspace `.row`
+   that Animation Priority and Sprite Sheet use as a flex layout. */
+body.slt-themed .panel .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+body.slt-themed .panel .row label { flex: 1; font-size: 13px; }
+body.slt-themed .panel .row input[type="number"],
+body.slt-themed .panel .row input[type="text"],
+body.slt-themed .panel .row select {
+  padding: 6px 8px;
+  font-size: 13px;
+}
+body.slt-themed .panel .row input[type="color"] {
+  width: 36px;
+  height: 28px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Right-hand preview area */
+body.slt-themed .preview-area {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Stats grid */
+body.slt-themed .stats {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+body.slt-themed .stat { padding: 8px; text-align: center; }
+body.slt-themed .stat .label { font-size: 11px; }
+body.slt-themed .stat .value { font-size: 18px; font-weight: bold; }
+
+/* Help / details */
+body.slt-themed details { margin-top: 12px; }
+body.slt-themed summary {
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 0;
+}
+body.slt-themed details p {
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 6px 0;
+}
+
+/* Toggle pad buttons (deco-btn / preset-btn / layout-btn / mode-btn share base layout) */
+body.slt-themed .deco-btn,
+body.slt-themed .preset-btn,
+body.slt-themed .layout-btn,
+body.slt-themed .mode-btn {
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+  margin: 0;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+</style>
+<!-- SHARED-CSS:END -->
+<script>window.SLT_CURRENT = 'anim-combiner'; window.SLT_NO_BG = true;</script>
+<style>
+  :root {
+    --pink:    #ff2e9a;
+    --magenta: #ff00d6;
+    --cyan:    #00f0ff;
+    --blue:    #5ddcff;
+    --purple:  #6b1fb1;
+    --gold:    #ffd66b;
+    --bg-1:    #0a0024;
+    --bg-2:    #1a0640;
+    --bg-3:    #2d0a5e;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Share Tech Mono', 'VT323', monospace;
+    color: var(--cyan);
+    background: radial-gradient(ellipse at 50% 0%, var(--bg-3) 0%, var(--bg-2) 35%, var(--bg-1) 80%);
+    min-height: 100vh;
+    padding: 32px 16px 80px;
+    position: relative;
+    overflow-x: hidden;
+    text-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    left: 50%; top: 14vh;
+    transform: translateX(-50%);
+    width: 380px; height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 50% 55%,
+      #ffe66b 0%, #ff8e2a 35%, #ff2e9a 60%, #6b1fb1 95%);
+    box-shadow: 0 0 80px rgba(255,142,42,0.45), 0 0 200px rgba(255,46,154,0.35);
+    z-index: 0;
+    opacity: 0.85;
+    -webkit-mask-image: repeating-linear-gradient(180deg,
+      black 0, black 22px, transparent 22px, transparent 28px,
+      black 28px, black 42px, transparent 42px, transparent 50px,
+      black 50px, black 70px, transparent 70px, transparent 80px,
+      black 80px);
+            mask-image: repeating-linear-gradient(180deg,
+      black 0, black 22px, transparent 22px, transparent 28px,
+      black 28px, black 42px, transparent 42px, transparent 50px,
+      black 50px, black 70px, transparent 70px, transparent 80px,
+      black 80px);
+    pointer-events: none;
+  }
+
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -10vh; left: 50%;
+    transform: translateX(-50%) perspective(420px) rotateX(58deg);
+    transform-origin: top center;
+    width: 220vw; height: 100vh;
+    background:
+      repeating-linear-gradient(0deg,
+        transparent 0, transparent 38px,
+        rgba(255, 0, 214, 0.7) 38px, rgba(255, 0, 214, 0.7) 40px),
+      repeating-linear-gradient(90deg,
+        transparent 0, transparent 38px,
+        rgba(0, 240, 255, 0.55) 38px, rgba(0, 240, 255, 0.55) 40px);
+    pointer-events: none;
+    animation: grid-scroll 1.6s linear infinite;
+    opacity: 0.7;
+    z-index: 0;
+  }
+  @keyframes grid-scroll {
+    0%   { background-position: 0 0,    0 0; }
+    100% { background-position: 0 40px, 0 0; }
+  }
+
+  .scanlines {
+    position: fixed; inset: 0;
+    pointer-events: none;
+    background: repeating-linear-gradient(
+      to bottom,
+      rgba(0,0,0,0)    0px, rgba(0,0,0,0)    2px,
+      rgba(0,0,0,0.18) 3px, rgba(0,0,0,0)    4px);
+    z-index: 9999;
+    mix-blend-mode: multiply;
+  }
+
+  .wrap { max-width: 940px; margin: 0 auto; position: relative; z-index: 1; }
+
+  .title {
+    font-family: 'Audiowide', 'Orbitron', sans-serif;
+    font-size: clamp(36px, 7vw, 64px);
+    line-height: 1.05;
+    letter-spacing: 2px;
+    /* scaleY(1.15) below renders the title ~15% taller than its
+       layout box. Padding-bottom would scale with the transform,
+       so we use margin-bottom (outside the transform) to reserve
+       breathing room before the lede. */
+    margin: 8px 0 0.6em;
+    padding-bottom: 0.15em;
+    text-align: center;
+    text-wrap: balance;
+    background: linear-gradient(180deg,
+      #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%, #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 0 14px rgba(255,0,214,0.55))
+            drop-shadow(0 4px 0 rgba(0,240,255,0.7))
+            drop-shadow(0 8px 0 rgba(107,31,177,0.8));
+    text-shadow: none;
+    transform: scaleY(1.15);
+    transform-origin: center top;
+  }
+  .subtitle {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    text-align: center;
+    color: var(--blue);
+    letter-spacing: 4px;
+    margin: 4px 0 8px;
+    text-shadow: 0 0 8px var(--cyan);
+  }
+  .lede {
+    text-align: center;
+    color: #c5e9ff;
+    margin: 8px auto 28px;
+    max-width: 640px;
+    font-size: 15px;
+    text-shadow: 0 0 5px rgba(0,240,255,0.3);
+  }
+  .lede code {
+    color: var(--gold);
+    background: rgba(255,214,107,0.08);
+    padding: 1px 6px;
+    border: 1px solid rgba(255,214,107,0.3);
+    border-radius: 3px;
+  }
+
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+
+  .card {
+    background: linear-gradient(180deg,
+      rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%);
+    border: 1.5px solid var(--cyan);
+    border-radius: 4px;
+    padding: 18px;
+    box-shadow:
+      0 0 0 1px rgba(255,0,214,0.3) inset,
+      0 0 18px rgba(0,240,255,0.35),
+      0 0 40px rgba(255,0,214,0.18);
+    backdrop-filter: blur(2px);
+    position: relative;
+  }
+  .card::before {
+    content: '';
+    position: absolute; inset: 4px;
+    border: 1px dashed rgba(0,240,255,0.25);
+    border-radius: 2px;
+    pointer-events: none;
+  }
+  .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .badge {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--magenta);
+    color: var(--magenta);
+    font-family: 'Audiowide', sans-serif;
+    font-size: 16px;
+    background: rgba(255,0,214,0.1);
+    border-radius: 2px;
+    box-shadow: 0 0 14px var(--magenta), inset 0 0 10px rgba(255,0,214,0.4);
+    text-shadow: 0 0 8px var(--magenta);
+    flex-shrink: 0;
+  }
+  .role {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(255,214,107,0.5);
+    line-height: 1.2;
+  }
+  .role small {
+    display: block;
+    color: #c5e9ff;
+    font-family: 'Share Tech Mono', monospace;
+    font-weight: normal;
+    font-size: 11px;
+    letter-spacing: 0.5px;
+    text-transform: none;
+    margin-top: 4px;
+  }
+
+  .drop {
+    display: block;
+    border: 2px dashed var(--cyan);
+    border-radius: 3px;
+    padding: 24px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s;
+    background:
+      repeating-linear-gradient(45deg,
+        rgba(0,240,255,0.04) 0px, rgba(0,240,255,0.04) 8px,
+        transparent 8px, transparent 16px);
+    position: relative;
+  }
+  .drop:hover, .drop.hover {
+    border-color: var(--magenta);
+    box-shadow: 0 0 24px var(--magenta), inset 0 0 24px rgba(255,0,214,0.18);
+    background:
+      repeating-linear-gradient(45deg,
+        rgba(255,0,214,0.08) 0px, rgba(255,0,214,0.08) 8px,
+        transparent 8px, transparent 16px);
+  }
+  .drop strong {
+    display: block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1.2px;
+    color: var(--cyan);
+    text-shadow: 0 0 10px var(--cyan);
+    margin-bottom: 8px;
+  }
+  .drop small { color: #b0d8ff; font-size: 11px; letter-spacing: 0.6px; }
+  .drop input[type=file] { display: none; }
+
+  .meta {
+    margin-top: 12px;
+    color: var(--cyan);
+    background: rgba(0,240,255,0.06);
+    border-left: 3px solid var(--magenta);
+    padding: 10px 12px;
+    display: none;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+  }
+  .meta.shown { display: block; }
+  .meta b {
+    color: var(--gold);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    letter-spacing: 1px;
+  }
+  .meta span.field { color: var(--magenta); }
+
+  .options {
+    margin-top: 24px;
+    background: linear-gradient(180deg,
+      rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%);
+    border: 1.5px solid var(--magenta);
+    border-radius: 4px;
+    padding: 16px 20px;
+    box-shadow: 0 0 18px rgba(255,0,214,0.35), inset 0 0 0 1px rgba(0,240,255,0.25);
+  }
+  .options summary {
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 2px;
+    color: var(--magenta);
+    text-shadow: 0 0 10px var(--magenta);
+    list-style: none;
+    user-select: none;
+    text-transform: uppercase;
+  }
+  .options summary::-webkit-details-marker { display: none; }
+  .options summary::before { content: "[+] "; color: var(--cyan); }
+  .options[open] summary::before { content: "[-] "; }
+  .options[open] summary { margin-bottom: 16px; }
+  .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 720px) { .opt-grid { grid-template-columns: 1fr; } }
+  .field { display: block; }
+  .field-label {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 11px;
+    letter-spacing: 1.5px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    text-shadow: 0 0 6px rgba(255,214,107,0.4);
+  }
+  input[type=text], select {
+    width: 100%;
+    padding: 8px 12px;
+    background: rgba(10,0,36,0.8);
+    border: 1px solid var(--cyan);
+    border-radius: 2px;
+    color: var(--cyan);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    text-shadow: 0 0 4px var(--cyan);
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input[type=text]:focus, select:focus {
+    border-color: var(--magenta);
+    box-shadow: 0 0 12px var(--magenta);
+  }
+  input[type=text]::placeholder { color: rgba(0,240,255,0.4); }
+  select option { background: var(--bg-1); color: var(--cyan); }
+
+  .check {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; cursor: pointer;
+    color: var(--cyan);
+    font-family: 'Share Tech Mono', monospace;
+    align-self: end;
+  }
+  .check input { transform: scale(1.2); accent-color: var(--magenta); }
+
+  .actions {
+    margin-top: 26px;
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  }
+  button.primary {
+    font-family: 'Audiowide', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    color: #fff7b0;
+    background: linear-gradient(180deg, var(--pink) 0%, var(--magenta) 60%, var(--purple) 100%);
+    border: 2px solid var(--gold);
+    border-radius: 3px;
+    padding: 14px 32px;
+    cursor: pointer;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px var(--gold), 0 2px 0 rgba(0,0,0,0.5);
+    box-shadow:
+      0 0 0 2px var(--magenta) inset,
+      0 0 24px var(--magenta),
+      0 0 48px rgba(255,0,214,0.4),
+      0 6px 0 rgba(0,0,0,0.4);
+    transition: filter .15s, transform .05s, box-shadow .15s;
+  }
+  button.primary:hover:not(:disabled) {
+    filter: brightness(1.15) saturate(1.2);
+    box-shadow:
+      0 0 0 2px var(--gold) inset,
+      0 0 36px var(--magenta),
+      0 0 64px rgba(255,0,214,0.6),
+      0 6px 0 rgba(0,0,0,0.4);
+  }
+  button.primary:active:not(:disabled) { transform: translateY(2px); }
+  button.primary:disabled { opacity: 0.4; cursor: not-allowed; filter: grayscale(0.3); }
+
+  .status {
+    font-family: 'VT323', monospace;
+    font-size: 18px;
+    letter-spacing: 1px;
+  }
+  .status.ok  { color: #6bff8e; text-shadow: 0 0 10px #6bff8e; }
+  .status.err { color: #ff6b6b; text-shadow: 0 0 10px #ff6b6b; }
+
+  details.help {
+    margin-top: 26px;
+    background: linear-gradient(180deg,
+      rgba(20,5,50,0.7) 0%, rgba(45,10,94,0.6) 100%);
+    border: 1px solid rgba(0,240,255,0.3);
+    border-radius: 4px;
+    padding: 14px 18px;
+    color: #b0d8ff;
+    font-size: 14px;
+  }
+  details.help summary {
+    cursor: pointer;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    color: var(--cyan);
+    letter-spacing: 1.5px;
+    list-style: none;
+    text-shadow: 0 0 8px var(--cyan);
+    text-transform: uppercase;
+    font-size: 13px;
+  }
+  details.help summary::-webkit-details-marker { display: none; }
+  details.help summary::before { content: "▸ "; }
+  details.help[open] summary::before { content: "▾ "; }
+  details.help[open] { padding-bottom: 16px; }
+  details.help p { margin: 14px 0; line-height: 1.6; }
+  details.help b { color: var(--gold); text-shadow: 0 0 6px rgba(255,214,107,0.4); }
+  details.help code {
+    color: var(--magenta); background: rgba(255,0,214,0.08);
+    border: 1px solid rgba(255,0,214,0.3);
+    padding: 1px 5px; border-radius: 2px;
+    font-size: 12px;
+  }
+  .hint { font-size: 12px; color: rgba(176,216,255,0.7); }
+
+  .footer-bar {
+    margin-top: 30px;
+    display: flex; justify-content: space-between;
+    font-family: 'VT323', monospace;
+    font-size: 16px;
+    letter-spacing: 2px;
+    color: rgba(0,240,255,0.5);
+    border-top: 1px solid rgba(0,240,255,0.2);
+    padding-top: 12px;
+  }
+  .footer-bar .blink { animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<script>
+/* =====================================================================
+   SL Tools :: Navigation bootstrapper
+   - Detects which sibling tools exist (modular: missing folder = hidden)
+   - Renders a synthwave nav bar at the top
+   - Adds the sun + grid + scanlines background layers
+
+   How it works
+   ------------
+   Each tool folder contains a tiny `_meta.js` that registers its own
+   metadata into window.__SLT_AVAILABLE. We try to load that file via
+   <script> tags. file:// allows local <script> loads, and onerror fires
+   reliably when the file is missing — so removing a tool folder makes
+   it disappear from the nav automatically.
+
+   Adding a new tool:
+   - Add an entry below in REGISTRY
+   - Drop the folder with its main HTML and a `_meta.js`
+
+   Each tool's HTML opts in by including:
+     <link rel="stylesheet" href="../_shared/sl-nav.css">
+     <script>window.SLT_CURRENT = "anim-combiner";<\/script>
+     <script src="../_shared/sl-nav.js"><\/script>
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  // Ordered registry of all tools known to this navigation system.
+  // Each `folder` is the directory name that sits next to this tool.
+  // `file` is the main HTML in that folder.
+  const REGISTRY = [
+    {
+      id: 'anim-combiner',
+      name: 'Animation Combiner',
+      subtitle: 'body + hands → combo',
+      folder: 'SL Animation Combiner',
+      file: 'sl_animation_combiner.html',
+      badge: 'AC',
+    },
+    {
+      id: 'anim-priority',
+      name: 'Animation Priority Changer',
+      subtitle: 'set priority on .anim files',
+      folder: 'SL Animation Priority Changer',
+      file: 'sl_animation_priority_changer.html',
+      badge: 'AP',
+    },
+    {
+      id: 'sprite-sheet',
+      name: 'Sprite Sheet Maker',
+      subtitle: 'gif → sprite sheet',
+      folder: 'SL Sprite Sheet Maker',
+      file: 'sl_sprite_sheet_maker.html',
+      badge: 'SS',
+    },
+    {
+      id: 'sl-text',
+      name: '3D Text Creator',
+      subtitle: 'text → 3D mesh',
+      folder: 'SL 3D Text Creator',
+      file: 'sl_3d_text_creator.html',
+      badge: 'TX',
+    },
+    {
+      id: 'sl-hud',
+      name: 'HUD Buttons Creator',
+      subtitle: 'buttons grid → mesh',
+      folder: 'SL HUD Buttons Creator',
+      file: 'sl_hud_buttons_creator.html',
+      badge: 'HD',
+    },
+  ];
+
+  window.__SLT_AVAILABLE = window.__SLT_AVAILABLE || {};
+
+  // ---------------------------------------------------------------------
+  // The body theme + sun + grid + scanlines are now applied entirely
+  // via CSS. Each themed tool sets <body class="slt-themed"> in its
+  // HTML and pre-renders <div class="slt-scanlines"></div> so there's
+  // no flash of unstyled content. This script's only job is to render
+  // the navigation bar after probing for sibling tools.
+  // ---------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------
+  // Step 2: detect which sibling tools exist
+  //   For each tool that isn't the current one, try to load its
+  //   `_meta.js` via a dynamic <script> tag. onerror fires when the
+  //   file (or folder) is missing.
+  // ---------------------------------------------------------------------
+  function detectTool(tool) {
+    return new Promise((resolve) => {
+      // current tool always "available"
+      if (tool.id === window.SLT_CURRENT) {
+        window.__SLT_AVAILABLE[tool.id] = { ...tool, current: true };
+        return resolve(true);
+      }
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = '../' + encodeURI(tool.folder) + '/_meta.js';
+      let settled = false;
+      const finish = (ok) => {
+        if (settled) return;
+        settled = true;
+        s.parentNode && s.parentNode.removeChild(s);
+        resolve(ok);
+      };
+      s.onload = () => finish(true);
+      s.onerror = () => finish(false);
+      // safety timeout in case the browser silently stalls
+      setTimeout(() => finish(false), 2500);
+      document.head.appendChild(s);
+    });
+  }
+
+  async function detectAll() {
+    const results = await Promise.all(
+      REGISTRY.map((t) => detectTool(t).then((ok) => ({ tool: t, ok })))
+    );
+    return results.filter((r) => r.ok).map((r) => r.tool);
+  }
+
+  // ---------------------------------------------------------------------
+  // Step 3: render the floating nav (collapsible dropdown menu)
+  //
+  //   <nav class="slt-nav" data-open="false">
+  //     <button class="slt-nav-handle">★ SL TOOLS ★ [TX] ▾</button>
+  //     <div class="slt-nav-panel"><ul>…</ul></div>
+  //   </nav>
+  //
+  //   The handle is the always-visible pill in the top-right corner.
+  //   Clicking it expands the panel below; clicking outside or pressing
+  //   Escape collapses it. Open/closed state is persisted in
+  //   localStorage so it stays the way the user prefers across pages.
+  // ---------------------------------------------------------------------
+  const STATE_KEY = 'slt-nav-open';
+
+  function renderNav(tools) {
+    const current = tools.find((t) => t.id === window.SLT_CURRENT);
+    const currentBadge = current ? current.badge : '★';
+
+    const nav = document.createElement('nav');
+    nav.className = 'slt-nav';
+    nav.setAttribute('aria-label', 'SL Tools');
+    nav.setAttribute('data-open', 'false');
+
+    // Handle (always visible)
+    const handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = 'slt-nav-handle';
+    handle.setAttribute('aria-expanded', 'false');
+    handle.setAttribute('aria-controls', 'slt-nav-panel');
+    handle.innerHTML =
+      '<span class="slt-nav-current">' + currentBadge + '</span>' +
+      '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
+    handle.title = 'SL Tools — click to switch';
+    nav.appendChild(handle);
+
+    // Collapsible panel (the actual menu)
+    const panel = document.createElement('div');
+    panel.className = 'slt-nav-panel';
+    panel.id = 'slt-nav-panel';
+
+    // Brand header inside the panel
+    const header = document.createElement('div');
+    header.className = 'slt-nav-panel-header';
+    header.innerHTML =
+      '<span class="slt-nav-handle-brand">★ SL TOOLS ★</span>' +
+      '<small class="slt-nav-panel-tagline">NEON ROUTINE</small>';
+    panel.appendChild(header);
+
+    const list = document.createElement('ul');
+    list.className = 'slt-nav-list';
+
+    for (const tool of tools) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.className = 'slt-nav-btn';
+      if (tool.id === window.SLT_CURRENT) {
+        a.classList.add('current');
+        a.setAttribute('aria-current', 'page');
+        a.href = '#';
+        a.addEventListener('click', (e) => e.preventDefault());
+      } else {
+        a.href = '../' + encodeURI(tool.folder) + '/' + encodeURI(tool.file);
+        // smooth fade-out before navigating
+        a.addEventListener('click', smoothNavigate);
+      }
+      a.title = tool.name + ' — ' + tool.subtitle;
+      a.innerHTML =
+        '<span class="slt-nav-badge">' + tool.badge + '</span>' +
+        '<span class="slt-nav-name">' + tool.name +
+          '<small>' + tool.subtitle + '</small></span>';
+      li.appendChild(a);
+      list.appendChild(li);
+    }
+
+    panel.appendChild(list);
+    nav.appendChild(panel);
+
+    document.body.insertBefore(nav, document.body.firstChild);
+
+    // Toggle behavior
+    function setOpen(open) {
+      nav.setAttribute('data-open', open ? 'true' : 'false');
+      handle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      try { localStorage.setItem(STATE_KEY, open ? '1' : '0'); } catch (e) {}
+    }
+    handle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setOpen(nav.getAttribute('data-open') !== 'true');
+    });
+    document.addEventListener('click', (e) => {
+      if (!nav.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+
+    // Restore previous state
+    try {
+      if (localStorage.getItem(STATE_KEY) === '1') setOpen(true);
+    } catch (e) {}
+  }
+
+  // ---------------------------------------------------------------------
+  // Smooth page transition: fade the current page out before navigating.
+  // The destination page fades back in via CSS animation on body load.
+  // ---------------------------------------------------------------------
+  function smoothNavigate(e) {
+    // Allow ctrl/cmd/middle-click to open in a new tab without hijack
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+    e.preventDefault();
+    const href = e.currentTarget.href;
+    document.documentElement.classList.add('slt-leaving');
+    setTimeout(() => { window.location.href = href; }, 180);
+  }
+
+  // ---------------------------------------------------------------------
+  // Bootstrap once the DOM is ready
+  // ---------------------------------------------------------------------
+  function boot() {
+    detectAll().then(renderNav).catch((err) => {
+      console.warn('[SL Tools nav] detection failed:', err);
+      // fallback: still show current tool only
+      const current = REGISTRY.find((t) => t.id === window.SLT_CURRENT);
+      if (current) renderNav([current]);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+
+</script>
+<!-- SHARED-JS:END -->
+
+<div class="wrap">
+  <div class="subtitle">/// 1986 :: NEON ROUTINE ///</div>
+  <h1 class="title">SL ANIMATION COMBINER</h1>
+  <p class="lede">Combine two <code>.anim</code> files into one — ideal for blending a dance animation with a nice hand pose. Everything happens locally in your browser, nothing is uploaded.</p>
+
+  <div class="row">
+    <div class="card">
+      <div class="card-head">
+        <div class="badge">01</div>
+        <div class="role">Body Animation<small>e.g. legs, pose, dance · drives duration &amp; loop</small></div>
+      </div>
+      <label class="drop" id="dropBody">
+        <strong>&gt;&gt; CHOOSE FILE OR DROP IT HERE &lt;&lt;</strong>
+        <small>.anim file</small>
+        <input type="file" id="fileBody" accept=".anim,application/octet-stream">
+      </label>
+      <div class="meta" id="metaBody"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="badge">02</div>
+        <div class="role">Hand / Arm Animation<small>overrides shoulders, arms, hands</small></div>
+      </div>
+      <label class="drop" id="dropHands">
+        <strong>&gt;&gt; CHOOSE FILE OR DROP IT HERE &lt;&lt;</strong>
+        <small>.anim file</small>
+        <input type="file" id="fileHands" accept=".anim,application/octet-stream">
+      </label>
+      <div class="meta" id="metaHands"></div>
+    </div>
+  </div>
+
+  <details class="options">
+    <summary>Advanced Options</summary>
+    <div class="opt-grid">
+      <label class="field">
+        <div class="field-label">Take duration from</div>
+        <select id="optDuration">
+          <option value="body" selected>Body animation (recommended)</option>
+          <option value="hands">Hand animation</option>
+        </select>
+      </label>
+      <label class="field">
+        <div class="field-label">Output filename</div>
+        <input type="text" id="optOutname" placeholder="combo.anim" />
+      </label>
+      <label class="field">
+        <div class="field-label">Base priority</div>
+        <input type="text" id="optPriority" placeholder="auto (max of both)" />
+      </label>
+      <label class="check" title="Shifts the hand keyframes into the body animation's loop window so the hand loop runs cleanly.">
+        <input type="checkbox" id="optAlign" checked>
+        Align hand keys to loop window
+      </label>
+      <label class="field" style="grid-column: 1/-1;">
+        <div class="field-label">Joints that must come from the body (comma-separated)</div>
+        <input type="text" id="optKeep" placeholder="e.g. mNeck, mHead, mTorso, mChest" />
+      </label>
+    </div>
+  </details>
+
+  <div class="actions">
+    <button class="primary" id="btnGo" disabled>▶ Combine</button>
+    <span class="status" id="status"></span>
+  </div>
+
+  <details class="help">
+    <summary>What does this tool actually do?</summary>
+    <p>An SL animation is a list of "joints" (skeleton bones) with keyframes per joint. This tool takes every joint that appears in the <b>hand file</b> and uses it to replace the corresponding joint from the <b>body file</b>. Joints that only exist in one of the two files are left untouched.</p>
+    <p>The loop alignment trick: hand animations are usually their own clean loops (start and end poses match). When packed raw into a longer container animation, the loop point falls in the middle of the hand cycle — and it stutters on every repeat. The "align to loop window" option shifts the hand keyframes so their full cycle sits exactly between <code>loop_in</code> and <code>loop_out</code> of the body animation. A hold keyframe is also inserted at <code>t=0</code> so the hands don't drift during the ease-in.</p>
+    <p class="hint">If the hand file isn't a clean loop (e.g. a gesture snippet), uncheck the box.</p>
+  </details>
+
+  <div class="footer-bar">
+    <span>SYS.READY</span>
+    <span class="blink">█</span>
+    <span>v1.0</span>
+  </div>
+</div>
+
+<script>
+const td = new TextDecoder();
+
+function readAnim(buf) {
+  const dv = new DataView(buf);
+  let pos = 0;
+  const h = {};
+  h.version      = dv.getUint16(pos, true); pos += 2;
+  h.subVersion   = dv.getUint16(pos, true); pos += 2;
+  h.basePriority = dv.getInt32(pos, true);  pos += 4;
+  h.duration     = dv.getFloat32(pos, true); pos += 4;
+  let end = pos;
+  while (dv.getUint8(end) !== 0) end++;
+  h.emoteName    = new Uint8Array(buf, pos, end - pos);
+  pos = end + 1;
+  h.loopIn       = dv.getFloat32(pos, true); pos += 4;
+  h.loopOut      = dv.getFloat32(pos, true); pos += 4;
+  h.loop         = dv.getInt32(pos, true);   pos += 4;
+  h.easeIn       = dv.getFloat32(pos, true); pos += 4;
+  h.easeOut      = dv.getFloat32(pos, true); pos += 4;
+  h.handPose     = dv.getUint32(pos, true);  pos += 4;
+  const numJoints = dv.getUint32(pos, true); pos += 4;
+  h.joints = [];
+  h.jointsByName = {};
+  for (let i = 0; i < numJoints; i++) {
+    let ne = pos;
+    while (dv.getUint8(ne) !== 0) ne++;
+    const name = td.decode(new Uint8Array(buf, pos, ne - pos));
+    pos = ne + 1;
+    const priority = dv.getInt32(pos, true); pos += 4;
+    const numRot   = dv.getInt32(pos, true); pos += 4;
+    const rotKeys = [];
+    for (let k = 0; k < numRot; k++) {
+      rotKeys.push([dv.getUint16(pos,true), dv.getUint16(pos+2,true), dv.getUint16(pos+4,true), dv.getUint16(pos+6,true)]);
+      pos += 8;
+    }
+    const numPos = dv.getInt32(pos, true); pos += 4;
+    const posKeys = [];
+    for (let k = 0; k < numPos; k++) {
+      posKeys.push([dv.getUint16(pos,true), dv.getUint16(pos+2,true), dv.getUint16(pos+4,true), dv.getUint16(pos+6,true)]);
+      pos += 8;
+    }
+    const j = { name, priority, rotKeys, posKeys };
+    h.joints.push(j);
+    h.jointsByName[name] = j;
+  }
+  h.numConstraints = dv.getInt32(pos, true);
+  return h;
+}
+
+function strBytes(s) { return new TextEncoder().encode(s); }
+
+function writeAnim(header, joints) {
+  let size = 0;
+  size += 2 + 2 + 4 + 4;
+  size += header.emoteName.length + 1;
+  size += 4 + 4 + 4 + 4 + 4;
+  size += 4 + 4;
+  for (const j of joints) {
+    size += strBytes(j.name).length + 1;
+    size += 4 + 4 + j.rotKeys.length * 8;
+    size += 4 + j.posKeys.length * 8;
+  }
+  size += 4;
+  const ab = new ArrayBuffer(size);
+  const dv = new DataView(ab);
+  const u8 = new Uint8Array(ab);
+  let pos = 0;
+  dv.setUint16(pos, header.version, true); pos += 2;
+  dv.setUint16(pos, header.subVersion, true); pos += 2;
+  dv.setInt32(pos,  header.basePriority, true); pos += 4;
+  dv.setFloat32(pos, header.duration, true); pos += 4;
+  u8.set(header.emoteName, pos); pos += header.emoteName.length;
+  u8[pos++] = 0;
+  dv.setFloat32(pos, header.loopIn, true); pos += 4;
+  dv.setFloat32(pos, header.loopOut, true); pos += 4;
+  dv.setInt32(pos,  header.loop, true); pos += 4;
+  dv.setFloat32(pos, header.easeIn, true); pos += 4;
+  dv.setFloat32(pos, header.easeOut, true); pos += 4;
+  dv.setUint32(pos, header.handPose, true); pos += 4;
+  dv.setUint32(pos, joints.length, true); pos += 4;
+  for (const j of joints) {
+    const nb = strBytes(j.name);
+    u8.set(nb, pos); pos += nb.length; u8[pos++] = 0;
+    dv.setInt32(pos, j.priority, true); pos += 4;
+    dv.setInt32(pos, j.rotKeys.length, true); pos += 4;
+    for (const k of j.rotKeys) {
+      dv.setUint16(pos,k[0],true); dv.setUint16(pos+2,k[1],true);
+      dv.setUint16(pos+4,k[2],true); dv.setUint16(pos+6,k[3],true);
+      pos += 8;
+    }
+    dv.setInt32(pos, j.posKeys.length, true); pos += 4;
+    for (const k of j.posKeys) {
+      dv.setUint16(pos,k[0],true); dv.setUint16(pos+2,k[1],true);
+      dv.setUint16(pos+4,k[2],true); dv.setUint16(pos+6,k[3],true);
+      pos += 8;
+    }
+  }
+  dv.setInt32(pos, 0, true);
+  return ab;
+}
+
+function remapKeys(keys, scale, offset, addHold) {
+  const out = [];
+  if (addHold && keys.length > 0) {
+    const k0 = keys[0];
+    out.push([0, k0[1], k0[2], k0[3]]);
+  }
+  for (const k of keys) {
+    let nt = Math.round(k[0] * scale + offset);
+    if (nt < 0) nt = 0;
+    if (nt > 65535) nt = 65535;
+    if (out.length > 0 && nt === out[out.length - 1][0]) {
+      nt = Math.min(65535, out[out.length - 1][0] + 1);
+    }
+    out.push([nt, k[1], k[2], k[3]]);
+  }
+  return out;
+}
+
+function combine(body, hands, opts) {
+  const driver = opts.duration === 'hands' ? hands : body;
+  const header = {
+    version: driver.version,
+    subVersion: driver.subVersion,
+    basePriority: opts.priority != null ? opts.priority
+                  : Math.max(body.basePriority, hands.basePriority),
+    duration: driver.duration,
+    emoteName: driver.emoteName,
+    loopIn: driver.loopIn,
+    loopOut: driver.loopOut,
+    loop: driver.loop,
+    easeIn: driver.easeIn,
+    easeOut: driver.easeOut,
+    handPose: driver.handPose,
+  };
+  const window = Math.max(header.loopOut - header.loopIn, 1e-6);
+  let scale, offset;
+  if (opts.align) {
+    scale  = window / header.duration;
+    offset = (header.loopIn / header.duration) * 65535;
+  } else { scale = 1.0; offset = 0.0; }
+  const keep = new Set(opts.keep || []);
+  const finalJoints = [];
+  const used = new Set();
+  for (const j of body.joints) {
+    if (hands.jointsByName[j.name] && !keep.has(j.name)) {
+      const c = hands.jointsByName[j.name];
+      finalJoints.push({
+        name: c.name, priority: c.priority,
+        rotKeys: remapKeys(c.rotKeys, scale, offset, opts.align),
+        posKeys: remapKeys(c.posKeys, scale, offset, opts.align),
+      });
+      used.add(c.name);
+    } else {
+      finalJoints.push(j);
+    }
+  }
+  for (const c of hands.joints) {
+    if (used.has(c.name) || keep.has(c.name)) continue;
+    finalJoints.push({
+      name: c.name, priority: c.priority,
+      rotKeys: remapKeys(c.rotKeys, scale, offset, opts.align),
+      posKeys: remapKeys(c.posKeys, scale, offset, opts.align),
+    });
+  }
+  return writeAnim(header, finalJoints);
+}
+
+const state = { body: null, hands: null, bodyName: '', handsName: '' };
+const els = {
+  fileBody: document.getElementById('fileBody'),
+  fileHands: document.getElementById('fileHands'),
+  dropBody: document.getElementById('dropBody'),
+  dropHands: document.getElementById('dropHands'),
+  metaBody: document.getElementById('metaBody'),
+  metaHands: document.getElementById('metaHands'),
+  btnGo: document.getElementById('btnGo'),
+  status: document.getElementById('status'),
+  optDuration: document.getElementById('optDuration'),
+  optAlign: document.getElementById('optAlign'),
+  optOutname: document.getElementById('optOutname'),
+  optPriority: document.getElementById('optPriority'),
+  optKeep: document.getElementById('optKeep'),
+};
+
+function showMeta(elem, name, parsed) {
+  elem.classList.add('shown');
+  elem.innerHTML = `<b>${name}</b><br>
+    <span class="field">Dauer:</span> ${parsed.duration.toFixed(3)}s &nbsp;·&nbsp;
+    <span class="field">Prio:</span> ${parsed.basePriority} &nbsp;·&nbsp;
+    <span class="field">Joints:</span> ${parsed.joints.length} &nbsp;·&nbsp;
+    <span class="field">Loop:</span> ${parsed.loop ? 'YES' : 'NO'}`;
+}
+
+function updateButton() {
+  els.btnGo.disabled = !(state.body && state.hands);
+  if (state.body && state.hands && !els.optOutname.value) {
+    const base = state.bodyName.replace(/\.anim$/i, '');
+    const hand = state.handsName.replace(/\.anim$/i, '');
+    els.optOutname.value = `${base} + ${hand}.anim`;
+  }
+}
+
+async function handleFile(file, kind) {
+  try {
+    const buf = await file.arrayBuffer();
+    const parsed = readAnim(buf);
+    state[kind] = parsed;
+    state[kind + 'Name'] = file.name;
+    showMeta(kind === 'body' ? els.metaBody : els.metaHands, file.name, parsed);
+    setStatus('', '');
+    updateButton();
+  } catch (e) {
+    setStatus('>> ERROR: ' + e.message, 'err');
+  }
+}
+
+function setStatus(msg, kind) {
+  els.status.textContent = msg;
+  els.status.className = 'status' + (kind ? ' ' + kind : '');
+}
+
+function bindDrop(dropEl, fileEl, kind) {
+  fileEl.addEventListener('change', e => {
+    if (e.target.files[0]) handleFile(e.target.files[0], kind);
+  });
+  ['dragenter', 'dragover'].forEach(ev =>
+    dropEl.addEventListener(ev, e => { e.preventDefault(); dropEl.classList.add('hover'); })
+  );
+  ['dragleave', 'drop'].forEach(ev =>
+    dropEl.addEventListener(ev, e => { e.preventDefault(); dropEl.classList.remove('hover'); })
+  );
+  dropEl.addEventListener('drop', e => {
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], kind);
+  });
+}
+bindDrop(els.dropBody, els.fileBody, 'body');
+bindDrop(els.dropHands, els.fileHands, 'hands');
+
+els.btnGo.addEventListener('click', () => {
+  try {
+    const opts = {
+      duration: els.optDuration.value,
+      align: els.optAlign.checked,
+      priority: els.optPriority.value.trim() ? parseInt(els.optPriority.value, 10) : null,
+      keep: els.optKeep.value.split(',').map(s => s.trim()).filter(Boolean),
+    };
+    const ab = combine(state.body, state.hands, opts);
+    const blob = new Blob([ab], { type: 'application/octet-stream' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = els.optOutname.value || 'kombi.anim';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    setStatus(`>> OK :: ${a.download} (${ab.byteLength.toLocaleString('en-US')} bytes)`, 'ok');
+  } catch (e) {
+    setStatus('>> ERROR: ' + e.message, 'err');
+    console.error(e);
+  }
+});
+</script>
+</body>
+</html>

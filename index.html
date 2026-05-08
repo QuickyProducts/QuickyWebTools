@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Quicky Web Tools :: Synthwave Edition</title>
+<meta name="description" content="A collection of browser-based tools for Second Life creators — animations, sprite sheets, 3D text, HUD buttons. No upload, no install, runs locally in your browser." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=VT323&display=swap" rel="stylesheet">
+<style>
+:root {
+  --slt-pink:    #ff2e9a;
+  --slt-magenta: #ff00d6;
+  --slt-cyan:    #00f0ff;
+  --slt-blue:    #5ddcff;
+  --slt-purple:  #6b1fb1;
+  --slt-gold:    #ffd66b;
+  --slt-bg-1:    #0a0024;
+  --slt-bg-2:    #1a0640;
+  --slt-bg-3:    #2d0a5e;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+body {
+  background: radial-gradient(ellipse at 50% 0%,
+    var(--slt-bg-3) 0%, var(--slt-bg-2) 35%, var(--slt-bg-1) 80%);
+  background-attachment: fixed;
+  color: var(--slt-cyan);
+  font-family: 'Share Tech Mono', 'VT323', monospace;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+  overflow-x: hidden;
+}
+
+/* Striped sun behind the title */
+body::before {
+  content: '';
+  position: fixed;
+  left: 50%; top: 8vh;
+  transform: translateX(-50%);
+  width: 460px; height: 460px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%,
+    #ffe66b 0%, #ff8e2a 35%, #ff2e9a 60%, #6b1fb1 95%);
+  box-shadow: 0 0 80px rgba(255,142,42,0.45), 0 0 200px rgba(255,46,154,0.35);
+  z-index: 0;
+  opacity: 0.85;
+  -webkit-mask-image: repeating-linear-gradient(180deg,
+    black 0, black 22px, transparent 22px, transparent 28px,
+    black 28px, black 42px, transparent 42px, transparent 50px,
+    black 50px, black 70px, transparent 70px, transparent 80px,
+    black 80px);
+          mask-image: repeating-linear-gradient(180deg,
+    black 0, black 22px, transparent 22px, transparent 28px,
+    black 28px, black 42px, transparent 42px, transparent 50px,
+    black 50px, black 70px, transparent 70px, transparent 80px,
+    black 80px);
+  pointer-events: none;
+}
+
+/* Animated retro grid floor */
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -10vh; left: 50%;
+  transform: translateX(-50%) perspective(420px) rotateX(58deg);
+  transform-origin: top center;
+  width: 220vw; height: 100vh;
+  background:
+    repeating-linear-gradient(0deg,
+      transparent 0, transparent 38px,
+      rgba(255, 0, 214, 0.7) 38px, rgba(255, 0, 214, 0.7) 40px),
+    repeating-linear-gradient(90deg,
+      transparent 0, transparent 38px,
+      rgba(0, 240, 255, 0.55) 38px, rgba(0, 240, 255, 0.55) 40px);
+  pointer-events: none;
+  animation: grid-scroll 1.6s linear infinite;
+  opacity: 0.65;
+  z-index: 0;
+}
+@keyframes grid-scroll {
+  0%   { background-position: 0 0,    0 0; }
+  100% { background-position: 0 40px, 0 0; }
+}
+
+/* CRT scanlines overlay */
+.scanlines {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0)    0px, rgba(0,0,0,0)    2px,
+    rgba(0,0,0,0.18) 3px, rgba(0,0,0,0)    4px);
+  z-index: 9999;
+  mix-blend-mode: multiply;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 80px 24px 120px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.brand {
+  font-family: 'Audiowide', 'Orbitron', sans-serif;
+  font-size: clamp(40px, 8vw, 88px);
+  letter-spacing: 0.08em;
+  margin: 0;
+  background: linear-gradient(180deg,
+    #fff 0%,
+    var(--slt-gold) 30%,
+    var(--slt-pink) 60%,
+    var(--slt-magenta) 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 18px rgba(255, 0, 214, 0.55));
+  text-shadow: none;
+}
+
+.tagline {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  color: var(--slt-cyan);
+  font-size: clamp(11px, 1.4vw, 14px);
+  margin-top: 8px;
+  text-transform: uppercase;
+  opacity: 0.85;
+}
+
+.subtitle {
+  margin-top: 28px;
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--slt-blue);
+  font-size: 16px;
+  line-height: 1.6;
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+}
+
+.tool {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  border: 2px solid var(--slt-magenta);
+  background: linear-gradient(180deg,
+    rgba(45, 10, 94, 0.6) 0%,
+    rgba(10, 0, 36, 0.85) 100%);
+  padding: 24px 22px;
+  position: relative;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  box-shadow:
+    0 0 0 0 rgba(255, 0, 214, 0),
+    inset 0 0 30px rgba(255, 0, 214, 0.08);
+  overflow: hidden;
+}
+
+.tool::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg,
+    transparent 0%,
+    rgba(0, 240, 255, 0.06) 45%,
+    rgba(255, 46, 154, 0.10) 55%,
+    transparent 100%);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.tool:hover,
+.tool:focus-visible {
+  transform: translateY(-3px);
+  border-color: var(--slt-cyan);
+  box-shadow:
+    0 0 28px rgba(0, 240, 255, 0.35),
+    inset 0 0 30px rgba(0, 240, 255, 0.15);
+  outline: none;
+}
+
+.tool:hover::before,
+.tool:focus-visible::before {
+  opacity: 1;
+}
+
+.tool-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.badge {
+  flex: 0 0 auto;
+  width: 46px; height: 46px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  font-family: 'Audiowide', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.05em;
+  color: #0a0024;
+  background: linear-gradient(135deg, var(--slt-cyan), var(--slt-magenta));
+  text-shadow: none;
+  box-shadow: 0 0 18px rgba(0, 240, 255, 0.45);
+}
+
+.tool-name {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.03em;
+  color: #fff;
+  margin: 0;
+}
+
+.tool-sub {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--slt-cyan);
+  text-transform: uppercase;
+  margin: 2px 0 0;
+  opacity: 0.85;
+}
+
+.tool-desc {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--slt-blue);
+  margin: 0;
+}
+
+.tool-cta {
+  margin-top: 16px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.25em;
+  color: var(--slt-pink);
+  text-transform: uppercase;
+}
+
+.tool-cta::after {
+  content: ' →';
+  display: inline-block;
+  transition: transform 0.18s ease;
+}
+
+.tool:hover .tool-cta::after,
+.tool:focus-visible .tool-cta::after {
+  transform: translateX(4px);
+}
+
+footer {
+  margin-top: 64px;
+  text-align: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 12px;
+  color: var(--slt-blue);
+  opacity: 0.7;
+  letter-spacing: 0.1em;
+}
+
+footer a {
+  color: var(--slt-pink);
+  text-decoration: none;
+  border-bottom: 1px dashed rgba(255, 46, 154, 0.5);
+}
+
+footer a:hover {
+  color: var(--slt-cyan);
+  border-bottom-color: var(--slt-cyan);
+}
+
+/* Page entrance fade */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+main { animation: fade-in 0.6s ease both; }
+.tool {
+  animation: fade-in 0.5s ease both;
+}
+.tool:nth-child(1) { animation-delay: 0.05s; }
+.tool:nth-child(2) { animation-delay: 0.10s; }
+.tool:nth-child(3) { animation-delay: 0.15s; }
+.tool:nth-child(4) { animation-delay: 0.20s; }
+.tool:nth-child(5) { animation-delay: 0.25s; }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+
+<main>
+  <header>
+    <h1 class="brand">★ SL TOOLS ★</h1>
+    <div class="tagline">Neon Routine for Second Life Creators</div>
+    <p class="subtitle">
+      Browser-based utilities for Second Life content creation.
+      Everything runs locally in your browser — no uploads, no install,
+      no account. Drop a file in, get a file out.
+    </p>
+  </header>
+
+  <section class="tools">
+
+    <a class="tool" href="./SL%20Animation%20Combiner/sl_animation_combiner.html">
+      <div class="tool-head">
+        <span class="badge">AC</span>
+        <div>
+          <h2 class="tool-name">Animation Combiner</h2>
+          <p class="tool-sub">body + hands → combo</p>
+        </div>
+      </div>
+      <p class="tool-desc">
+        Merge a body animation with a separate hands animation into a single
+        BVH file. Useful for stacking gestures onto poses without overwriting
+        finger curls.
+      </p>
+      <div class="tool-cta">Launch</div>
+    </a>
+
+    <a class="tool" href="./SL%20Animation%20Priority%20Changer/sl_animation_priority_changer.html">
+      <div class="tool-head">
+        <span class="badge">AP</span>
+        <div>
+          <h2 class="tool-name">Animation Priority Changer</h2>
+          <p class="tool-sub">set priority on .anim files</p>
+        </div>
+      </div>
+      <p class="tool-desc">
+        Rewrite the priority byte inside a SL internal-format .anim file
+        without re-uploading. Bump a pose from priority 2 to 4 in seconds.
+      </p>
+      <div class="tool-cta">Launch</div>
+    </a>
+
+    <a class="tool" href="./SL%20Sprite%20Sheet%20Maker/sl_sprite_sheet_maker.html">
+      <div class="tool-head">
+        <span class="badge">SS</span>
+        <div>
+          <h2 class="tool-name">Sprite Sheet Maker</h2>
+          <p class="tool-sub">gif → sprite sheet</p>
+        </div>
+      </div>
+      <p class="tool-desc">
+        Slice an animated GIF, video, or image sequence into a single power-of-two
+        sprite-sheet texture, ready to drive an animated face in SL.
+      </p>
+      <div class="tool-cta">Launch</div>
+    </a>
+
+    <a class="tool" href="./SL%203D%20Text%20Creator/sl_3d_text_creator.html">
+      <div class="tool-head">
+        <span class="badge">TX</span>
+        <div>
+          <h2 class="tool-name">3D Text Creator</h2>
+          <p class="tool-sub">text → 3D mesh</p>
+        </div>
+      </div>
+      <p class="tool-desc">
+        Type a word, pick a font and depth, export a clean DAE/Collada mesh
+        ready to upload as 3D text in Second Life.
+      </p>
+      <div class="tool-cta">Launch</div>
+    </a>
+
+    <a class="tool" href="./SL%20HUD%20Buttons%20Creator/sl_hud_buttons_creator.html">
+      <div class="tool-head">
+        <span class="badge">HD</span>
+        <div>
+          <h2 class="tool-name">HUD Buttons Creator</h2>
+          <p class="tool-sub">buttons grid → mesh</p>
+        </div>
+      </div>
+      <p class="tool-desc">
+        Lay out a grid of HUD buttons, generate the mesh and matching texture
+        in one go. The face indices stay aligned with the button order.
+      </p>
+      <div class="tool-cta">Launch</div>
+    </a>
+
+  </section>
+
+  <footer>
+    <p>
+      Source on
+      <a href="https://github.com/QuickyProducts/QuickyWebTools">GitHub</a>
+      &nbsp;·&nbsp;
+      Sister projects:
+      <a href="https://github.com/QuickyProducts/QuickyHUD">QuickyHUD</a>
+      &nbsp;·&nbsp;
+      <a href="https://github.com/QuickyProducts/QuickySitter">QuickySitter</a>
+    </p>
+  </footer>
+</main>
+</body>
+</html>

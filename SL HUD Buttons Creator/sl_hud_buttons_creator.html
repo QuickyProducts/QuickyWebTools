@@ -1,0 +1,3099 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>SL Button Creator</title>
+<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<style>
+/* =====================================================================
+   SL Tools :: Synthwave shared theme + navigation
+   Loaded by all tools to give a consistent neon look + tool switcher.
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=VT323&display=swap');
+
+:root {
+  --slt-pink:    #ff2e9a;
+  --slt-magenta: #ff00d6;
+  --slt-cyan:    #00f0ff;
+  --slt-blue:    #5ddcff;
+  --slt-purple:  #6b1fb1;
+  --slt-gold:    #ffd66b;
+  --slt-bg-1:    #0a0024;
+  --slt-bg-2:    #1a0640;
+  --slt-bg-3:    #2d0a5e;
+}
+
+/* ---- Body + background layers (pure CSS — no JS needed) ----
+   The themed body paints the radial bg + overlays a striped
+   "sun" via ::before and an animated grid floor via ::after.
+   Scanlines live on a tiny <div class="slt-scanlines"> element
+   that each themed tool pre-renders so it never has to flash
+   in via JavaScript. */
+body.slt-themed {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(ellipse at 50% 0%,
+    var(--slt-bg-3) 0%, var(--slt-bg-2) 35%, var(--slt-bg-1) 80%) !important;
+  background-attachment: fixed !important;
+  color: var(--slt-cyan);
+  font-family: 'Share Tech Mono', 'VT323', monospace;
+  text-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+}
+
+body.slt-themed::before {
+  content: '';
+  position: fixed;
+  left: 50%; top: 14vh;
+  transform: translateX(-50%);
+  width: 380px; height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 55%,
+    #ffe66b 0%, #ff8e2a 35%, #ff2e9a 60%, #6b1fb1 95%);
+  box-shadow: 0 0 80px rgba(255,142,42,0.45), 0 0 200px rgba(255,46,154,0.35);
+  z-index: 0;
+  opacity: 0.85;
+  -webkit-mask-image: repeating-linear-gradient(180deg,
+    black 0, black 22px, transparent 22px, transparent 28px,
+    black 28px, black 42px, transparent 42px, transparent 50px,
+    black 50px, black 70px, transparent 70px, transparent 80px,
+    black 80px);
+          mask-image: repeating-linear-gradient(180deg,
+    black 0, black 22px, transparent 22px, transparent 28px,
+    black 28px, black 42px, transparent 42px, transparent 50px,
+    black 50px, black 70px, transparent 70px, transparent 80px,
+    black 80px);
+  pointer-events: none;
+}
+
+body.slt-themed::after {
+  content: '';
+  position: fixed;
+  bottom: -10vh; left: 50%;
+  transform: translateX(-50%) perspective(420px) rotateX(58deg);
+  transform-origin: top center;
+  width: 220vw; height: 100vh;
+  background:
+    repeating-linear-gradient(0deg,
+      transparent 0, transparent 38px,
+      rgba(255, 0, 214, 0.7) 38px, rgba(255, 0, 214, 0.7) 40px),
+    repeating-linear-gradient(90deg,
+      transparent 0, transparent 38px,
+      rgba(0, 240, 255, 0.55) 38px, rgba(0, 240, 255, 0.55) 40px);
+  pointer-events: none;
+  animation: slt-grid-scroll 1.6s linear infinite;
+  opacity: 0.65;
+  z-index: 0;
+}
+@keyframes slt-grid-scroll {
+  0%   { background-position: 0 0,    0 0; }
+  100% { background-position: 0 40px, 0 0; }
+}
+
+.slt-scanlines {
+  position: fixed; inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0,0,0,0)    0px, rgba(0,0,0,0)    2px,
+    rgba(0,0,0,0.18) 3px, rgba(0,0,0,0)    4px);
+  z-index: 9999;
+  mix-blend-mode: multiply;
+}
+
+/* Lift every element above the bg pseudo-elements. */
+body.slt-themed > *:not(.slt-scanlines):not(.slt-nav) {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Floating navigation pill (top-right) ---------------------------
+   The nav is `position: fixed` so it floats above the page and stays
+   in view while you scroll. It has two states:
+     data-open="false" → only the small handle pill is visible
+     data-open="true"  → the panel hangs below, listing all tools
+   State persists in localStorage between page loads.            */
+
+.slt-nav {
+  position: fixed;
+  top: 12px;
+  right: 12px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  font-family: 'Orbitron', 'Audiowide', sans-serif;
+}
+
+/* The always-visible handle pill — kept small so it doesn't crowd
+   page titles. */
+.slt-nav-handle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: auto;
+  margin: 0;
+  padding: 5px 10px 5px 5px;
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.92) 0%, rgba(45,10,94,0.88) 100%);
+  border: 1.5px solid var(--slt-cyan);
+  border-radius: 999px;
+  cursor: pointer;
+  color: var(--slt-cyan);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  text-shadow: 0 0 6px rgba(0,240,255,0.5);
+  outline: none;
+  box-shadow:
+    0 0 0 1px rgba(255,0,214,0.3) inset,
+    0 0 14px rgba(0,240,255,0.35),
+    0 4px 16px rgba(0,0,0,0.5);
+  transition: box-shadow .18s, transform .12s, border-color .18s, color .18s;
+  -webkit-backdrop-filter: blur(6px);
+          backdrop-filter: blur(6px);
+}
+.slt-nav-handle:hover {
+  border-color: var(--slt-magenta);
+  color: var(--slt-magenta);
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 22px var(--slt-magenta),
+    0 4px 18px rgba(0,0,0,0.5);
+  transform: translateY(1px);
+}
+.slt-nav[data-open="true"] .slt-nav-handle {
+  border-color: var(--slt-gold);
+  color: var(--slt-gold);
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 18px var(--slt-magenta),
+    0 4px 18px rgba(0,0,0,0.5);
+}
+
+/* Current-tool badge inside the handle */
+.slt-nav-current {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  width: 22px; height: 22px;
+  border: 1.5px solid var(--slt-gold);
+  border-radius: 999px;
+  background: rgba(255,214,107,0.18);
+  color: var(--slt-gold);
+  font-family: 'Audiowide', sans-serif;
+  font-size: 9px;
+  letter-spacing: 0;
+  text-shadow: 0 0 6px var(--slt-gold);
+  box-shadow: 0 0 8px rgba(255,214,107,0.5);
+}
+
+/* Brand text (gradient) — used inside the panel header */
+.slt-nav-handle-brand {
+  display: block;
+  background: linear-gradient(180deg,
+    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
+    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%);
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 6px rgba(255,0,214,0.45));
+  font-family: 'Audiowide', sans-serif;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+/* Panel header (brand + tagline) */
+.slt-nav-panel-header {
+  padding: 8px 6px 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px dashed rgba(0,240,255,0.25);
+  text-align: center;
+}
+.slt-nav-panel-tagline {
+  display: block;
+  font-family: 'VT323', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--slt-blue);
+  text-shadow: 0 0 6px var(--slt-cyan);
+  margin-top: 4px;
+}
+
+.slt-nav-chevron {
+  display: inline-block;
+  font-size: 10px;
+  transition: transform .25s ease;
+}
+.slt-nav[data-open="true"] .slt-nav-chevron { transform: rotate(180deg); }
+
+/* The collapsible panel */
+.slt-nav-panel {
+  width: 280px;
+  max-width: calc(100vw - 24px);
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.92) 0%, rgba(45,10,94,0.88) 100%);
+  border: 1.5px solid var(--slt-cyan);
+  border-radius: 4px;
+  box-shadow:
+    0 0 0 1px rgba(255,0,214,0.3) inset,
+    0 0 22px rgba(0,240,255,0.35),
+    0 8px 32px rgba(0,0,0,0.6);
+  padding: 8px;
+  -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+  position: relative;
+
+  /* Animated entry */
+  opacity: 0;
+  transform: translateY(-6px) scale(0.98);
+  transform-origin: top right;
+  pointer-events: none;
+  transition: opacity .18s ease, transform .22s cubic-bezier(.2,.9,.3,1.2);
+}
+.slt-nav-panel::before {
+  content: '';
+  position: absolute; inset: 4px;
+  border: 1px dashed rgba(0,240,255,0.22);
+  border-radius: 2px;
+  pointer-events: none;
+}
+.slt-nav[data-open="true"] .slt-nav-panel {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.slt-nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  list-style: none;
+  margin: 0; padding: 0;
+}
+
+.slt-nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: var(--slt-cyan);
+  background: rgba(10,0,36,0.4);
+  border: 1.5px solid transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: all .15s;
+  text-shadow: 0 0 6px rgba(0,240,255,0.4);
+}
+.slt-nav-btn:hover {
+  border-color: var(--slt-magenta);
+  color: var(--slt-magenta);
+  background: rgba(255,0,214,0.08);
+  text-shadow: 0 0 8px var(--slt-magenta);
+  box-shadow: 0 0 12px rgba(255,0,214,0.4);
+  transform: translateX(-2px);
+}
+.slt-nav-btn.current {
+  border-color: var(--slt-gold);
+  color: var(--slt-gold);
+  background: linear-gradient(180deg,
+    rgba(255,46,154,0.35) 0%, rgba(107,31,177,0.45) 100%);
+  text-shadow: 0 0 10px var(--slt-gold);
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 14px rgba(255,0,214,0.5);
+  cursor: default;
+}
+.slt-nav-btn.current:hover { transform: none; }
+
+.slt-nav-badge {
+  width: 26px; height: 26px;
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+  font-size: 11px;
+  font-family: 'Audiowide', sans-serif;
+  background: rgba(255,0,214,0.08);
+  flex-shrink: 0;
+}
+.slt-nav-btn.current .slt-nav-badge {
+  background: rgba(255,214,107,0.2);
+  box-shadow: 0 0 10px var(--slt-gold), inset 0 0 8px rgba(255,214,107,0.4);
+}
+
+.slt-nav-name { line-height: 1.1; flex: 1; }
+.slt-nav-name small {
+  display: block;
+  font-family: 'Share Tech Mono', monospace;
+  font-weight: normal;
+  font-size: 9px;
+  letter-spacing: 0.5px;
+  text-transform: none;
+  margin-top: 3px;
+  opacity: 0.75;
+}
+
+@media (max-width: 540px) {
+  .slt-nav { top: 8px; right: 8px; }
+  .slt-nav-panel { width: 240px; }
+}
+
+/* ---- Smooth cross-page transitions --------------------------------
+   Both fade-in and fade-out are CSS animations. Using an animation
+   for fade-out is important: a CSS transition cannot override an
+   already-running animation on the same property, so on themed pages
+   (which run slt-page-in on load) the leaving fade has to win via
+   another animation declaration that supersedes it. */
+body.slt-themed { animation: slt-page-in .28s ease-out both; }
+@keyframes slt-page-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
+@keyframes slt-page-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+
+/* =====================================================================
+   Synthwave UI overrides — applied on every tool that opts in via
+   .slt-themed (i.e. everything except Anim Combiner, which already
+   ships its own native synthwave styling and sets SLT_NO_BG=true).
+   We ride on top of each tool's existing CSS using !important so
+   the cascade lands on us regardless of source order or specificity.
+   ===================================================================== */
+
+/* ---- Big synthwave title block (matches Anim Combiner) -----------
+   Drop this on top of each themed tool:
+     <header class="slt-titlebar">
+       <div class="slt-subtitle">/// 1986 :: TAGLINE ///</div>
+       <h1 class="slt-title">SL TOOL NAME</h1>
+       <div class="slt-subtitle slt-subtitle-edition">★ S Y N T H W A V E ★</div>
+       <p class="slt-lede">One-line description.</p>
+     </header>                                                       */
+body.slt-themed .slt-titlebar {
+  text-align: center;
+  margin: 8px auto 32px;
+  max-width: 940px;
+  position: relative;
+  z-index: 1;
+}
+body.slt-themed .slt-title {
+  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
+  font-weight: normal !important;
+  font-size: clamp(36px, 7vw, 64px) !important;
+  line-height: 1.05 !important;
+  letter-spacing: 2px !important;
+  /* scaleY(1.15) below renders the title ~15% taller than its layout
+     box. Padding-bottom would scale WITH the transform (no help), so
+     we use margin-bottom — which sits outside the transform — to
+     reserve breathing room before the lede. 0.6em is enough for up
+     to ~3 wrapped lines at any clamp size. */
+  margin: 8px 0 0.6em !important;
+  padding-bottom: 0.15em !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  text-wrap: balance;
+  background: linear-gradient(180deg,
+    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
+    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%) !important;
+  -webkit-background-clip: text !important;
+          background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 14px rgba(255,0,214,0.55))
+          drop-shadow(0 4px 0 rgba(0,240,255,0.7))
+          drop-shadow(0 8px 0 rgba(107,31,177,0.8)) !important;
+  text-shadow: none !important;
+  transform: scaleY(1.15) !important;
+  transform-origin: center top !important;
+  border: none !important;
+}
+body.slt-themed .slt-subtitle {
+  font-family: 'VT323', monospace !important;
+  font-size: 22px !important;
+  text-align: center !important;
+  color: var(--slt-blue) !important;
+  letter-spacing: 4px !important;
+  margin: 4px 0 8px !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+}
+body.slt-themed .slt-subtitle-edition {
+  font-size: 14px !important;
+  letter-spacing: 6px !important;
+  opacity: 0.7 !important;
+}
+body.slt-themed .slt-lede {
+  text-align: center !important;
+  color: #c5e9ff !important;
+  margin: 18px auto 0 !important;
+  max-width: 640px !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+  text-shadow: 0 0 5px rgba(0,240,255,0.3) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+body.slt-themed .slt-lede code {
+  color: var(--slt-gold) !important;
+  background: rgba(255,214,107,0.08) !important;
+  padding: 1px 6px !important;
+  border: 1px solid rgba(255,214,107,0.3) !important;
+  border-radius: 3px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Headings ----------------------------------------------------- */
+body.slt-themed h1 {
+  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
+  font-weight: normal !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  background: linear-gradient(180deg,
+    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
+    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%) !important;
+  -webkit-background-clip: text !important;
+          background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  color: transparent !important;
+  filter: drop-shadow(0 0 14px rgba(255,0,214,0.55))
+          drop-shadow(0 4px 0 rgba(0,240,255,0.7))
+          drop-shadow(0 8px 0 rgba(107,31,177,0.8)) !important;
+  text-shadow: none !important;
+  border: none !important;
+}
+body.slt-themed h1 small {
+  display: block !important;
+  font-family: 'VT323', monospace !important;
+  font-size: 18px !important;
+  letter-spacing: 4px !important;
+  font-weight: normal !important;
+  text-transform: uppercase !important;
+  background: none !important;
+  -webkit-text-fill-color: var(--slt-blue) !important;
+  color: var(--slt-blue) !important;
+  filter: none !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+  margin: 4px 0 0 0 !important;
+  opacity: 0.85 !important;
+}
+body.slt-themed h2 {
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: var(--slt-magenta) !important;
+  text-shadow: 0 0 10px var(--slt-magenta) !important;
+  border-bottom-color: var(--slt-magenta) !important;
+}
+body.slt-themed h3 {
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 8px rgba(255,214,107,0.4) !important;
+}
+
+/* ---- Panels / cards / canvas wrappers ----------------------------- */
+body.slt-themed .panel,
+body.slt-themed .preview-area,
+body.slt-themed .canvas-wrap,
+body.slt-themed details.advanced {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%) !important;
+  border: 1.5px solid var(--slt-cyan) !important;
+  border-radius: 4px !important;
+  box-shadow:
+    0 0 0 1px rgba(255,0,214,0.3) inset,
+    0 0 18px rgba(0,240,255,0.35),
+    0 0 40px rgba(255,0,214,0.18) !important;
+  backdrop-filter: blur(2px) !important;
+  position: relative;
+}
+
+/* ---- Inputs / selects / textareas --------------------------------- */
+body.slt-themed input[type="text"],
+body.slt-themed input[type="number"],
+body.slt-themed input[type="search"],
+body.slt-themed input[type="email"],
+body.slt-themed input[type="tel"],
+body.slt-themed input[type="url"],
+body.slt-themed input[type="password"],
+body.slt-themed select,
+body.slt-themed textarea {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  letter-spacing: 0.5px !important;
+  text-shadow: 0 0 4px rgba(0,240,255,0.5) !important;
+  outline: none !important;
+}
+body.slt-themed input[type="text"]:focus,
+body.slt-themed input[type="number"]:focus,
+body.slt-themed input[type="search"]:focus,
+body.slt-themed select:focus,
+body.slt-themed textarea:focus {
+  border-color: var(--slt-magenta) !important;
+  box-shadow: 0 0 12px var(--slt-magenta) !important;
+}
+body.slt-themed input::placeholder,
+body.slt-themed textarea::placeholder {
+  color: rgba(0,240,255,0.4) !important;
+}
+body.slt-themed select option {
+  background: var(--slt-bg-1) !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed input[type="color"] {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed input[type="checkbox"],
+body.slt-themed input[type="radio"],
+body.slt-themed input[type="range"] {
+  accent-color: var(--slt-magenta) !important;
+}
+
+/* ---- Buttons ------------------------------------------------------
+   Default <button> = primary synthwave style. Several tool-specific
+   classes get their own treatment further below (small toggle pads,
+   navigation arrows, thumbnail close, etc.). The .slt-nav-* classes
+   are excluded so the floating nav stays compact. */
+body.slt-themed button:not(.layout-btn):not(.deco-btn):not(.mode-btn):not(.preset-btn):not(.navbtn):not(.thumb-x):not(.aspect-sel):not(.apply-all):not(.clear-bar):not(.warn):not(.slt-nav-handle):not(.slt-nav-btn) {
+  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  color: #fff7b0 !important;
+  background: linear-gradient(180deg,
+    var(--slt-pink) 0%, var(--slt-magenta) 60%, var(--slt-purple) 100%) !important;
+  border: 2px solid var(--slt-gold) !important;
+  border-radius: 3px !important;
+  text-shadow: 0 0 8px var(--slt-gold), 0 2px 0 rgba(0,0,0,0.5) !important;
+  box-shadow:
+    0 0 0 2px var(--slt-magenta) inset,
+    0 0 16px var(--slt-magenta),
+    0 0 32px rgba(255,0,214,0.3),
+    0 4px 0 rgba(0,0,0,0.4) !important;
+  transition: filter .15s, transform .05s, box-shadow .15s !important;
+}
+body.slt-themed button:not(:disabled):hover {
+  filter: brightness(1.15) saturate(1.2) !important;
+}
+body.slt-themed button:not(:disabled):active {
+  transform: translateY(2px) !important;
+}
+body.slt-themed button:disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+  filter: grayscale(0.3) !important;
+}
+body.slt-themed button.secondary,
+body.slt-themed button.btn-secondary {
+  background: rgba(10,0,36,0.6) !important;
+  color: var(--slt-cyan) !important;
+  border: 1.5px solid var(--slt-cyan) !important;
+  text-shadow: 0 0 6px var(--slt-cyan) !important;
+  box-shadow:
+    0 0 0 1px var(--slt-cyan) inset,
+    0 0 12px rgba(0,240,255,0.25) !important;
+}
+body.slt-themed button.small {
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  padding: 6px 12px !important;
+  border-width: 1.5px !important;
+}
+
+/* ---- Toggle/option pad buttons (div-based grids) ------------------ */
+body.slt-themed .layout-btn,
+body.slt-themed .deco-btn,
+body.slt-themed .mode-btn,
+body.slt-themed .preset-btn,
+body.slt-themed .navbtn {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1.5px solid var(--slt-cyan) !important;
+  color: var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  text-shadow: 0 0 6px rgba(0,240,255,0.4) !important;
+  transition: all .15s !important;
+  box-shadow: none !important;
+}
+body.slt-themed .layout-btn:hover,
+body.slt-themed .deco-btn:hover,
+body.slt-themed .mode-btn:hover,
+body.slt-themed .preset-btn:hover,
+body.slt-themed .navbtn:hover:not(:disabled) {
+  border-color: var(--slt-magenta) !important;
+  color: var(--slt-magenta) !important;
+  background: rgba(20,5,50,0.6) !important;
+  box-shadow: 0 0 12px var(--slt-magenta), inset 0 0 8px rgba(255,0,214,0.18) !important;
+  transform: translateY(-1px) !important;
+}
+body.slt-themed .layout-btn.active,
+body.slt-themed .deco-btn.active,
+body.slt-themed .mode-btn.active,
+body.slt-themed .preset-btn.active {
+  background: linear-gradient(180deg,
+    rgba(255,46,154,0.4) 0%, rgba(107,31,177,0.5) 100%) !important;
+  border-color: var(--slt-gold) !important;
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 10px var(--slt-gold) !important;
+  box-shadow:
+    0 0 0 1px var(--slt-magenta) inset,
+    0 0 18px var(--slt-magenta) !important;
+}
+body.slt-themed .layout-btn.active .layout-icon { color: var(--slt-gold) !important; }
+body.slt-themed .navbtn .arrow { color: var(--slt-magenta) !important; text-shadow: 0 0 8px var(--slt-magenta) !important; }
+body.slt-themed .navbtn:disabled { opacity: 0.3 !important; }
+
+/* ---- Apply-all + aspect-sel pills --------------------------------- */
+body.slt-themed .apply-all {
+  background: rgba(10,0,36,0.8) !important;
+  color: var(--slt-magenta) !important;
+  border: 1px solid var(--slt-magenta) !important;
+  border-radius: 2px !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  text-shadow: 0 0 6px var(--slt-magenta) !important;
+  box-shadow: 0 0 8px rgba(255,0,214,0.3) !important;
+}
+body.slt-themed .apply-all:hover:not(:disabled) {
+  background: rgba(255,0,214,0.15) !important;
+  box-shadow: 0 0 14px var(--slt-magenta) !important;
+}
+body.slt-themed .aspect-sel {
+  background: rgba(10,0,36,0.8) !important;
+  color: var(--slt-cyan) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Big banner clear button -------------------------------------- */
+body.slt-themed .clear-bar {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%) !important;
+  color: var(--slt-magenta) !important;
+  border: 1.5px solid var(--slt-magenta) !important;
+  border-top: none !important;
+  border-radius: 0 0 4px 4px !important;
+  text-shadow: 0 0 8px var(--slt-magenta) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  letter-spacing: 2px !important;
+  text-transform: uppercase !important;
+  box-shadow: 0 0 14px rgba(255,0,214,0.3) !important;
+}
+body.slt-themed .clear-bar:hover {
+  background: linear-gradient(180deg,
+    rgba(255,46,154,0.4) 0%, rgba(107,31,177,0.5) 100%) !important;
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 10px var(--slt-gold) !important;
+  box-shadow: 0 0 22px var(--slt-magenta) !important;
+}
+body.slt-themed .clear-bar.confirm {
+  background: linear-gradient(180deg,
+    var(--slt-pink) 0%, var(--slt-magenta) 60%, var(--slt-purple) 100%) !important;
+  color: #fff7b0 !important;
+  border-color: var(--slt-gold) !important;
+}
+
+/* ---- Thumbnail close button (small X) ----------------------------- */
+body.slt-themed .thumb-x {
+  background: var(--slt-magenta) !important;
+  color: #fff !important;
+  border: 2px solid #1a0640 !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 8px var(--slt-magenta) !important;
+}
+
+/* ---- Info rows (key/value display) -------------------------------- */
+body.slt-themed .info-row {
+  border-bottom: 1px dashed rgba(0,240,255,0.25) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed .info-row span:first-child {
+  color: var(--slt-blue) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+  font-weight: 700 !important;
+}
+body.slt-themed .info-row span:last-child {
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 6px rgba(255,214,107,0.3) !important;
+}
+
+/* ---- Stats grid (SL Text/HUD) ------------------------------------- */
+body.slt-themed .stat {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed .stat .label {
+  color: var(--slt-blue) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 1px !important;
+  text-transform: uppercase !important;
+}
+body.slt-themed .stat .value {
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 8px rgba(255,214,107,0.5) !important;
+  font-family: 'Audiowide', sans-serif !important;
+}
+body.slt-themed .stat.warn .value { color: #ff6b6b !important; text-shadow: 0 0 8px #ff6b6b !important; }
+body.slt-themed .stat.good .value { color: #6bff8e !important; text-shadow: 0 0 8px #6bff8e !important; }
+
+/* ---- Status banner ------------------------------------------------ */
+body.slt-themed #status,
+body.slt-themed .status {
+  font-family: 'VT323', monospace !important;
+  font-size: 16px !important;
+  letter-spacing: 1px !important;
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed #status.ok,
+body.slt-themed .status.ok {
+  color: #6bff8e !important;
+  background: rgba(107,255,142,0.08) !important;
+  border-color: #6bff8e !important;
+  text-shadow: 0 0 8px #6bff8e !important;
+}
+body.slt-themed #status.error,
+body.slt-themed .status.error,
+body.slt-themed #status.err,
+body.slt-themed .status.err {
+  color: #ff6b6b !important;
+  background: rgba(255,107,107,0.08) !important;
+  border-color: #ff6b6b !important;
+  text-shadow: 0 0 8px #ff6b6b !important;
+}
+
+/* ---- Help / detail blocks ----------------------------------------- */
+body.slt-themed details:not(.advanced) {
+  border: 1px solid rgba(0,240,255,0.3) !important;
+  border-radius: 4px !important;
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.7) 0%, rgba(45,10,94,0.6) 100%) !important;
+  padding: 10px 14px !important;
+}
+body.slt-themed details > summary {
+  cursor: pointer !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+  letter-spacing: 1.5px !important;
+  text-transform: uppercase !important;
+  color: var(--slt-cyan) !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+  font-size: 12px !important;
+}
+body.slt-themed details.advanced > summary {
+  color: var(--slt-magenta) !important;
+  text-shadow: 0 0 10px var(--slt-magenta) !important;
+}
+body.slt-themed .help,
+body.slt-themed details p,
+body.slt-themed details .help {
+  color: #b0d8ff !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  font-size: 12px !important;
+  line-height: 1.55 !important;
+}
+body.slt-themed details code,
+body.slt-themed .help code {
+  color: var(--slt-magenta) !important;
+  background: rgba(255,0,214,0.08) !important;
+  border: 1px solid rgba(255,0,214,0.3) !important;
+  padding: 1px 4px !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Filename / monospace label ----------------------------------- */
+body.slt-themed .filename {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px dashed var(--slt-cyan) !important;
+  color: var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+  text-shadow: 0 0 4px rgba(0,240,255,0.5) !important;
+}
+
+/* ---- Drop zone (label.drop) --------------------------------------- */
+body.slt-themed .drop {
+  border: 2px dashed var(--slt-cyan) !important;
+  border-radius: 3px !important;
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(0,240,255,0.04) 0px, rgba(0,240,255,0.04) 8px,
+      transparent 8px, transparent 16px) !important;
+  color: var(--slt-cyan) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  text-shadow: 0 0 8px var(--slt-cyan) !important;
+}
+body.slt-themed .drop:hover {
+  border-color: var(--slt-magenta) !important;
+  box-shadow: 0 0 24px var(--slt-magenta), inset 0 0 24px rgba(255,0,214,0.18) !important;
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(255,0,214,0.08) 0px, rgba(255,0,214,0.08) 8px,
+      transparent 8px, transparent 16px) !important;
+}
+
+/* ---- Thumbnails strip (Anim Priority + Sprite Sheet) -------------- */
+body.slt-themed .thumbs {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.6) 0%, rgba(45,10,94,0.55) 100%) !important;
+  border: 1.5px solid var(--slt-magenta) !important;
+  border-bottom: none !important;
+  border-radius: 4px 4px 0 0 !important;
+  box-shadow: 0 0 14px rgba(255,0,214,0.2) !important;
+}
+body.slt-themed .thumb {
+  background: rgba(10,0,36,0.5) !important;
+  border: 2px solid transparent !important;
+  border-radius: 2px !important;
+  transition: all .15s !important;
+}
+body.slt-themed .thumb:hover {
+  border-color: var(--slt-cyan) !important;
+  box-shadow: 0 0 12px rgba(0,240,255,0.4) !important;
+}
+body.slt-themed .thumb.active {
+  border-color: var(--slt-magenta) !important;
+  background: rgba(45,10,94,0.6) !important;
+  box-shadow: 0 0 18px var(--slt-magenta) !important;
+}
+body.slt-themed .thumb-icon {
+  background: rgba(20,5,50,0.85) !important;
+  color: var(--slt-cyan) !important;
+}
+body.slt-themed .thumb-icon .pri-badge {
+  background: var(--slt-magenta) !important;
+  color: #fff !important;
+  font-family: 'Audiowide', sans-serif !important;
+  box-shadow: 0 0 6px var(--slt-magenta) !important;
+}
+body.slt-themed .thumb-icon.changed .pri-badge {
+  background: #6bff8e !important;
+  box-shadow: 0 0 6px #6bff8e !important;
+}
+body.slt-themed .thumb-label {
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Decorations btn-row (HUD per-button list) -------------------- */
+body.slt-themed .btn-row {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid rgba(0,240,255,0.3) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed .btn-row .idx {
+  color: var(--slt-blue) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  font-weight: 700 !important;
+}
+
+/* ---- Info / tip box ----------------------------------------------- */
+body.slt-themed .info-box {
+  background: rgba(0,240,255,0.06) !important;
+  border: 1px solid rgba(0,240,255,0.4) !important;
+  border-left: 3px solid var(--slt-magenta) !important;
+  color: #b0d8ff !important;
+  border-radius: 2px !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+body.slt-themed .info-box b {
+  color: var(--slt-gold) !important;
+  font-family: 'Orbitron', sans-serif !important;
+  text-shadow: 0 0 6px rgba(255,214,107,0.4) !important;
+}
+body.slt-themed .info-box code {
+  color: var(--slt-magenta) !important;
+  background: rgba(255,0,214,0.08) !important;
+  border: 1px solid rgba(255,0,214,0.3) !important;
+  border-radius: 2px !important;
+  padding: 1px 4px !important;
+}
+
+/* ---- Toggle row (SL Text Creator) --------------------------------- */
+body.slt-themed .toggle-row {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px solid var(--slt-cyan) !important;
+  border-radius: 2px !important;
+  color: var(--slt-cyan) !important;
+}
+
+/* ---- Placeholder / 3D viewer placeholder -------------------------- */
+body.slt-themed .ph {
+  background: linear-gradient(180deg,
+    rgba(20,5,50,0.85) 0%, rgba(10,0,36,0.95) 100%) !important;
+  border-radius: 0 !important;
+}
+body.slt-themed .ph-icon { filter: drop-shadow(0 0 18px var(--slt-magenta)) !important; }
+body.slt-themed .ph-title {
+  color: var(--slt-magenta) !important;
+  font-family: 'Audiowide', sans-serif !important;
+  text-shadow: 0 0 14px var(--slt-magenta) !important;
+}
+body.slt-themed .ph-sub {
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+body.slt-themed .ph-heart {
+  filter: drop-shadow(0 0 22px var(--slt-magenta)) !important;
+}
+
+/* ---- Playback controls -------------------------------------------- */
+body.slt-themed .playback {
+  background: rgba(10,0,36,0.6) !important;
+  border: 1px dashed var(--slt-cyan) !important;
+  border-radius: 2px !important;
+}
+body.slt-themed .playback button {
+  font-size: 11px !important;
+  letter-spacing: 1px !important;
+  padding: 4px 12px !important;
+}
+body.slt-themed .playback .timebar {
+  background: rgba(10,0,36,0.8) !important;
+  border: 1px solid rgba(0,240,255,0.4) !important;
+}
+body.slt-themed .playback .timebar .fill {
+  background: linear-gradient(90deg, var(--slt-cyan), var(--slt-magenta)) !important;
+  box-shadow: 0 0 8px var(--slt-magenta) !important;
+}
+body.slt-themed .playback .timetext {
+  color: var(--slt-cyan) !important;
+  font-family: 'Share Tech Mono', monospace !important;
+}
+
+/* ---- Credit footer ------------------------------------------------ */
+body.slt-themed .credit {
+  color: var(--slt-blue) !important;
+  font-family: 'VT323', monospace !important;
+  letter-spacing: 2px !important;
+  opacity: 0.8;
+}
+body.slt-themed .credit b,
+body.slt-themed .credit a {
+  color: var(--slt-gold) !important;
+  text-shadow: 0 0 6px rgba(255,214,107,0.4) !important;
+}
+
+/* ---- Scrollbar (WebKit) ------------------------------------------- */
+body.slt-themed ::-webkit-scrollbar { width: 12px; height: 12px; }
+body.slt-themed ::-webkit-scrollbar-track { background: rgba(10,0,36,0.5); }
+body.slt-themed ::-webkit-scrollbar-thumb {
+  background: var(--slt-magenta);
+  border: 2px solid rgba(10,0,36,0.7);
+  border-radius: 2px;
+}
+body.slt-themed ::-webkit-scrollbar-thumb:hover {
+  background: var(--slt-pink);
+}
+
+/* ---- Generic body text default colour ----------------------------- */
+body.slt-themed { color: var(--slt-cyan); }
+body.slt-themed label { color: var(--slt-cyan); }
+body.slt-themed .hint { color: var(--slt-blue) !important; opacity: 0.8 !important; }
+
+
+/* =====================================================================
+   Layout consolidations
+   ---------------------------------------------------------------------
+   These rules used to be duplicated in each tool's inline <style>.
+   Pulling them up here means the tools only carry truly unique sizes
+   (e.g. #threeCanvas dimensions, panel max-widths) — everything that
+   was identical across two or more tools now lives in one place.
+   ===================================================================== */
+
+/* ---- Universal resets / form a11y (was in every themed tool) ---- */
+body.slt-themed { color-scheme: dark; }
+body.slt-themed * {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+body.slt-themed input,
+body.slt-themed select,
+body.slt-themed button { outline: none; }
+body.slt-themed input:focus-visible,
+body.slt-themed select:focus-visible,
+body.slt-themed button:focus-visible {
+  outline: 2px solid var(--slt-magenta);
+  outline-offset: 1px;
+}
+body.slt-themed input:-webkit-autofill,
+body.slt-themed input:-webkit-autofill:hover,
+body.slt-themed input:-webkit-autofill:focus,
+body.slt-themed input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px rgba(10, 0, 36, 0.9) inset !important;
+  -webkit-text-fill-color: var(--slt-cyan) !important;
+  caret-color: var(--slt-cyan);
+  transition: background-color 9999s ease-out;
+}
+
+/* ---- Workspace layout (Anim Priority + Sprite Sheet share these) - */
+
+/* Canvas wrapper + 3D/2D placeholder */
+body.slt-themed .canvas-wrap {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+body.slt-themed .canvas-stack {
+  position: relative;
+  display: flex;
+}
+body.slt-themed .ph {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px;
+  pointer-events: none;
+}
+body.slt-themed .ph-icon,
+body.slt-themed .ph-heart {
+  font-size: 56px;
+  line-height: 1;
+}
+body.slt-themed .ph-title { font-size: 22px; letter-spacing: 0.3px; }
+body.slt-themed .ph-sub { font-size: 14px; }
+
+/* Canvas previous/next nav arrows */
+body.slt-themed .canvas-nav {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+}
+body.slt-themed .navbtn {
+  width: 90px;
+  padding: 18px 8px;
+  cursor: pointer;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+body.slt-themed .navbtn .arrow { font-size: 30px; line-height: 1; }
+
+/* Side panel + key/value rows */
+body.slt-themed .panel { width: 320px; padding: 18px; }
+body.slt-themed .panel h3 { margin: 0 0 8px; font-size: 13px; }
+body.slt-themed .info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+}
+body.slt-themed .info-row:last-child { border-bottom: none !important; }
+
+/* Filename label */
+body.slt-themed .filename {
+  padding: 10px 12px;
+  font-size: 12px;
+  word-break: break-all;
+  margin-top: 10px;
+}
+
+/* Thumbnail strip + items */
+body.slt-themed .thumbs {
+  display: flex;
+  gap: 22px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+  padding: 20px 18px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body.slt-themed .thumbs,
+body.slt-themed .thumbs * { cursor: crosshair; }
+body.slt-themed .thumbs .thumb-x { cursor: pointer; }
+body.slt-themed .thumb {
+  position: relative;
+  padding: 4px;
+  user-select: none;
+  -webkit-user-select: none;
+}
+body.slt-themed .thumb-label {
+  font-size: 10px;
+  text-align: center;
+  max-width: 76px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 4px;
+  font-weight: 600;
+}
+body.slt-themed .thumb-x {
+  position: absolute;
+  top: 0; right: 0;
+  transform: translate(50%, -50%) !important;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  z-index: 5;
+}
+body.slt-themed .thumb.marked {
+  outline: 3px solid #ff4757;
+  outline-offset: 2px;
+}
+
+/* Big "Clear ALL" banner button (sits below the thumbnail strip) */
+body.slt-themed .clear-bar {
+  width: 100%;
+  display: block;
+  margin: 0;
+  padding: 18px 24px;
+  cursor: pointer;
+  text-align: center;
+  font-size: 17px;
+  font-weight: 800;
+  transition: background .18s, color .18s, box-shadow .18s, letter-spacing .18s;
+}
+@keyframes slt-pulse-clear {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.005); }
+}
+body.slt-themed .clear-bar.confirm {
+  animation: slt-pulse-clear 1s ease-in-out infinite;
+  letter-spacing: 1.2px;
+}
+
+/* Drag-select rectangle */
+body.slt-themed .marquee {
+  position: fixed;
+  pointer-events: none;
+  z-index: 1000;
+  border: 1.5px solid var(--slt-cyan);
+  background: rgba(0, 240, 255, 0.12);
+  box-shadow: 0 0 0 0.5px var(--slt-magenta);
+  border-radius: 2px;
+}
+
+/* Aspect select pill + small "Apply to all" button */
+body.slt-themed .aspect-sel {
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+body.slt-themed .apply-all {
+  padding: 4px 14px;
+  font-size: 11px;
+  cursor: pointer;
+  margin: 0;
+  width: auto;
+  transition: transform .12s, box-shadow .12s, background .12s;
+}
+body.slt-themed .apply-all:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+body.slt-themed .apply-all.flash {
+  animation: slt-apply-flash .6s ease;
+}
+@keyframes slt-apply-flash {
+  50% { box-shadow: 0 0 18px var(--slt-magenta); }
+}
+
+/* Custom dropdown chevron for .aspect-sel */
+body.slt-themed select.aspect-sel {
+  appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%2300f0ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  padding-right: 22px;
+}
+
+/* ⓘ tooltip on hover */
+body.slt-themed .warn {
+  display: inline-block;
+  margin-left: 6px;
+  cursor: help;
+  font-size: 15px;
+  position: relative;
+  font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+}
+body.slt-themed .warn:hover::before {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 8px;
+  background: linear-gradient(180deg, rgba(20, 5, 50, 0.95) 0%, rgba(45, 10, 94, 0.92) 100%);
+  color: var(--slt-cyan);
+  padding: 12px 16px;
+  border-radius: 2px;
+  border: 1.5px solid var(--slt-magenta);
+  white-space: pre-line;
+  width: 270px;
+  font-size: 11px;
+  line-height: 1.55;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 6px 20px rgba(255, 0, 214, 0.4);
+}
+body.slt-themed .warn:hover::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  right: 4px;
+  margin-bottom: 1px;
+  border: 7px solid transparent;
+  border-top-color: var(--slt-magenta);
+  z-index: 100;
+}
+
+/* Footer credit (used by some workspace tools) */
+body.slt-themed .credit {
+  text-align: center;
+  margin-top: 28px;
+  padding: 12px 20px;
+  font-size: 12px;
+}
+
+/* Hint text */
+body.slt-themed .hint {
+  font-size: 12px;
+  margin-top: 8px;
+  line-height: 1.4;
+}
+
+/* ---- Form layout (3D Text Creator + HUD Buttons Creator) -------- */
+
+/* Two-column container (left panel + right preview) */
+body.slt-themed .container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 20px;
+}
+body.slt-themed .container > h1 {
+  grid-column: 1 / -1;
+  margin-bottom: 10px;
+  font-size: 28px;
+}
+body.slt-themed .container > h1 small { font-size: 14px; }
+
+/* Form-row inside .panel (label + input/select pair).
+   Scoped to `.panel .row` so we don't clash with the workspace `.row`
+   that Animation Priority and Sprite Sheet use as a flex layout. */
+body.slt-themed .panel .row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+body.slt-themed .panel .row label { flex: 1; font-size: 13px; }
+body.slt-themed .panel .row input[type="number"],
+body.slt-themed .panel .row input[type="text"],
+body.slt-themed .panel .row select {
+  padding: 6px 8px;
+  font-size: 13px;
+}
+body.slt-themed .panel .row input[type="color"] {
+  width: 36px;
+  height: 28px;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* Right-hand preview area */
+body.slt-themed .preview-area {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Stats grid */
+body.slt-themed .stats {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+}
+body.slt-themed .stat { padding: 8px; text-align: center; }
+body.slt-themed .stat .label { font-size: 11px; }
+body.slt-themed .stat .value { font-size: 18px; font-weight: bold; }
+
+/* Help / details */
+body.slt-themed details { margin-top: 12px; }
+body.slt-themed summary {
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 0;
+}
+body.slt-themed details p {
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 6px 0;
+}
+
+/* Toggle pad buttons (deco-btn / preset-btn / layout-btn / mode-btn share base layout) */
+body.slt-themed .deco-btn,
+body.slt-themed .preset-btn,
+body.slt-themed .layout-btn,
+body.slt-themed .mode-btn {
+  cursor: pointer;
+  text-align: center;
+  transition: all .15s;
+  margin: 0;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+</style>
+<!-- SHARED-CSS:END -->
+<script>window.SLT_CURRENT = 'sl-hud';</script>
+<style>
+  /* Tool-local CSS — only the truly unique bits.
+     All shared theming + layout lives in ../_shared/sl-nav.css. */
+  body { padding: 20px; }
+  .panel { padding: 16px; margin-bottom: 16px; }
+  .panel h2 { font-size: 14px; margin-bottom: 12px; padding-bottom: 6px; }
+  .panel h3 { font-size: 12px; margin: 14px 0 8px 0; }
+
+  /* Tool-specific row tweaks (shared handles base form-row sizing) */
+  .panel .row { flex-wrap: wrap; }
+  .panel .row label { min-width: 130px; }
+  .panel .row select { width: 180px; }
+  .panel .row select.wide { width: 100%; }
+  .panel .row input[type="number"] { width: 110px; }
+  .panel .row input[type="text"] { width: 110px; }
+  .panel .row input[type="checkbox"] { width: 16px; height: 16px; }
+
+  button { padding: 10px 16px; font-size: 14px; margin-top: 6px; }
+  button.small { padding: 6px 10px; font-size: 12px; width: auto; margin: 0; }
+
+  /* Sticky preview (overrides shared default) */
+  .preview-area { align-self: start; position: sticky; top: 20px; }
+  #preview { width: 100%; min-height: 460px; cursor: nwse-resize;
+    background: rgba(10, 0, 36, 0.6); border-radius: 2px; }
+  #preview:active { cursor: grabbing; }
+
+  /* 4-column stats override */
+  .stats { grid-template-columns: repeat(4, 1fr); }
+
+  /* Layout shape grid */
+  .layout-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 8px 0; }
+  .layout-btn { padding: 8px 4px; font-size: 11px; line-height: 1.1; min-height: 50px; }
+  .layout-icon { display: block; font-size: 14px; margin-bottom: 2px; line-height: 1.0;
+    font-family: 'Share Tech Mono', monospace; }
+
+  /* Color preset grid */
+  .preset-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; margin: 6px 0; }
+  .preset-btn { padding: 8px; text-align: left; font-size: 11px;
+    flex-direction: row; align-items: center; gap: 6px; }
+  .preset-swatches { display: inline-flex; gap: 2px; }
+  .preset-swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* Per-button list with own colour pickers */
+  .btn-list { display: flex; flex-direction: column; gap: 6px; max-height: 280px;
+    overflow-y: auto; padding-right: 4px; }
+  .btn-row { display: flex; align-items: center; gap: 6px; padding: 6px 8px; }
+  .btn-row .idx { font-size: 11px; min-width: 18px; }
+  .btn-row input[type="text"] { flex: 1; min-width: 60px; width: auto; padding: 4px 6px; font-size: 12px; }
+  .btn-row input[type="color"] { width: 30px; height: 24px; }
+  .btn-row .swatch-mini { width: 18px; height: 18px; border-radius: 2px; }
+
+  /* "Advanced" details block (theme paints, sizes here) */
+  details.advanced { padding: 12px 16px; margin-bottom: 16px; }
+  details.advanced summary { font-size: 14px; padding: 4px 0; }
+  details.advanced[open] summary { margin-bottom: 12px; padding-bottom: 6px; }
+
+  /* Face-mode 3-column toggle */
+  .face-mode-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin: 6px 0; }
+  .mode-btn { padding: 8px 4px; font-size: 11px; line-height: 1.2; }
+  .mode-btn small { font-size: 10px; display: block; font-weight: normal; margin-top: 3px; }
+
+  /* Info-box + download row */
+  .info-box { padding: 8px 10px; margin: 8px 0; font-size: 11px; line-height: 1.4; }
+  .download-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .download-btns button { width: 100%; }
+
+  /* details > summary user-select default would conflict with sticky preview */
+  summary { user-select: none; }
+</style>
+</head>
+<body class="slt-themed">
+<div class="slt-scanlines"></div>
+<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<script>
+/* =====================================================================
+   SL Tools :: Navigation bootstrapper
+   - Detects which sibling tools exist (modular: missing folder = hidden)
+   - Renders a synthwave nav bar at the top
+   - Adds the sun + grid + scanlines background layers
+
+   How it works
+   ------------
+   Each tool folder contains a tiny `_meta.js` that registers its own
+   metadata into window.__SLT_AVAILABLE. We try to load that file via
+   <script> tags. file:// allows local <script> loads, and onerror fires
+   reliably when the file is missing — so removing a tool folder makes
+   it disappear from the nav automatically.
+
+   Adding a new tool:
+   - Add an entry below in REGISTRY
+   - Drop the folder with its main HTML and a `_meta.js`
+
+   Each tool's HTML opts in by including:
+     <link rel="stylesheet" href="../_shared/sl-nav.css">
+     <script>window.SLT_CURRENT = "anim-combiner";<\/script>
+     <script src="../_shared/sl-nav.js"><\/script>
+   ===================================================================== */
+(function () {
+  'use strict';
+
+  // Ordered registry of all tools known to this navigation system.
+  // Each `folder` is the directory name that sits next to this tool.
+  // `file` is the main HTML in that folder.
+  const REGISTRY = [
+    {
+      id: 'anim-combiner',
+      name: 'Animation Combiner',
+      subtitle: 'body + hands → combo',
+      folder: 'SL Animation Combiner',
+      file: 'sl_animation_combiner.html',
+      badge: 'AC',
+    },
+    {
+      id: 'anim-priority',
+      name: 'Animation Priority Changer',
+      subtitle: 'set priority on .anim files',
+      folder: 'SL Animation Priority Changer',
+      file: 'sl_animation_priority_changer.html',
+      badge: 'AP',
+    },
+    {
+      id: 'sprite-sheet',
+      name: 'Sprite Sheet Maker',
+      subtitle: 'gif → sprite sheet',
+      folder: 'SL Sprite Sheet Maker',
+      file: 'sl_sprite_sheet_maker.html',
+      badge: 'SS',
+    },
+    {
+      id: 'sl-text',
+      name: '3D Text Creator',
+      subtitle: 'text → 3D mesh',
+      folder: 'SL 3D Text Creator',
+      file: 'sl_3d_text_creator.html',
+      badge: 'TX',
+    },
+    {
+      id: 'sl-hud',
+      name: 'HUD Buttons Creator',
+      subtitle: 'buttons grid → mesh',
+      folder: 'SL HUD Buttons Creator',
+      file: 'sl_hud_buttons_creator.html',
+      badge: 'HD',
+    },
+  ];
+
+  window.__SLT_AVAILABLE = window.__SLT_AVAILABLE || {};
+
+  // ---------------------------------------------------------------------
+  // The body theme + sun + grid + scanlines are now applied entirely
+  // via CSS. Each themed tool sets <body class="slt-themed"> in its
+  // HTML and pre-renders <div class="slt-scanlines"></div> so there's
+  // no flash of unstyled content. This script's only job is to render
+  // the navigation bar after probing for sibling tools.
+  // ---------------------------------------------------------------------
+
+  // ---------------------------------------------------------------------
+  // Step 2: detect which sibling tools exist
+  //   For each tool that isn't the current one, try to load its
+  //   `_meta.js` via a dynamic <script> tag. onerror fires when the
+  //   file (or folder) is missing.
+  // ---------------------------------------------------------------------
+  function detectTool(tool) {
+    return new Promise((resolve) => {
+      // current tool always "available"
+      if (tool.id === window.SLT_CURRENT) {
+        window.__SLT_AVAILABLE[tool.id] = { ...tool, current: true };
+        return resolve(true);
+      }
+      const s = document.createElement('script');
+      s.async = true;
+      s.src = '../' + encodeURI(tool.folder) + '/_meta.js';
+      let settled = false;
+      const finish = (ok) => {
+        if (settled) return;
+        settled = true;
+        s.parentNode && s.parentNode.removeChild(s);
+        resolve(ok);
+      };
+      s.onload = () => finish(true);
+      s.onerror = () => finish(false);
+      // safety timeout in case the browser silently stalls
+      setTimeout(() => finish(false), 2500);
+      document.head.appendChild(s);
+    });
+  }
+
+  async function detectAll() {
+    const results = await Promise.all(
+      REGISTRY.map((t) => detectTool(t).then((ok) => ({ tool: t, ok })))
+    );
+    return results.filter((r) => r.ok).map((r) => r.tool);
+  }
+
+  // ---------------------------------------------------------------------
+  // Step 3: render the floating nav (collapsible dropdown menu)
+  //
+  //   <nav class="slt-nav" data-open="false">
+  //     <button class="slt-nav-handle">★ SL TOOLS ★ [TX] ▾</button>
+  //     <div class="slt-nav-panel"><ul>…</ul></div>
+  //   </nav>
+  //
+  //   The handle is the always-visible pill in the top-right corner.
+  //   Clicking it expands the panel below; clicking outside or pressing
+  //   Escape collapses it. Open/closed state is persisted in
+  //   localStorage so it stays the way the user prefers across pages.
+  // ---------------------------------------------------------------------
+  const STATE_KEY = 'slt-nav-open';
+
+  function renderNav(tools) {
+    const current = tools.find((t) => t.id === window.SLT_CURRENT);
+    const currentBadge = current ? current.badge : '★';
+
+    const nav = document.createElement('nav');
+    nav.className = 'slt-nav';
+    nav.setAttribute('aria-label', 'SL Tools');
+    nav.setAttribute('data-open', 'false');
+
+    // Handle (always visible)
+    const handle = document.createElement('button');
+    handle.type = 'button';
+    handle.className = 'slt-nav-handle';
+    handle.setAttribute('aria-expanded', 'false');
+    handle.setAttribute('aria-controls', 'slt-nav-panel');
+    handle.innerHTML =
+      '<span class="slt-nav-current">' + currentBadge + '</span>' +
+      '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
+    handle.title = 'SL Tools — click to switch';
+    nav.appendChild(handle);
+
+    // Collapsible panel (the actual menu)
+    const panel = document.createElement('div');
+    panel.className = 'slt-nav-panel';
+    panel.id = 'slt-nav-panel';
+
+    // Brand header inside the panel
+    const header = document.createElement('div');
+    header.className = 'slt-nav-panel-header';
+    header.innerHTML =
+      '<span class="slt-nav-handle-brand">★ SL TOOLS ★</span>' +
+      '<small class="slt-nav-panel-tagline">NEON ROUTINE</small>';
+    panel.appendChild(header);
+
+    const list = document.createElement('ul');
+    list.className = 'slt-nav-list';
+
+    for (const tool of tools) {
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.className = 'slt-nav-btn';
+      if (tool.id === window.SLT_CURRENT) {
+        a.classList.add('current');
+        a.setAttribute('aria-current', 'page');
+        a.href = '#';
+        a.addEventListener('click', (e) => e.preventDefault());
+      } else {
+        a.href = '../' + encodeURI(tool.folder) + '/' + encodeURI(tool.file);
+        // smooth fade-out before navigating
+        a.addEventListener('click', smoothNavigate);
+      }
+      a.title = tool.name + ' — ' + tool.subtitle;
+      a.innerHTML =
+        '<span class="slt-nav-badge">' + tool.badge + '</span>' +
+        '<span class="slt-nav-name">' + tool.name +
+          '<small>' + tool.subtitle + '</small></span>';
+      li.appendChild(a);
+      list.appendChild(li);
+    }
+
+    panel.appendChild(list);
+    nav.appendChild(panel);
+
+    document.body.insertBefore(nav, document.body.firstChild);
+
+    // Toggle behavior
+    function setOpen(open) {
+      nav.setAttribute('data-open', open ? 'true' : 'false');
+      handle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      try { localStorage.setItem(STATE_KEY, open ? '1' : '0'); } catch (e) {}
+    }
+    handle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setOpen(nav.getAttribute('data-open') !== 'true');
+    });
+    document.addEventListener('click', (e) => {
+      if (!nav.contains(e.target)) setOpen(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setOpen(false);
+    });
+
+    // Restore previous state
+    try {
+      if (localStorage.getItem(STATE_KEY) === '1') setOpen(true);
+    } catch (e) {}
+  }
+
+  // ---------------------------------------------------------------------
+  // Smooth page transition: fade the current page out before navigating.
+  // The destination page fades back in via CSS animation on body load.
+  // ---------------------------------------------------------------------
+  function smoothNavigate(e) {
+    // Allow ctrl/cmd/middle-click to open in a new tab without hijack
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return;
+    e.preventDefault();
+    const href = e.currentTarget.href;
+    document.documentElement.classList.add('slt-leaving');
+    setTimeout(() => { window.location.href = href; }, 180);
+  }
+
+  // ---------------------------------------------------------------------
+  // Bootstrap once the DOM is ready
+  // ---------------------------------------------------------------------
+  function boot() {
+    detectAll().then(renderNav).catch((err) => {
+      console.warn('[SL Tools nav] detection failed:', err);
+      // fallback: still show current tool only
+      const current = REGISTRY.find((t) => t.id === window.SLT_CURRENT);
+      if (current) renderNav([current]);
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', boot, { once: true });
+  } else {
+    boot();
+  }
+})();
+
+</script>
+<!-- SHARED-JS:END -->
+
+<header class="slt-titlebar">
+  <div class="slt-subtitle">/// 1986 :: HUD WORKSHOP ///</div>
+  <h1 class="slt-title">SL HUD Buttons Creator</h1>
+  <p class="slt-lede">Lay out HUD buttons in any grid, choose a shape, export an optimised mesh — minimal triangles, configurable face slots.</p>
+</header>
+
+<div class="container">
+
+  <div>
+    <!-- LAYOUT PANEL -->
+    <div class="panel">
+      <h2>Layout</h2>
+      <div class="layout-grid">
+        <div class="layout-btn active" data-layout="single"><span class="layout-icon">▢</span>Single</div>
+        <div class="layout-btn" data-layout="row2"><span class="layout-icon">▢▢</span>Row 2</div>
+        <div class="layout-btn" data-layout="row3"><span class="layout-icon">▢▢▢</span>Row 3</div>
+        <div class="layout-btn" data-layout="row4"><span class="layout-icon">▢▢▢▢</span>Row 4</div>
+        <div class="layout-btn" data-layout="row5"><span class="layout-icon">▢▢▢▢▢</span>Row 5</div>
+        <div class="layout-btn" data-layout="row6"><span class="layout-icon">▢×6</span>Row 6</div>
+        <div class="layout-btn" data-layout="row7"><span class="layout-icon">▢×7</span>Row 7</div>
+        <div class="layout-btn" data-layout="row8"><span class="layout-icon">▢×8</span>Row 8</div>
+        <div class="layout-btn" data-layout="col2"><span class="layout-icon">▢<br>▢</span>Col 2</div>
+        <div class="layout-btn" data-layout="col3"><span class="layout-icon">▢<br>▢<br>▢</span>Col 3</div>
+        <div class="layout-btn" data-layout="col4"><span class="layout-icon">▢<br>▢<br>▢<br>▢</span>Col 4</div>
+        <div class="layout-btn" data-layout="col5"><span class="layout-icon">▢×5</span>Col 5</div>
+        <div class="layout-btn" data-layout="col6"><span class="layout-icon">▢×6</span>Col 6</div>
+        <div class="layout-btn" data-layout="col7"><span class="layout-icon">▢×7</span>Col 7</div>
+        <div class="layout-btn" data-layout="col8"><span class="layout-icon">▢×8</span>Col 8</div>
+        <div class="layout-btn" data-layout="grid"><span class="layout-icon">▢▢<br>▢▢</span>Grid M×N</div>
+      </div>
+      <div class="row" id="gridRow" style="display:none;">
+        <label>Grid (rows × cols):</label>
+        <input type="number" id="gridRows" value="2" min="1" max="20" style="width:60px;">
+        <input type="number" id="gridCols" value="2" min="1" max="20" style="width:60px;">
+      </div>
+      <div class="info-box">
+        <b>Tip:</b> Set spacing to <code>0</code> for tightly stacked buttons (like AMG rating bars).
+      </div>
+    </div>
+
+    <!-- SHAPE & SIZE PANEL -->
+    <div class="panel">
+      <h2>Shape & Size</h2>
+      <div class="row">
+        <label>Shape:</label>
+        <select id="shape" class="wide">
+          <optgroup label="Basic">
+            <option value="rect">Rectangle (sharp)</option>
+            <option value="rrect" selected>Rounded Rect</option>
+            <option value="pill">Pill (full rounded)</option>
+            <option value="circle">Circle</option>
+          </optgroup>
+          <optgroup label="Polygons">
+            <option value="hexagon-flat">Hexagon (flat top)</option>
+            <option value="hexagon-pointy">Hexagon (pointy top)</option>
+            <option value="octagon">Octagon</option>
+            <option value="pentagon">Pentagon</option>
+            <option value="diamond">Diamond</option>
+          </optgroup>
+          <optgroup label="Triangles">
+            <option value="tri-up">Triangle ▲ (up)</option>
+            <option value="tri-down">Triangle ▼ (down)</option>
+            <option value="tri-left">Triangle ◀ (left)</option>
+            <option value="tri-right">Triangle ▶ (right)</option>
+          </optgroup>
+          <optgroup label="Arrows">
+            <option value="arrow-right">Arrow → (right)</option>
+            <option value="arrow-left">Arrow ← (left)</option>
+            <option value="arrow-up">Arrow ↑ (up)</option>
+            <option value="arrow-down">Arrow ↓ (down)</option>
+          </optgroup>
+          <optgroup label="Special">
+            <option value="star">Star (5-point)</option>
+            <option value="heart">Heart</option>
+            <option value="plus">Plus / Cross</option>
+          </optgroup>
+        </select>
+      </div>
+      <div class="row">
+        <label>Width (mm):</label>
+        <input type="number" id="width" value="22" min="1" step="0.5">
+      </div>
+      <div class="row">
+        <label>Height (mm):</label>
+        <input type="number" id="height" value="22" min="1" step="0.5">
+      </div>
+      <div class="row" id="radiusRow">
+        <label>Corner radius (mm):</label>
+        <input type="number" id="radius" value="3" min="0" step="0.5">
+      </div>
+      <div class="row">
+        <label>Spacing between (mm):</label>
+        <input type="number" id="spacing" value="4" min="0" step="0.5">
+      </div>
+      <div class="row">
+        <label>Curve segments:</label>
+        <input type="number" id="segs" value="12" min="3" max="64">
+      </div>
+      <div class="help">
+        Lower segments = fewer triangles = lower upload cost. Default 12 = smooth curves.
+        Polygon shapes (hex/oct/etc) have fixed sides.
+      </div>
+    </div>
+
+    <!-- APPEARANCE PANEL -->
+    <div class="panel">
+      <h2>Appearance</h2>
+
+      <h3>Edge Outline</h3>
+      <div class="row">
+        <label><input type="checkbox" id="hasEdge" checked> Add neon edge as separate face</label>
+      </div>
+      <div class="row" id="edgeWRow">
+        <label>Edge thickness (mm):</label>
+        <input type="number" id="edgeWidth" value="0.7" min="0.1" step="0.1">
+      </div>
+
+      <h3>Face Mode</h3>
+      <div class="face-mode-grid">
+        <div class="mode-btn active" data-mode="per-button" title="Each button is its own face. Simplest scripting (face index = button index). Max 4 buttons w/edge or 8 w/o edge.">
+          Per Button<small>each btn = own face</small>
+        </div>
+        <div class="mode-btn" data-mode="shared-edge" title="Each fill is its own face but ALL edges share one face. Saves face slots when using neon edges.">
+          Shared Edge<small>1 face per fill +1 edge</small>
+        </div>
+        <div class="mode-btn" data-mode="shared-all" title="All fills share 1 face, all edges share 1 face. Allows unlimited buttons but they all share material/texture.">
+          All Shared<small>2 faces total</small>
+        </div>
+      </div>
+      <div class="info-box" id="modeInfo"></div>
+
+      <h3>Colors</h3>
+      <div class="row">
+        <label>Material prefix:</label>
+        <input type="text" id="matPrefix" value="btn" style="width: 130px;">
+      </div>
+      <div class="row">
+        <label>Default fill color:</label>
+        <input type="color" id="fillColor" value="#24101a">
+      </div>
+      <div class="row">
+        <label>Edge color:</label>
+        <input type="color" id="edgeColor" value="#ff1493">
+      </div>
+    </div>
+
+    <!-- PER-BUTTON CUSTOMIZATION -->
+    <details class="advanced" id="perBtnDetails">
+      <summary>🎨 Per-Button Colors & Labels</summary>
+
+      <h3>Quick Color Presets</h3>
+      <div class="preset-grid" id="presetGrid">
+        <div class="preset-btn" data-preset="amg">
+          <span class="preset-swatches">
+            <span class="preset-swatch" style="background:#ff3838"></span>
+            <span class="preset-swatch" style="background:#ff8c00"></span>
+            <span class="preset-swatch" style="background:#2ecc40"></span>
+          </span>
+          AMG Rating
+        </div>
+        <div class="preset-btn" data-preset="traffic">
+          <span class="preset-swatches">
+            <span class="preset-swatch" style="background:#e63946"></span>
+            <span class="preset-swatch" style="background:#ffd60a"></span>
+            <span class="preset-swatch" style="background:#06d6a0"></span>
+          </span>
+          Traffic Light
+        </div>
+        <div class="preset-btn" data-preset="rgb">
+          <span class="preset-swatches">
+            <span class="preset-swatch" style="background:#ff0000"></span>
+            <span class="preset-swatch" style="background:#00ff00"></span>
+            <span class="preset-swatch" style="background:#0080ff"></span>
+          </span>
+          RGB
+        </div>
+        <div class="preset-btn" data-preset="cyber">
+          <span class="preset-swatches">
+            <span class="preset-swatch" style="background:#ff1493"></span>
+            <span class="preset-swatch" style="background:#00fff7"></span>
+            <span class="preset-swatch" style="background:#ffd60a"></span>
+          </span>
+          Cyberpunk
+        </div>
+        <div class="preset-btn" data-preset="pastel">
+          <span class="preset-swatches">
+            <span class="preset-swatch" style="background:#ffafcc"></span>
+            <span class="preset-swatch" style="background:#bde0fe"></span>
+            <span class="preset-swatch" style="background:#cdb4db"></span>
+          </span>
+          Pastel
+        </div>
+        <div class="preset-btn" data-preset="reset">
+          <span class="preset-swatches">
+            <span class="preset-swatch" style="background:#24101a"></span>
+          </span>
+          Reset (use default)
+        </div>
+      </div>
+
+      <h3>Individual Buttons</h3>
+      <div class="btn-list" id="btnList"></div>
+      <div class="help" style="margin-top: 8px;">
+        Labels are saved in the material name (e.g. <code>mat_btn_play_fill</code>) so you can identify them in your SL build.
+      </div>
+    </details>
+
+    <!-- UV / TEXTURE PANEL -->
+    <details class="advanced">
+      <summary>🖼️ UV Mapping & Texture Templates</summary>
+
+      <div class="row">
+        <label>UV layout mode:</label>
+        <select id="uvMode" class="wide">
+          <option value="per-face" selected>Per-face (each button = 0-1 UV)</option>
+          <option value="atlas">Atlas (shared UV space)</option>
+        </select>
+      </div>
+      <div class="info-box">
+        <b>Per-face:</b> Each button face uses its own 0-1 UV. Apply any texture to a face and it fills that button perfectly. Best for individual button textures.<br><br>
+        <b>Atlas:</b> All faces share one UV layout. Useful when you want one big texture covering all buttons (good for shared face mode).
+      </div>
+
+      <h3>UV Template Export</h3>
+      <button class="secondary" onclick="downloadUVTemplate()">⬇ Download UV Template (PNG)</button>
+      <div class="help">
+        Open in Photoshop/GIMP. Paint inside the outlines to make textures that fit your buttons exactly.
+      </div>
+    </details>
+
+    <!-- SL OPTIMIZATION / LOD PANEL -->
+    <details class="advanced">
+      <summary>⚡ SL Optimization & LOD</summary>
+
+      <div class="info-box">
+        <b>For HUDs:</b> LODs not critical (HUDs always render close). Just keep segments low.<br>
+        <b>For in-world objects:</b> Custom LODs drastically reduce Land Impact &amp; let it look great from far away.
+      </div>
+
+      <div class="row">
+        <label><input type="checkbox" id="genLODs"> Generate optimized LODs</label>
+      </div>
+      <div class="help" id="lodHelp">
+        When enabled, "Download" exports 4 separate DAE files (LOWEST/LOW/MED/HIGH) you upload as Lowest/Low/Medium/High in SL's mesh importer. Each LOD has progressively fewer curve segments — drastically reducing Land Impact for in-world objects.
+      </div>
+
+      <div class="info-box" style="margin-top:12px;">
+        <b>SL HUD performance tips:</b><br>
+        • Keep <i>curve segments</i> low (8 is enough for HUD circles).<br>
+        • Use <i>Shared Edge</i> face mode if you need edges on 5+ buttons.<br>
+        • <i>Per-face UV</i> means one 1024² texture works for any button shape.<br>
+        • Skip neon edge → max 8 buttons in one mesh in <i>per-button</i> mode.
+      </div>
+    </details>
+
+    <!-- EXPORT PANEL -->
+    <div class="panel">
+      <h2>Export</h2>
+      <div class="row">
+        <label>Mesh name:</label>
+        <input type="text" id="meshName" value="my_buttons" style="width:130px;">
+      </div>
+      <button onclick="downloadDAE()">⬇ Download .dae</button>
+      <div class="help">
+        Each face becomes a separately texturable surface in SL. Material names (visible after upload): <code>mat_{prefix}_{label-or-idx}_{fill|edge}</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- PREVIEW SIDE -->
+  <div class="preview-area">
+    <h2 style="color: #ff69b4; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Live Preview</h2>
+    <svg id="preview" viewBox="-50 -50 100 100" preserveAspectRatio="xMidYMid meet"></svg>
+
+    <div class="stats">
+      <div class="stat"><div class="label">Buttons</div><div class="value" id="stBtn">1</div></div>
+      <div class="stat" id="statFaces"><div class="label">Faces</div><div class="value" id="stFaces">2</div></div>
+      <div class="stat"><div class="label">Triangles</div><div class="value" id="stTris">0</div></div>
+      <div class="stat"><div class="label">Total size</div><div class="value" id="stSize" style="font-size: 13px;">-</div></div>
+    </div>
+
+    <details>
+      <summary>📖 SL Tips & Workflow</summary>
+      <p><b>Face limit:</b> SL allows max 8 faces per uploaded mesh. Counter goes red if over. Switch Face Mode to Shared Edge or All Shared to fit more buttons.</p>
+      <p><b>Materials:</b> Each face gets a name like <code>mat_btn_1_fill</code> or <code>mat_btn_play_edge</code>. Label your buttons (Per-Button section) for identifiable face names in SL.</p>
+      <p><b>Glow setup in SL:</b> Build → Features → Select Face → Glow 0.15-0.3, Full Bright ON.</p>
+      <p><b>HUD vs in-world:</b> HUDs ignore LODs (always close). For rezzed objects, enable LOD generation for low Land Impact.</p>
+      <p><b>Per-face UV:</b> Each face uses 0-1 UV. Apply any 1024×1024 button texture &amp; it fills perfectly. Set UV mode to per-face (default).</p>
+      <p><b>Click detection in LSL:</b> Use <code>llDetectedTouchFace()</code> – per-button face mode lets you detect which button was clicked directly from the face index.</p>
+      <p><b>Drag preview:</b> Drag inside the preview to live-resize buttons.</p>
+    </details>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+//============================================================
+// State
+//============================================================
+let layout = 'single';
+let faceMode = 'per-button';
+// Per-button data: {color: '#hex' or null (use default), label: ''}
+let buttons = [{color: null, label: ''}];
+
+//============================================================
+// Layout grid handlers
+//============================================================
+document.querySelectorAll('.layout-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.layout-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    layout = btn.dataset.layout;
+    document.getElementById('gridRow').style.display = (layout === 'grid') ? 'flex' : 'none';
+    syncButtonsArray();
+    updatePreview();
+    rebuildBtnList();
+  });
+});
+
+//============================================================
+// Face mode handlers
+//============================================================
+document.querySelectorAll('.mode-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    faceMode = btn.dataset.mode;
+    updatePreview();
+    updateModeInfo();
+  });
+});
+
+function updateModeInfo() {
+  const box = document.getElementById('modeInfo');
+  const N = getButtonPositions().length;
+  const hasEdge = document.getElementById('hasEdge').checked;
+  let faces;
+  if (faceMode === 'per-button') faces = N * (hasEdge ? 2 : 1);
+  else if (faceMode === 'shared-edge') faces = N + (hasEdge ? 1 : 0);
+  else faces = (hasEdge ? 2 : 1);
+
+  const status = faces > 8 ? `<span style="color:#ff5555">⚠ ${faces} faces (over SL limit of 8!)</span>` : `<span style="color:#06d6a0">✓ ${faces} face${faces>1?'s':''}, fits SL limit</span>`;
+  box.innerHTML = `<b>Current:</b> ${N} button${N>1?'s':''}, ${faceMode}. → ${status}`;
+}
+
+//============================================================
+// Edge & shape change handlers
+//============================================================
+document.getElementById('hasEdge').addEventListener('change', () => {
+  document.getElementById('edgeWRow').style.display =
+    document.getElementById('hasEdge').checked ? 'flex' : 'none';
+  updatePreview();
+});
+
+document.getElementById('shape').addEventListener('change', (e) => {
+  const wEl = document.getElementById('width');
+  const hEl = document.getElementById('height');
+  const rEl = document.getElementById('radius');
+  const radiusRow = document.getElementById('radiusRow');
+  const v = e.target.value;
+
+  // Auto-size sensible defaults per shape
+  switch (v) {
+    case 'pill':
+      wEl.value = 40; hEl.value = 16; rEl.value = 8; break;
+    case 'circle':
+      hEl.value = wEl.value; break;
+    case 'rrect':
+      if (parseFloat(wEl.value) === parseFloat(hEl.value) && parseFloat(rEl.value) === 0) {
+        wEl.value = 30; hEl.value = 22; rEl.value = 4;
+      }
+      break;
+    case 'rect':
+      // Sharp - no radius needed
+      break;
+    case 'star':
+    case 'heart':
+    case 'pentagon':
+    case 'diamond':
+    case 'plus':
+      hEl.value = wEl.value; break;
+    case 'hexagon-flat':
+    case 'arrow-right':
+    case 'arrow-left':
+      // Wide shapes
+      if (parseFloat(wEl.value) === parseFloat(hEl.value)) {
+        wEl.value = 30; hEl.value = 20;
+      }
+      break;
+    case 'hexagon-pointy':
+    case 'arrow-up':
+    case 'arrow-down':
+      // Tall shapes
+      if (parseFloat(wEl.value) === parseFloat(hEl.value)) {
+        wEl.value = 20; hEl.value = 30;
+      }
+      break;
+    case 'octagon':
+      hEl.value = wEl.value; break;
+    case 'tri-up':
+    case 'tri-down':
+    case 'tri-left':
+    case 'tri-right':
+      hEl.value = wEl.value; break;
+  }
+
+  // Hide radius for shapes that don't use it
+  const usesRadius = ['rrect', 'pill'].includes(v);
+  radiusRow.style.display = usesRadius ? 'flex' : 'none';
+
+  updatePreview();
+});
+
+document.querySelectorAll('input, select').forEach(el => {
+  if (el.id === 'shape') return;
+  if (el.classList.contains('mode-btn') || el.classList.contains('layout-btn')) return;
+  el.addEventListener('input', updatePreview);
+  el.addEventListener('change', updatePreview);
+});
+
+//============================================================
+// Drag-to-resize on preview SVG
+//============================================================
+let resizeState = null;
+
+function svgPointFromEvent(evt) {
+  const svg = document.getElementById('preview');
+  const pt = svg.createSVGPoint();
+  pt.x = evt.clientX; pt.y = evt.clientY;
+  const ctm = svg.getScreenCTM().inverse();
+  return pt.matrixTransform(ctm);
+}
+
+document.getElementById('preview').addEventListener('mousedown', (evt) => {
+  const wEl = document.getElementById('width');
+  const hEl = document.getElementById('height');
+  const rEl = document.getElementById('radius');
+  const startW = parseFloat(wEl.value) || 22;
+  const startH = parseFloat(hEl.value) || 22;
+  const startR = parseFloat(rEl.value) || 0;
+  const pt = svgPointFromEvent(evt);
+  resizeState = {
+    startMouseX: pt.x, startMouseY: -pt.y,
+    startW, startH, startR,
+    ratio: startH / startW,
+    radiusRatio: startW > 0 ? startR / startW : 0,
+  };
+  document.body.style.cursor = 'nwse-resize';
+  evt.preventDefault();
+});
+
+window.addEventListener('mousemove', (evt) => {
+  if (!resizeState) return;
+  const pt = svgPointFromEvent(evt);
+  const wx = pt.x, wy = -pt.y;
+  const dx = wx - resizeState.startMouseX;
+  const dy = wy - resizeState.startMouseY;
+
+  let delta;
+  const startMag = Math.hypot(resizeState.startMouseX, resizeState.startMouseY);
+  if (startMag > 3) {
+    const nx = resizeState.startMouseX / startMag;
+    const ny = resizeState.startMouseY / startMag;
+    delta = dx * nx + dy * ny;
+  } else {
+    delta = (dx - dy) / 2;
+  }
+  delta *= 3;
+
+  let newW = Math.max(2, Math.round((resizeState.startW + delta) * 10) / 10);
+  let newH = Math.max(2, Math.round((newW * resizeState.ratio) * 10) / 10);
+  let newR = Math.max(0, Math.round((newW * resizeState.radiusRatio) * 10) / 10);
+
+  document.getElementById('width').value = newW;
+  document.getElementById('height').value = newH;
+  document.getElementById('radius').value = newR;
+  updatePreview();
+});
+
+window.addEventListener('mouseup', () => {
+  if (resizeState) { resizeState = null; document.body.style.cursor = ''; }
+});
+
+//============================================================
+// Shape generation
+//============================================================
+function roundedRect(cx, cy, w, h, r, segs=12) {
+  if (r <= 0) return [[cx+w/2,cy+h/2],[cx-w/2,cy+h/2],[cx-w/2,cy-h/2],[cx+w/2,cy-h/2]];
+  const pts = [];
+  const corners = [[cx+w/2-r, cy+h/2-r, 0],[cx-w/2+r, cy+h/2-r, Math.PI/2],
+                    [cx-w/2+r, cy-h/2+r, Math.PI],[cx+w/2-r, cy-h/2+r, 3*Math.PI/2]];
+  for (const [ccx, ccy, sa] of corners) {
+    for (let i = 0; i <= segs; i++) {
+      const a = sa + (Math.PI/2)*(i/segs);
+      pts.push([ccx + r*Math.cos(a), ccy + r*Math.sin(a)]);
+    }
+  }
+  return pts;
+}
+function rectangle(cx, cy, w, h) {
+  return [[cx+w/2,cy+h/2],[cx-w/2,cy+h/2],[cx-w/2,cy-h/2],[cx+w/2,cy-h/2]];
+}
+function star(cx, cy, ro, ri, n=5) {
+  const pts = []; const m = n*2;
+  for (let i = 0; i < m; i++) {
+    const a = Math.PI/2 + i*(2*Math.PI/m);
+    const r = (i % 2 === 0) ? ro : ri;
+    pts.push([cx + r*Math.cos(a), cy + r*Math.sin(a)]);
+  }
+  return pts;
+}
+function heart(cx, cy, size, n=64) {
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const t = 2*Math.PI*(1 - i/n);
+    const x = 16*Math.pow(Math.sin(t),3);
+    const y = 13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t);
+    pts.push([cx + x*size/16, cy + y*size/16]);
+  }
+  return pts;
+}
+function circle(cx, cy, r, segs=32) {
+  const pts = [];
+  for (let i = 0; i < segs; i++) {
+    const a = i*2*Math.PI/segs;
+    pts.push([cx + r*Math.cos(a), cy + r*Math.sin(a)]);
+  }
+  return pts;
+}
+function ellipse(cx, cy, rw, rh, segs=32) {
+  const pts = [];
+  for (let i = 0; i < segs; i++) {
+    const a = i*2*Math.PI/segs;
+    pts.push([cx + rw*Math.cos(a), cy + rh*Math.sin(a)]);
+  }
+  return pts;
+}
+function regularPoly(cx, cy, w, h, n, rotOffset=0) {
+  const pts = [];
+  for (let i = 0; i < n; i++) {
+    const a = rotOffset + i*2*Math.PI/n;
+    pts.push([cx + (w/2)*Math.cos(a), cy + (h/2)*Math.sin(a)]);
+  }
+  return pts;
+}
+function diamond(cx, cy, w, h) {
+  return [[cx, cy+h/2], [cx-w/2, cy], [cx, cy-h/2], [cx+w/2, cy]];
+}
+function triangle(cx, cy, w, h, dir='up') {
+  switch(dir) {
+    case 'up': return [[cx, cy+h/2], [cx-w/2, cy-h/2], [cx+w/2, cy-h/2]];
+    case 'down': return [[cx-w/2, cy+h/2], [cx+w/2, cy+h/2], [cx, cy-h/2]];
+    case 'left': return [[cx+w/2, cy+h/2], [cx-w/2, cy], [cx+w/2, cy-h/2]];
+    case 'right': return [[cx-w/2, cy+h/2], [cx+w/2, cy], [cx-w/2, cy-h/2]];
+  }
+}
+function arrow(cx, cy, w, h, dir='right') {
+  // 7-point arrow: rectangular tail + triangular head
+  const tailLen = 0.55;  // % of total length the tail occupies
+  const tailThick = 0.5; // % of perpendicular span the tail occupies
+  switch(dir) {
+    case 'right': {
+      const halfW = w/2, halfH = h/2;
+      const tailEnd = -halfW + w*tailLen;
+      const tailH = halfH * tailThick;
+      return [
+        [-halfW, tailH], [tailEnd, tailH],
+        [tailEnd, halfH], [halfW, 0],
+        [tailEnd, -halfH], [tailEnd, -tailH], [-halfW, -tailH]
+      ].map(p => [cx+p[0], cy+p[1]]);
+    }
+    case 'left': {
+      const halfW = w/2, halfH = h/2;
+      const tailEnd = halfW - w*tailLen;
+      const tailH = halfH * tailThick;
+      return [
+        [halfW, tailH], [tailEnd, tailH],
+        [tailEnd, halfH], [-halfW, 0],
+        [tailEnd, -halfH], [tailEnd, -tailH], [halfW, -tailH]
+      ].map(p => [cx+p[0], cy+p[1]]);
+    }
+    case 'up': {
+      const halfW = w/2, halfH = h/2;
+      const tailEnd = -halfH + h*tailLen;
+      const tailW = halfW * tailThick;
+      return [
+        [-tailW, -halfH], [-tailW, tailEnd],
+        [-halfW, tailEnd], [0, halfH],
+        [halfW, tailEnd], [tailW, tailEnd], [tailW, -halfH]
+      ].map(p => [cx+p[0], cy+p[1]]);
+    }
+    case 'down': {
+      const halfW = w/2, halfH = h/2;
+      const tailEnd = halfH - h*tailLen;
+      const tailW = halfW * tailThick;
+      return [
+        [-tailW, halfH], [-tailW, tailEnd],
+        [-halfW, tailEnd], [0, -halfH],
+        [halfW, tailEnd], [tailW, tailEnd], [tailW, halfH]
+      ].map(p => [cx+p[0], cy+p[1]]);
+    }
+  }
+}
+function plus(cx, cy, w, h, t=null) {
+  // t = arm thickness; default = w/3
+  const tw = (t !== null ? t : w/3) / 2;
+  const th = (t !== null ? t : h/3) / 2;
+  const halfW = w/2, halfH = h/2;
+  return [
+    [-tw, halfH], [tw, halfH],
+    [tw, th], [halfW, th],
+    [halfW, -th], [tw, -th],
+    [tw, -halfH], [-tw, -halfH],
+    [-tw, -th], [-halfW, -th],
+    [-halfW, th], [-tw, th]
+  ].map(p => [cx+p[0], cy+p[1]]);
+}
+
+//============================================================
+// Generic polygon inset (works for any closed shape)
+//============================================================
+function insetPoly(pts, ew) {
+  const n = pts.length;
+  if (n < 3 || ew <= 0) return pts.map(p => [...p]);
+
+  // Determine winding (signed area; positive = CCW in math coords)
+  let A = 0;
+  for (let i = 0; i < n; i++) {
+    const j = (i + 1) % n;
+    A += pts[i][0] * pts[j][1] - pts[j][0] * pts[i][1];
+  }
+  const sgn = A > 0 ? 1 : -1;
+
+  const out = [];
+  for (let i = 0; i < n; i++) {
+    const a = pts[(i - 1 + n) % n];
+    const b = pts[i];
+    const c = pts[(i + 1) % n];
+
+    let e1x = b[0] - a[0], e1y = b[1] - a[1];
+    let e2x = c[0] - b[0], e2y = c[1] - b[1];
+    const l1 = Math.hypot(e1x, e1y), l2 = Math.hypot(e2x, e2y);
+    if (l1 < 1e-9 || l2 < 1e-9) { out.push([...b]); continue; }
+    e1x /= l1; e1y /= l1;
+    e2x /= l2; e2y /= l2;
+
+    // Inward normals (90° rotation of edge direction)
+    const n1x = sgn * -e1y, n1y = sgn * e1x;
+    const n2x = sgn * -e2y, n2y = sgn * e2x;
+
+    // Bisector
+    let bx = n1x + n2x, by = n1y + n2y;
+    const bl = Math.hypot(bx, by);
+    if (bl < 1e-9) {
+      out.push([b[0] + n1x*ew, b[1] + n1y*ew]);
+    } else {
+      bx /= bl; by /= bl;
+      const cosHalfAngle = bx*n1x + by*n1y;
+      const dist = ew / Math.max(0.2, cosHalfAngle);
+      out.push([b[0] + bx*dist, b[1] + by*dist]);
+    }
+  }
+  return out;
+}
+
+//============================================================
+// Shape dispatcher (with segment count parameter for LOD)
+//============================================================
+function getShape(shape, w, h, r, segs) {
+  switch (shape) {
+    case 'rect': return rectangle(0, 0, w, h);
+    case 'rrect': return roundedRect(0, 0, w, h, r, segs);
+    case 'pill': return roundedRect(0, 0, w, h, Math.min(w, h)/2, segs);
+    case 'circle': return ellipse(0, 0, w/2, h/2, Math.max(4, segs*2));
+    case 'star': return star(0, 0, w/2, w*0.4/2);
+    case 'heart': return heart(0, 0, w/2, Math.max(8, segs*4));
+    case 'hexagon-flat': return regularPoly(0, 0, w, h, 6, 0);
+    case 'hexagon-pointy': return regularPoly(0, 0, w, h, 6, Math.PI/2);
+    case 'octagon': return regularPoly(0, 0, w, h, 8, Math.PI/8);
+    case 'pentagon': return regularPoly(0, 0, w, h, 5, Math.PI/2);
+    case 'diamond': return diamond(0, 0, w, h);
+    case 'tri-up': return triangle(0, 0, w, h, 'up');
+    case 'tri-down': return triangle(0, 0, w, h, 'down');
+    case 'tri-left': return triangle(0, 0, w, h, 'left');
+    case 'tri-right': return triangle(0, 0, w, h, 'right');
+    case 'arrow-right': return arrow(0, 0, w, h, 'right');
+    case 'arrow-left': return arrow(0, 0, w, h, 'left');
+    case 'arrow-up': return arrow(0, 0, w, h, 'up');
+    case 'arrow-down': return arrow(0, 0, w, h, 'down');
+    case 'plus': return plus(0, 0, w, h);
+  }
+  return [];
+}
+
+function getInner(shape, w, h, r, ew, segs) {
+  switch (shape) {
+    case 'rect': return rectangle(0, 0, w-2*ew, h-2*ew);
+    case 'rrect': return roundedRect(0, 0, w-2*ew, h-2*ew, Math.max(0, r-ew), segs);
+    case 'pill': {
+      const iw = w-2*ew, ih = h-2*ew;
+      return roundedRect(0, 0, iw, ih, Math.min(iw, ih)/2, segs);
+    }
+    case 'circle': return ellipse(0, 0, w/2 - ew, h/2 - ew, Math.max(4, segs*2));
+    case 'star': return star(0, 0, w/2 - ew, w*0.4/2 - ew*0.6);
+    case 'heart': return heart(0, 0, w/2 - ew, Math.max(8, segs*4));
+    // For all polygon-ish shapes, use generic inset
+    default: return insetPoly(getShape(shape, w, h, r, segs), ew);
+  }
+}
+
+//============================================================
+// Layout positions
+//============================================================
+function getButtonPositions() {
+  const w = parseFloat(document.getElementById('width').value) || 22;
+  const h = parseFloat(document.getElementById('height').value) || 22;
+  const sp = parseFloat(document.getElementById('spacing').value) || 0;
+  const cellW = w + sp, cellH = h + sp;
+  let rows, cols;
+  switch (layout) {
+    case 'single': rows = 1; cols = 1; break;
+    case 'row2': rows = 1; cols = 2; break;
+    case 'row3': rows = 1; cols = 3; break;
+    case 'row4': rows = 1; cols = 4; break;
+    case 'row5': rows = 1; cols = 5; break;
+    case 'row6': rows = 1; cols = 6; break;
+    case 'row7': rows = 1; cols = 7; break;
+    case 'row8': rows = 1; cols = 8; break;
+    case 'col2': rows = 2; cols = 1; break;
+    case 'col3': rows = 3; cols = 1; break;
+    case 'col4': rows = 4; cols = 1; break;
+    case 'col5': rows = 5; cols = 1; break;
+    case 'col6': rows = 6; cols = 1; break;
+    case 'col7': rows = 7; cols = 1; break;
+    case 'col8': rows = 8; cols = 1; break;
+    case 'grid':
+      rows = parseInt(document.getElementById('gridRows').value) || 2;
+      cols = parseInt(document.getElementById('gridCols').value) || 2;
+      break;
+    default: rows = 1; cols = 1;
+  }
+  const positions = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = (c - (cols - 1) / 2) * cellW;
+      const y = ((rows - 1) / 2 - r) * cellH;
+      positions.push({x, y, idx: r * cols + c});
+    }
+  }
+  return positions;
+}
+
+function syncButtonsArray() {
+  const N = getButtonPositions().length;
+  while (buttons.length < N) buttons.push({color: null, label: ''});
+  while (buttons.length > N) buttons.pop();
+}
+
+//============================================================
+// Per-button list UI
+//============================================================
+function rebuildBtnList() {
+  const list = document.getElementById('btnList');
+  list.innerHTML = '';
+  syncButtonsArray();
+  const defaultColor = document.getElementById('fillColor').value;
+  buttons.forEach((b, i) => {
+    const row = document.createElement('div');
+    row.className = 'btn-row';
+    row.innerHTML = `
+      <span class="idx">#${i+1}</span>
+      <input type="color" data-i="${i}" class="btn-color" value="${b.color || defaultColor}" title="Click to set custom color, or use Reset preset to revert">
+      <span class="swatch-mini" style="background:${b.color || 'transparent'};${b.color?'':'background-image:repeating-linear-gradient(45deg,#332,#332 4px,#220 4px,#220 8px);'}" title="${b.color ? 'Custom color' : 'Using default'}"></span>
+      <input type="text" data-i="${i}" class="btn-label" placeholder="label (optional)" value="${b.label}">
+    `;
+    list.appendChild(row);
+  });
+  list.querySelectorAll('.btn-color').forEach(el => {
+    el.addEventListener('input', (e) => {
+      const i = parseInt(e.target.dataset.i);
+      buttons[i].color = e.target.value;
+      rebuildBtnList();  // update mini swatch
+      updatePreview();
+    });
+  });
+  list.querySelectorAll('.btn-label').forEach(el => {
+    el.addEventListener('input', (e) => {
+      const i = parseInt(e.target.dataset.i);
+      buttons[i].label = e.target.value.replace(/[^a-zA-Z0-9_-]/g, '');
+      e.target.value = buttons[i].label;
+    });
+  });
+}
+
+//============================================================
+// Color presets
+//============================================================
+const PRESETS = {
+  amg:     ['#ff3838', '#ff8c00', '#2ecc40'],
+  traffic: ['#e63946', '#ffd60a', '#06d6a0'],
+  rgb:     ['#ff0000', '#00ff00', '#0080ff'],
+  cyber:   ['#ff1493', '#00fff7', '#ffd60a'],
+  pastel:  ['#ffafcc', '#bde0fe', '#cdb4db'],
+};
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = btn.dataset.preset;
+    syncButtonsArray();
+    if (p === 'reset') {
+      buttons.forEach(b => b.color = null);
+    } else {
+      const colors = PRESETS[p];
+      buttons.forEach((b, i) => {
+        b.color = colors[i % colors.length];
+      });
+    }
+    rebuildBtnList();
+    updatePreview();
+  });
+});
+
+//============================================================
+// Preview rendering
+//============================================================
+function updatePreview() {
+  const svg = document.getElementById('preview');
+  const shape = document.getElementById('shape').value;
+  const w = parseFloat(document.getElementById('width').value) || 22;
+  const h = parseFloat(document.getElementById('height').value) || 22;
+  const r = parseFloat(document.getElementById('radius').value) || 0;
+  const segs = parseInt(document.getElementById('segs').value) || 12;
+  const hasEdge = document.getElementById('hasEdge').checked;
+  const ew = parseFloat(document.getElementById('edgeWidth').value) || 0.7;
+  const defaultFill = document.getElementById('fillColor').value;
+  const edgeColor = document.getElementById('edgeColor').value;
+
+  const positions = getButtonPositions();
+  syncButtonsArray();
+  const perim = getShape(shape, w, h, r, segs);
+  const inner = hasEdge ? getInner(shape, w, h, r, ew, segs) : null;
+
+  let svgContent = '<defs><filter id="g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="0.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>';
+
+  let xMin=Infinity, xMax=-Infinity, yMin=Infinity, yMax=-Infinity;
+  let totalTris = 0;
+
+  positions.forEach((pos, i) => {
+    const fillColor = (buttons[i] && buttons[i].color) || defaultFill;
+    const offset = perim.map(p => [p[0]+pos.x, p[1]+pos.y]);
+    for (const p of offset) {
+      if (p[0]<xMin) xMin=p[0]; if (p[0]>xMax) xMax=p[0];
+      if (p[1]<yMin) yMin=p[1]; if (p[1]>yMax) yMax=p[1];
+    }
+    const ptsStr = offset.map(p => `${p[0].toFixed(2)},${(-p[1]).toFixed(2)}`).join(' ');
+    svgContent += `<polygon points="${ptsStr}" fill="${fillColor}"/>`;
+    totalTris += perim.length;
+
+    if (hasEdge && inner) {
+      const innerOffset = inner.map(p => [p[0]+pos.x, p[1]+pos.y]);
+      const outerStr = offset.map(p => `${p[0].toFixed(2)},${(-p[1]).toFixed(2)}`).join(' L ');
+      const innerStr = innerOffset.map(p => `${p[0].toFixed(2)},${(-p[1]).toFixed(2)}`).join(' L ');
+      svgContent += `<path d="M ${outerStr} Z M ${innerStr} Z" fill="${edgeColor}" fill-rule="evenodd" filter="url(#g)"/>`;
+      totalTris += perim.length * 2;
+    }
+  });
+
+  const pad = Math.max(5, (xMax-xMin)*0.08);
+  const vbW = (xMax-xMin) + 2*pad, vbH = (yMax-yMin) + 2*pad;
+  svg.setAttribute('viewBox', `${xMin-pad} ${-yMax-pad} ${vbW} ${vbH}`);
+  svg.innerHTML = svgContent;
+
+  const totalBtn = positions.length;
+  let totalFaces;
+  if (faceMode === 'per-button') totalFaces = totalBtn * (hasEdge ? 2 : 1);
+  else if (faceMode === 'shared-edge') totalFaces = totalBtn + (hasEdge ? 1 : 0);
+  else totalFaces = (hasEdge ? 2 : 1);
+
+  document.getElementById('stBtn').textContent = totalBtn;
+  document.getElementById('stFaces').textContent = totalFaces;
+  document.getElementById('stTris').textContent = totalTris;
+  document.getElementById('stSize').textContent = `${(xMax-xMin).toFixed(0)}×${(yMax-yMin).toFixed(0)}mm`;
+
+  const facesEl = document.getElementById('statFaces');
+  facesEl.classList.toggle('warn', totalFaces > 8);
+  facesEl.classList.toggle('good', totalFaces <= 8);
+  facesEl.querySelector('.label').textContent = totalFaces > 8 ? 'Faces (>8 = SL limit!)' : 'Faces';
+
+  updateModeInfo();
+}
+
+//============================================================
+// Mesh building helpers
+//============================================================
+function hexToRgb(hex) {
+  const h = hex.replace('#','');
+  return [parseInt(h.substring(0,2),16)/255, parseInt(h.substring(2,4),16)/255, parseInt(h.substring(4,6),16)/255];
+}
+
+function buildFanFlat(perim, cz) {
+  // Triangulate as fan from centroid
+  const verts = [[0, 0, cz]];
+  for (const [x, y] of perim) verts.push([x, y, cz]);
+  const tris = [];
+  const n = perim.length;
+  for (let i = 0; i < n; i++) tris.push([0, 1+i, 1+((i+1)%n)]);
+  return {verts, tris};
+}
+function buildRingFlat(outer, inner, cz) {
+  // Quad strip between outer and inner ring
+  const verts = [];
+  for (const [x, y] of outer) verts.push([x, y, cz]);
+  for (const [x, y] of inner) verts.push([x, y, cz]);
+  const n = outer.length;
+  const tris = [];
+  for (let i = 0; i < n; i++) {
+    const o0=i, o1=(i+1)%n, i0=n+i, i1=n+((i+1)%n);
+    tris.push([o0, o1, i1]); tris.push([o0, i1, i0]);
+  }
+  return {verts, tris};
+}
+
+// 3D extrusion (for thickness > 0)
+function buildExtruded(perim, thickness, hasInner, inner) {
+  // Returns top fan, bottom fan (reversed winding), and side walls
+  // For simplicity, returns multiple sub-meshes that share materials
+  // (Not used currently - flat is better for HUD)
+  const top = buildFanFlat(perim, thickness/2);
+  const bottom = buildFanFlat(perim, -thickness/2);
+  // Reverse bottom triangle winding so normals point down
+  bottom.tris = bottom.tris.map(t => [t[0], t[2], t[1]]);
+  return {top, bottom};
+}
+
+//============================================================
+// DAE generation - smart face mode aware
+//============================================================
+function buildMeshFaces(lodSegs) {
+  // Returns {faces: [{verts, tris, material, color, emission}], buttonCount}
+  const shape = document.getElementById('shape').value;
+  const w = parseFloat(document.getElementById('width').value) || 22;
+  const h = parseFloat(document.getElementById('height').value) || 22;
+  const r = parseFloat(document.getElementById('radius').value) || 0;
+  const segs = lodSegs !== undefined ? lodSegs : (parseInt(document.getElementById('segs').value) || 12);
+  const hasEdge = document.getElementById('hasEdge').checked;
+  const ew = parseFloat(document.getElementById('edgeWidth').value) || 0.7;
+  const matPrefix = document.getElementById('matPrefix').value || 'btn';
+  const defaultFill = hexToRgb(document.getElementById('fillColor').value);
+  const edgeColor = hexToRgb(document.getElementById('edgeColor').value);
+
+  const positions = getButtonPositions();
+  syncButtonsArray();
+  const perim = getShape(shape, w, h, r, segs);
+  const inner = hasEdge ? getInner(shape, w, h, r, ew, segs) : null;
+
+  const faces = [];
+  const fillEmission = [0.4, 0.04, 0.2];
+  const edgeEmission = [0.8, 0.04, 0.4];
+
+  if (faceMode === 'per-button') {
+    // Each button = own fill face (and edge face if edge enabled)
+    positions.forEach((pos, i) => {
+      const fan = buildFanFlat(perim, 0);
+      const fillVerts = fan.verts.map(v => [(v[0]+pos.x)/1000, (v[1]+pos.y)/1000, v[2]]);
+      const btn = buttons[i] || {color: null, label: ''};
+      const fillCol = btn.color ? hexToRgb(btn.color) : defaultFill;
+      const tag = btn.label || `${i+1}`;
+      faces.push({
+        verts: fillVerts, tris: fan.tris,
+        material: `mat_${matPrefix}_${tag}_fill`,
+        color: fillCol, emission: fillEmission,
+        // metadata for per-face UV
+        bbox: getBBox(fillVerts),
+      });
+      if (hasEdge) {
+        const ring = buildRingFlat(perim, inner, 0.0001);
+        const ringVerts = ring.verts.map(v => [(v[0]+pos.x)/1000, (v[1]+pos.y)/1000, v[2]]);
+        faces.push({
+          verts: ringVerts, tris: ring.tris,
+          material: `mat_${matPrefix}_${tag}_edge`,
+          color: edgeColor, emission: edgeEmission,
+          bbox: getBBox(ringVerts),
+        });
+      }
+    });
+  } else if (faceMode === 'shared-edge') {
+    // Each fill = own face, all edges merged into one face
+    const edgeAccum = {verts: [], tris: []};
+    positions.forEach((pos, i) => {
+      const fan = buildFanFlat(perim, 0);
+      const fillVerts = fan.verts.map(v => [(v[0]+pos.x)/1000, (v[1]+pos.y)/1000, v[2]]);
+      const btn = buttons[i] || {color: null, label: ''};
+      const fillCol = btn.color ? hexToRgb(btn.color) : defaultFill;
+      const tag = btn.label || `${i+1}`;
+      faces.push({
+        verts: fillVerts, tris: fan.tris,
+        material: `mat_${matPrefix}_${tag}_fill`,
+        color: fillCol, emission: fillEmission,
+        bbox: getBBox(fillVerts),
+      });
+      if (hasEdge) {
+        const ring = buildRingFlat(perim, inner, 0.0001);
+        const off = edgeAccum.verts.length;
+        for (const v of ring.verts) edgeAccum.verts.push([(v[0]+pos.x)/1000, (v[1]+pos.y)/1000, v[2]]);
+        for (const t of ring.tris) edgeAccum.tris.push([t[0]+off, t[1]+off, t[2]+off]);
+      }
+    });
+    if (hasEdge) {
+      faces.push({
+        verts: edgeAccum.verts, tris: edgeAccum.tris,
+        material: `mat_${matPrefix}_edge`,
+        color: edgeColor, emission: edgeEmission,
+        bbox: getBBox(edgeAccum.verts),
+      });
+    }
+  } else {
+    // shared-all: one fill face, one edge face
+    const fillAccum = {verts: [], tris: []};
+    const edgeAccum = {verts: [], tris: []};
+    positions.forEach((pos, i) => {
+      const fan = buildFanFlat(perim, 0);
+      const off = fillAccum.verts.length;
+      for (const v of fan.verts) fillAccum.verts.push([(v[0]+pos.x)/1000, (v[1]+pos.y)/1000, v[2]]);
+      for (const t of fan.tris) fillAccum.tris.push([t[0]+off, t[1]+off, t[2]+off]);
+      if (hasEdge) {
+        const ring = buildRingFlat(perim, inner, 0.0001);
+        const eoff = edgeAccum.verts.length;
+        for (const v of ring.verts) edgeAccum.verts.push([(v[0]+pos.x)/1000, (v[1]+pos.y)/1000, v[2]]);
+        for (const t of ring.tris) edgeAccum.tris.push([t[0]+eoff, t[1]+eoff, t[2]+eoff]);
+      }
+    });
+    faces.push({
+      verts: fillAccum.verts, tris: fillAccum.tris,
+      material: `mat_${matPrefix}_fill`,
+      color: defaultFill, emission: fillEmission,
+      bbox: getBBox(fillAccum.verts),
+    });
+    if (hasEdge) {
+      faces.push({
+        verts: edgeAccum.verts, tris: edgeAccum.tris,
+        material: `mat_${matPrefix}_edge`,
+        color: edgeColor, emission: edgeEmission,
+        bbox: getBBox(edgeAccum.verts),
+      });
+    }
+  }
+
+  return {faces, buttonCount: positions.length};
+}
+
+function getBBox(verts) {
+  let xMin=Infinity, xMax=-Infinity, yMin=Infinity, yMax=-Infinity;
+  for (const v of verts) {
+    if (v[0] < xMin) xMin = v[0];
+    if (v[0] > xMax) xMax = v[0];
+    if (v[1] < yMin) yMin = v[1];
+    if (v[1] > yMax) yMax = v[1];
+  }
+  return {xMin, xMax, yMin, yMax};
+}
+
+function generateDAE(meshName, lodSegs) {
+  const {faces} = buildMeshFaces(lodSegs);
+  if (faces.length === 0) return null;
+
+  const uvMode = document.getElementById('uvMode').value;
+
+  // Build combined arrays for DAE
+  const allVerts = [];
+  const allTrisData = [];
+
+  // Compute global bbox for atlas mode
+  let gMin = [Infinity, Infinity], gMax = [-Infinity, -Infinity];
+  for (const f of faces) {
+    for (const v of f.verts) {
+      if (v[0] < gMin[0]) gMin[0] = v[0];
+      if (v[1] < gMin[1]) gMin[1] = v[1];
+      if (v[0] > gMax[0]) gMax[0] = v[0];
+      if (v[1] > gMax[1]) gMax[1] = v[1];
+    }
+  }
+  const gW = (gMax[0]-gMin[0]) || 1;
+  const gH = (gMax[1]-gMin[1]) || 1;
+
+  // Each face gets its own vertex range and UV range
+  const allUVs = [];
+  for (const f of faces) {
+    const vOff = allVerts.length;
+
+    // Compute UVs based on mode
+    const fW = (f.bbox.xMax - f.bbox.xMin) || 1;
+    const fH = (f.bbox.yMax - f.bbox.yMin) || 1;
+
+    for (const v of f.verts) {
+      allVerts.push(v);
+      let u, vv;
+      if (uvMode === 'per-face') {
+        // Each face uses 0-1 UV
+        u = (v[0] - f.bbox.xMin) / fW;
+        vv = (v[1] - f.bbox.yMin) / fH;
+      } else {
+        // Atlas: shared bbox
+        u = (v[0] - gMin[0]) / gW;
+        vv = (v[1] - gMin[1]) / gH;
+      }
+      allUVs.push([u, vv]);
+    }
+
+    const idx = [];
+    for (const t of f.tris) for (const vl of t) {
+      idx.push(vOff+vl); idx.push(vOff+vl); idx.push(vOff+vl);
+    }
+    allTrisData.push({
+      material: f.material, count: f.tris.length, indices: idx.join(' '),
+      color: f.color, emission: f.emission
+    });
+  }
+
+  const nPos = allVerts.length;
+  const posStr = allVerts.map(v => `${v[0].toFixed(6)} ${v[1].toFixed(6)} ${v[2].toFixed(6)}`).join(' ');
+  const normStr = allVerts.map(() => '0 0 1').join(' ');
+  const uvStr = allUVs.map(uv => `${uv[0].toFixed(6)} ${uv[1].toFixed(6)}`).join(' ');
+
+  let effectsXml = '', materialsXml = '', trianglesXml = '', bindXml = '';
+  for (const f of allTrisData) {
+    const c = f.color, e = f.emission;
+    effectsXml += `<effect id="${f.material}-effect"><profile_COMMON><technique sid="common"><phong>
+      <emission><color>${e[0].toFixed(4)} ${e[1].toFixed(4)} ${e[2].toFixed(4)} 1</color></emission>
+      <ambient><color>0.2 0.1 0.15 1</color></ambient>
+      <diffuse><color>${c[0].toFixed(4)} ${c[1].toFixed(4)} ${c[2].toFixed(4)} 1</color></diffuse>
+      <specular><color>0.9 0.9 0.9 1</color></specular>
+      <shininess><float>128</float></shininess>
+    </phong></technique></profile_COMMON></effect>`;
+    materialsXml += `<material id="${f.material}" name="${f.material}"><instance_effect url="#${f.material}-effect"/></material>`;
+    trianglesXml += `<triangles material="${f.material}_sym" count="${f.count}">
+      <input semantic="VERTEX" source="#${meshName}-vertices" offset="0"/>
+      <input semantic="NORMAL" source="#${meshName}-normals" offset="1"/>
+      <input semantic="TEXCOORD" source="#${meshName}-uvs" offset="2" set="0"/>
+      <p>${f.indices}</p></triangles>`;
+    bindXml += `<instance_material symbol="${f.material}_sym" target="#${f.material}"><bind_vertex_input semantic="UVMap" input_semantic="TEXCOORD" input_set="0"/></instance_material>`;
+  }
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <asset><created>${new Date().toISOString()}</created><modified>${new Date().toISOString()}</modified><unit name="meter" meter="1"/><up_axis>Z_UP</up_axis></asset>
+  <library_effects>${effectsXml}</library_effects>
+  <library_materials>${materialsXml}</library_materials>
+  <library_geometries><geometry id="${meshName}-geom" name="${meshName}"><mesh>
+    <source id="${meshName}-positions"><float_array id="${meshName}-positions-array" count="${nPos*3}">${posStr}</float_array>
+      <technique_common><accessor source="#${meshName}-positions-array" count="${nPos}" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source>
+    <source id="${meshName}-normals"><float_array id="${meshName}-normals-array" count="${nPos*3}">${normStr}</float_array>
+      <technique_common><accessor source="#${meshName}-normals-array" count="${nPos}" stride="3"><param name="X" type="float"/><param name="Y" type="float"/><param name="Z" type="float"/></accessor></technique_common></source>
+    <source id="${meshName}-uvs"><float_array id="${meshName}-uvs-array" count="${nPos*2}">${uvStr}</float_array>
+      <technique_common><accessor source="#${meshName}-uvs-array" count="${nPos}" stride="2"><param name="S" type="float"/><param name="T" type="float"/></accessor></technique_common></source>
+    <vertices id="${meshName}-vertices"><input semantic="POSITION" source="#${meshName}-positions"/></vertices>
+    ${trianglesXml}
+  </mesh></geometry></library_geometries>
+  <library_visual_scenes><visual_scene id="Scene" name="Scene">
+    <node id="${meshName}" name="${meshName}" type="NODE">
+      <matrix sid="transform">1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1</matrix>
+      <instance_geometry url="#${meshName}-geom" name="${meshName}"><bind_material><technique_common>${bindXml}</technique_common></bind_material></instance_geometry>
+    </node></visual_scene></library_visual_scenes>
+  <scene><instance_visual_scene url="#Scene"/></scene>
+</COLLADA>`;
+}
+
+function downloadFile(content, filename, type) {
+  const blob = new Blob([content], {type: type || 'text/plain'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadDAE() {
+  const meshName = (document.getElementById('meshName').value || 'my_buttons').replace(/[^a-zA-Z0-9_]/g, '_');
+  const genLODs = document.getElementById('genLODs').checked;
+  const baseSegs = parseInt(document.getElementById('segs').value) || 12;
+
+  if (!genLODs) {
+    const dae = generateDAE(meshName);
+    if (!dae) { alert('No buttons!'); return; }
+    downloadFile(dae, meshName + '.dae', 'model/vnd.collada+xml');
+    return;
+  }
+
+  // Generate 4 LOD files
+  // LOD3 = high (full segs), LOD2 = medium (half), LOD1 = low (quarter), LOD0 = lowest (min)
+  const lodSegments = [
+    Math.max(1, Math.round(baseSegs * 0.0833)),  // LOD0 lowest
+    Math.max(2, Math.round(baseSegs * 0.25)),    // LOD1 low
+    Math.max(3, Math.round(baseSegs * 0.5)),     // LOD2 med
+    baseSegs                                       // LOD3 high
+  ];
+  const lodNames = ['LOWEST', 'LOW', 'MED', 'HIGH'];
+
+  // Stagger downloads slightly so browser doesn't choke
+  lodSegments.forEach((segs, i) => {
+    setTimeout(() => {
+      const dae = generateDAE(meshName, segs);
+      if (dae) downloadFile(dae, `${meshName}_${lodNames[i]}.dae`, 'model/vnd.collada+xml');
+    }, i * 250);
+  });
+}
+
+//============================================================
+// UV Template export (PNG)
+//============================================================
+function downloadUVTemplate() {
+  const {faces} = buildMeshFaces();
+  if (faces.length === 0) { alert('No buttons!'); return; }
+
+  const uvMode = document.getElementById('uvMode').value;
+  const meshName = (document.getElementById('meshName').value || 'my_buttons').replace(/[^a-zA-Z0-9_]/g, '_');
+
+  // Canvas size - SL standard texture is 1024x1024
+  const SIZE = 1024;
+  const canvas = document.createElement('canvas');
+  canvas.width = SIZE; canvas.height = SIZE;
+  const ctx = canvas.getContext('2d');
+
+  // Background: dark with grid for visibility
+  ctx.fillStyle = '#0a0408';
+  ctx.fillRect(0, 0, SIZE, SIZE);
+
+  // Subtle grid
+  ctx.strokeStyle = '#220011';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 8; i++) {
+    const p = (i/8) * SIZE;
+    ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, SIZE); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(SIZE, p); ctx.stroke();
+  }
+
+  if (uvMode === 'per-face') {
+    // Layout faces in a grid; each face shows its outline at 0-1 UV
+    const N = faces.length;
+    const cols = Math.ceil(Math.sqrt(N));
+    const rows = Math.ceil(N / cols);
+    const cellW = SIZE / cols, cellH = SIZE / rows;
+    const margin = Math.min(cellW, cellH) * 0.08;
+
+    faces.forEach((f, i) => {
+      const row = Math.floor(i / cols);
+      const col = i % cols;
+      const x0 = col * cellW + margin;
+      const y0 = row * cellH + margin;
+      const w = cellW - 2*margin;
+      const h = cellH - 2*margin;
+
+      // Cell background
+      ctx.strokeStyle = '#330022';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(col*cellW, row*cellH, cellW, cellH);
+
+      // Project each triangle's outline into cell
+      const fW = (f.bbox.xMax - f.bbox.xMin) || 1;
+      const fH = (f.bbox.yMax - f.bbox.yMin) || 1;
+      const proj = (v) => {
+        const u = (v[0] - f.bbox.xMin) / fW;
+        const vv = (v[1] - f.bbox.yMin) / fH;
+        // u maps to x: x0..x0+w; vv maps to y: y0+h..y0 (Y flipped for canvas)
+        return [x0 + u*w, y0 + (1-vv)*h];
+      };
+
+      // Draw each triangle as outline
+      ctx.strokeStyle = '#ff1493';
+      ctx.lineWidth = 2;
+      ctx.fillStyle = 'rgba(255, 20, 147, 0.08)';
+
+      // Build a path from triangles - merge into outline by drawing all edges
+      // For visual clarity, show each triangle filled lightly + outlined boundary
+      ctx.beginPath();
+      for (const t of f.tris) {
+        const p0 = proj(f.verts[t[0]]);
+        const p1 = proj(f.verts[t[1]]);
+        const p2 = proj(f.verts[t[2]]);
+        ctx.moveTo(p0[0], p0[1]);
+        ctx.lineTo(p1[0], p1[1]);
+        ctx.lineTo(p2[0], p2[1]);
+        ctx.closePath();
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // Label
+      ctx.fillStyle = '#ff69b4';
+      ctx.font = `bold ${Math.min(14, cellW/15)}px Segoe UI, sans-serif`;
+      ctx.textAlign = 'left';
+      ctx.fillText(f.material, col*cellW + 4, row*cellH + 14);
+    });
+  } else {
+    // Atlas mode: project all faces into a single 0-1 space
+    let gMin = [Infinity, Infinity], gMax = [-Infinity, -Infinity];
+    for (const f of faces) {
+      for (const v of f.verts) {
+        if (v[0] < gMin[0]) gMin[0] = v[0];
+        if (v[1] < gMin[1]) gMin[1] = v[1];
+        if (v[0] > gMax[0]) gMax[0] = v[0];
+        if (v[1] > gMax[1]) gMax[1] = v[1];
+      }
+    }
+    const gW = (gMax[0]-gMin[0]) || 1;
+    const gH = (gMax[1]-gMin[1]) || 1;
+    const margin = SIZE * 0.05;
+    const drawW = SIZE - 2*margin, drawH = SIZE - 2*margin;
+
+    // Preserve aspect
+    const scale = Math.min(drawW/gW, drawH/gH);
+    const offsetX = margin + (drawW - gW*scale)/2;
+    const offsetY = margin + (drawH - gH*scale)/2;
+
+    const proj = (v) => {
+      const x = offsetX + (v[0] - gMin[0]) * scale;
+      const y = SIZE - (offsetY + (v[1] - gMin[1]) * scale);
+      return [x, y];
+    };
+
+    // Color faces distinctly - cycle through hues
+    faces.forEach((f, i) => {
+      const hue = (i * 360 / faces.length) | 0;
+      ctx.fillStyle = `hsla(${hue}, 80%, 50%, 0.15)`;
+      ctx.strokeStyle = `hsl(${hue}, 90%, 70%)`;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (const t of f.tris) {
+        const p0 = proj(f.verts[t[0]]);
+        const p1 = proj(f.verts[t[1]]);
+        const p2 = proj(f.verts[t[2]]);
+        ctx.moveTo(p0[0], p0[1]);
+        ctx.lineTo(p1[0], p1[1]);
+        ctx.lineTo(p2[0], p2[1]);
+        ctx.closePath();
+      }
+      ctx.fill();
+      ctx.stroke();
+
+      // Label center
+      const cx = (f.bbox.xMin + f.bbox.xMax)/2;
+      const cy = (f.bbox.yMin + f.bbox.yMax)/2;
+      const [lx, ly] = proj([cx, cy]);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 14px Segoe UI, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.9)';
+      ctx.shadowBlur = 4;
+      ctx.fillText(f.material, lx, ly);
+      ctx.shadowBlur = 0;
+    });
+  }
+
+  // Header
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(0, 0, SIZE, 32);
+  ctx.fillStyle = '#ff69b4';
+  ctx.font = 'bold 16px Segoe UI, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText(`UV Template – ${meshName} (${uvMode})`, 8, 22);
+  ctx.textAlign = 'right';
+  ctx.fillStyle = '#f6c7de';
+  ctx.font = '12px Segoe UI, sans-serif';
+  ctx.fillText('Paint inside outlines. Save as PNG. Apply to faces in SL.', SIZE - 8, 22);
+
+  canvas.toBlob((blob) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `${meshName}_uv_template.png`; a.click();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+
+//============================================================
+// Init
+//============================================================
+rebuildBtnList();
+updatePreview();
+updateModeInfo();
+</script>
+</body>
+</html>
