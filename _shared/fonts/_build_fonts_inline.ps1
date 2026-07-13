@@ -1,5 +1,8 @@
+# NOTE: superseded by _build_fonts_inline.py — kept only as the
+# original PowerShell version of the same logic. The Python script
+# is the canonical builder; this one is no longer required.
 param(
-  [string]$dir = "D:\Second Life\Tools for SL\_shared\fonts"
+  [string]$dir = $PSScriptRoot
 )
 
 # Build fonts_inline.js by base64-encoding all .ttf files in this folder

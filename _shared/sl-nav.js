@@ -1,25 +1,28 @@
 /* =====================================================================
    SL Tools :: Navigation bootstrapper
    - Detects which sibling tools exist (modular: missing folder = hidden)
-   - Renders a synthwave nav bar at the top
-   - Adds the sun + grid + scanlines background layers
+   - Renders the floating synthwave nav pill (top-right, click to expand)
+   - Wires the smooth fade-out transition between tools
 
-   How it works
-   ------------
+   How modular detection works
+   ---------------------------
    Each tool folder contains a tiny `_meta.js` that registers its own
-   metadata into window.__SLT_AVAILABLE. We try to load that file via
-   <script> tags. file:// allows local <script> loads, and onerror fires
-   reliably when the file is missing — so removing a tool folder makes
-   it disappear from the nav automatically.
+   metadata into window.__SLT_AVAILABLE. This script tries to load that
+   file via <script> tags — file:// allows local <script> loads and
+   onerror fires reliably when the file is missing, so removing a tool
+   folder makes it disappear from the nav of every other tool with no
+   further configuration.
 
-   Adding a new tool:
-   - Add an entry below in REGISTRY
-   - Drop the folder with its main HTML and a `_meta.js`
-
-   Each tool's HTML opts in by including:
-     <link rel="stylesheet" href="../_shared/sl-nav.css">
-     <script>window.SLT_CURRENT = "anim-combiner";</script>
-     <script src="../_shared/sl-nav.js"></script>
+   Adding a new tool
+   -----------------
+   1. Add an entry to REGISTRY below.
+   2. Drop the new tool's folder next to the others, containing the main
+      HTML and a `_meta.js` registration line for its id.
+   3. In the new tool's <body>, set `window.SLT_CURRENT = "<id>"` BEFORE
+      this script runs.
+   4. Run `python "_shared/sync_inline.py"` to bake the latest shared
+      CSS + JS + Three.js (if needed) into every tool so each HTML is
+      standalone — works without _shared/ or any network.
    ===================================================================== */
 (function () {
   'use strict';
@@ -31,7 +34,7 @@
     {
       id: 'anim-combiner',
       name: 'Animation Combiner',
-      subtitle: 'body + hands → combo',
+      subtitle: 'merge any two .anim',
       folder: 'SL Animation Combiner',
       file: 'sl_animation_combiner.html',
       badge: 'AC',
@@ -68,17 +71,58 @@
       file: 'sl_hud_buttons_creator.html',
       badge: 'HD',
     },
+    {
+      id: 'alpha-maker',
+      name: 'Alpha Maker',
+      subtitle: 'body alpha mask painter',
+      folder: 'SL Alpha Maker',
+      file: 'sl_alpha_maker.html',
+      badge: 'AM',
+    },
+    {
+      id: 'music-slicer',
+      name: 'Music Slicer',
+      subtitle: 'songs → ≤30s SL clips',
+      folder: 'SL Music Slicer',
+      file: 'sl_music_slicer.html',
+      badge: 'MS',
+    },
   ];
 
   window.__SLT_AVAILABLE = window.__SLT_AVAILABLE || {};
 
   // ---------------------------------------------------------------------
-  // The body theme + sun + grid + scanlines are now applied entirely
-  // via CSS. Each themed tool sets <body class="slt-themed"> in its
-  // HTML and pre-renders <div class="slt-scanlines"></div> so there's
-  // no flash of unstyled content. This script's only job is to render
-  // the navigation bar after probing for sibling tools.
+  // The body theme (aurora blobs, glass panels) is applied entirely via
+  // CSS on <body class="slt-themed"> — no flash of unstyled content.
+  // This script renders the floating nav after probing for sibling
+  // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
+
+  // Mouse-follow glow layer. Purely decorative: skipped for
+  // reduced-motion users and coarse (touch) pointers.
+  function mountGlow() {
+    if (!document.body.classList.contains('slt-themed')) return;
+    var noMotion = false, coarse = false;
+    try {
+      noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      coarse = window.matchMedia('(pointer: coarse)').matches;
+    } catch (e) {}
+    if (noMotion || coarse) return;
+    var glow = document.createElement('div');
+    glow.className = 'slt-glow';
+    glow.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(glow);
+    var pending = false;
+    document.addEventListener('pointermove', function (e) {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(function () {
+        glow.style.setProperty('--slt-mx', e.clientX + 'px');
+        glow.style.setProperty('--slt-my', e.clientY + 'px');
+        pending = false;
+      });
+    }, { passive: true });
+  }
 
   // ---------------------------------------------------------------------
   // Step 2: detect which sibling tools exist
@@ -163,8 +207,8 @@
     const header = document.createElement('div');
     header.className = 'slt-nav-panel-header';
     header.innerHTML =
-      '<span class="slt-nav-handle-brand">★ SL TOOLS ★</span>' +
-      '<small class="slt-nav-panel-tagline">NEON ROUTINE</small>';
+      '<span class="slt-nav-handle-brand">SL Tools</span>' +
+      '<small class="slt-nav-panel-tagline">Quicky Tools for Second Life</small>';
     panel.appendChild(header);
 
     const list = document.createElement('ul');
@@ -238,6 +282,7 @@
   // Bootstrap once the DOM is ready
   // ---------------------------------------------------------------------
   function boot() {
+    mountGlow();
     detectAll().then(renderNav).catch((err) => {
       console.warn('[SL Tools nav] detection failed:', err);
       // fallback: still show current tool only

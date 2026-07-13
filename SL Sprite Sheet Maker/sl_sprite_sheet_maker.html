@@ -1,55 +1,24 @@
 <!DOCTYPE html>
 <!--
   ====================================================================
-  Ya's GIF → SL Sprite Sheet Maker
-  Copyright © 2026 Ya. All rights reserved.
+  SL Sprite Sheet Maker  (GIF → SL sprite sheet)
+  Required Notice: Copyright © 2026 Ya.
 
-  THIS APPLIES ONLY TO THE APPLICATION CODE WRITTEN BY YA
-  (i.e. the UI, sprite-sheet generation logic, color picker,
-  ZIP/PNG encoders, quantizer, and styles in this file).
-
-  The application code is provided for PERSONAL USE ONLY.
-  Redistribution, republishing on another domain, modifying,
-  or selling this code (in whole or in part) requires written
-  permission from the author. Do not remove this notice.
+  Application code in this file (UI, sprite-sheet generation logic,
+  colour picker, ZIP / PNG encoders, palette quantiser, styles) is
+  licensed under the PolyForm Noncommercial License 1.0.0. See the
+  LICENSE file at the repo root for terms.
 
   --------------------------------------------------------------------
-  THIRD-PARTY LIBRARY (NOT WRITTEN BY YA — separate authorship & license)
+  THIRD-PARTY CODE BUNDLED IN THIS FILE (separate authorship & licence;
+  see THIRD-PARTY-NOTICES.md at the repo root for full licence texts)
   --------------------------------------------------------------------
 
-  This file bundles "gifuct-js" — an open-source GIF parser
-  authored by Matt Way, used here unmodified under the MIT License.
-  Source: https://github.com/matt-way/gifuct-js
+    • gifuct-js — © 2015 Matt Way. MIT License.
+      Source: https://github.com/matt-way/gifuct-js
 
-  Ya claims NO authorship over gifuct-js. Its full license text
-  is reproduced below as required by the MIT License terms:
-
-      The MIT License (MIT)
-
-      Copyright (c) 2015 Matt Way
-
-      Permission is hereby granted, free of charge, to any person
-      obtaining a copy of this software and associated documentation
-      files (the "Software"), to deal in the Software without
-      restriction, including without limitation the rights to use,
-      copy, modify, merge, publish, distribute, sublicense, and/or
-      sell copies of the Software, and to permit persons to whom
-      the Software is furnished to do so, subject to the following
-      conditions:
-
-      The above copyright notice and this permission notice shall
-      be included in all copies or substantial portions of the
-      Software.
-
-      THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
-      KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-      WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
-      PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
-      OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR
-      OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-      OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-      SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
+  Ya claims NO authorship over the bundled library. It is included
+  unmodified under the redistribution terms granted by its licence.
   ====================================================================
 -->
 <html lang="en">
@@ -59,272 +28,249 @@
 <!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
-   SL Tools :: Synthwave shared theme + navigation
-   Loaded by all tools to give a consistent neon look + tool switcher.
+   SL Tools :: "Aurora Glass" shared theme + navigation  (v2)
+   ---------------------------------------------------------------------
+   Design language (adapted from the SL Music Slicer):
+     - deep indigo base with two slowly drifting blurred aurora blobs
+     - frosted-glass panels (backdrop blur + 1px light edge + 18px radius)
+     - animated pink→purple→cyan gradient headlines
+     - system font stack — no embedded webfonts, maximum readability
+     - full prefers-reduced-motion support
+
+   The selector contract from v1 is preserved verbatim: every class,
+   element rule, and CSS custom property keeps its old name so all
+   tool-local CSS keeps working. Only the values changed.
+
+   Browser support: Chrome / Edge / Brave / Firefox 103+ / Safari 14+.
+   backdrop-filter and background-clip:text carry -webkit- prefixes.
    ===================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@500;700;900&family=Share+Tech+Mono&family=VT323&display=swap');
-
 :root {
-  --slt-pink:    #ff2e9a;
-  --slt-magenta: #ff00d6;
-  --slt-cyan:    #00f0ff;
-  --slt-blue:    #5ddcff;
-  --slt-purple:  #6b1fb1;
-  --slt-gold:    #ffd66b;
-  --slt-bg-1:    #0a0024;
-  --slt-bg-2:    #1a0640;
-  --slt-bg-3:    #2d0a5e;
+  /* legacy names, remapped to the aurora palette */
+  --slt-pink:    #ff6ec7;   /* lighter accent tint (gradient tops, hovers) */
+  --slt-magenta: #ff3cac;   /* primary accent                              */
+  --slt-cyan:    #2bd2ff;   /* secondary accent                            */
+  --slt-blue:    #9d95b8;   /* dim / secondary text                        */
+  --slt-purple:  #7c2bff;   /* tertiary accent                             */
+  --slt-gold:    #ffcf5e;   /* highlight / active                          */
+  --slt-bg-1:    #0a0714;
+  --slt-bg-2:    #140b26;
+  --slt-bg-3:    #1d1038;
+
+  /* new tokens (v2) */
+  --slt-txt:   #f2eeff;
+  --slt-dim:   #9d95b8;
+  --slt-good:  #00e5a0;
+  --slt-warn:  #ffb84d;
+  --slt-bad:   #ff5470;
+  --slt-glass: rgba(255, 255, 255, 0.05);
+  --slt-edge:  rgba(255, 255, 255, 0.10);
+  --slt-font:  "Segoe UI Variable Text", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --slt-mono:  Consolas, "SF Mono", "Cascadia Mono", Menlo, monospace;
+  --slt-grad:  linear-gradient(90deg, var(--slt-magenta), var(--slt-purple), var(--slt-cyan), var(--slt-magenta));
 }
 
-/* ---- Body + background layers (pure CSS — no JS needed) ----
-   The themed body paints the radial bg + overlays a striped
-   "sun" via ::before and an animated grid floor via ::after.
-   Scanlines live on a tiny <div class="slt-scanlines"> element
-   that each themed tool pre-renders so it never has to flash
-   in via JavaScript. */
+/* ---- Base body + aurora background --------------------------------- */
 body.slt-themed {
   margin: 0;
   min-height: 100vh;
-  background: radial-gradient(ellipse at 50% 0%,
-    var(--slt-bg-3) 0%, var(--slt-bg-2) 35%, var(--slt-bg-1) 80%) !important;
-  background-attachment: fixed !important;
-  color: var(--slt-cyan);
-  font-family: 'Share Tech Mono', 'VT323', monospace;
-  text-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+  background: var(--slt-bg-1) !important;
+  color: var(--slt-txt);
+  font: 14px/1.5 var(--slt-font);
+  color-scheme: dark;
+  overflow-x: hidden;
 }
-
-body.slt-themed::before {
-  content: '';
-  position: fixed;
-  left: 50%; top: 14vh;
-  transform: translateX(-50%);
-  width: 380px; height: 380px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 50% 55%,
-    #ffe66b 0%, #ff8e2a 35%, #ff2e9a 60%, #6b1fb1 95%);
-  box-shadow: 0 0 80px rgba(255,142,42,0.45), 0 0 200px rgba(255,46,154,0.35);
-  z-index: 0;
-  opacity: 0.85;
-  -webkit-mask-image: repeating-linear-gradient(180deg,
-    black 0, black 22px, transparent 22px, transparent 28px,
-    black 28px, black 42px, transparent 42px, transparent 50px,
-    black 50px, black 70px, transparent 70px, transparent 80px,
-    black 80px);
-          mask-image: repeating-linear-gradient(180deg,
-    black 0, black 22px, transparent 22px, transparent 28px,
-    black 28px, black 42px, transparent 42px, transparent 50px,
-    black 50px, black 70px, transparent 70px, transparent 80px,
-    black 80px);
-  pointer-events: none;
-}
-
+body.slt-themed::before,
 body.slt-themed::after {
-  content: '';
+  content: "";
   position: fixed;
-  bottom: -10vh; left: 50%;
-  transform: translateX(-50%) perspective(420px) rotateX(58deg);
-  transform-origin: top center;
-  width: 220vw; height: 100vh;
-  background:
-    repeating-linear-gradient(0deg,
-      transparent 0, transparent 38px,
-      rgba(255, 0, 214, 0.7) 38px, rgba(255, 0, 214, 0.7) 40px),
-    repeating-linear-gradient(90deg,
-      transparent 0, transparent 38px,
-      rgba(0, 240, 255, 0.55) 38px, rgba(0, 240, 255, 0.55) 40px);
-  pointer-events: none;
-  animation: slt-grid-scroll 1.6s linear infinite;
-  opacity: 0.65;
   z-index: 0;
-}
-@keyframes slt-grid-scroll {
-  0%   { background-position: 0 0,    0 0; }
-  100% { background-position: 0 40px, 0 0; }
-}
-
-.slt-scanlines {
-  position: fixed; inset: 0;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.45;
   pointer-events: none;
-  background: repeating-linear-gradient(
-    to bottom,
-    rgba(0,0,0,0)    0px, rgba(0,0,0,0)    2px,
-    rgba(0,0,0,0.18) 3px, rgba(0,0,0,0)    4px);
-  z-index: 9999;
-  mix-blend-mode: multiply;
+}
+body.slt-themed::before {
+  width: 55vw; height: 55vw;
+  background: radial-gradient(circle, #5b2ba8, transparent 65%);
+  top: -18vw; left: -12vw;
+  animation: slt-drift 26s ease-in-out infinite alternate;
+}
+body.slt-themed::after {
+  width: 46vw; height: 46vw;
+  background: radial-gradient(circle, #b41f7e, transparent 65%);
+  bottom: -16vw; right: -10vw;
+  animation: slt-drift 30s -15s ease-in-out infinite alternate-reverse;
+}
+@keyframes slt-drift {
+  to { transform: translate(6vw, 4vh) scale(1.18); }
+}
+body.slt-themed ::selection { background: rgba(255, 60, 172, 0.4); }
+
+/* Legacy element from the v1 theme — kept as a no-op so old tool HTML
+   that still renders <div class="slt-scanlines"> stays harmless. */
+.slt-scanlines { display: none !important; }
+
+/* Mouse-follow glow layer (injected by sl-nav.js; decorative only) */
+.slt-glow {
+  position: fixed; inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: radial-gradient(340px circle at var(--slt-mx, -600px) var(--slt-my, -600px),
+    rgba(124, 43, 255, 0.14), transparent 65%);
+  mix-blend-mode: screen;
 }
 
-/* Lift every element above the bg pseudo-elements. */
-body.slt-themed > *:not(.slt-scanlines):not(.slt-nav) {
+/* Lift every element above the aurora blobs. */
+body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   position: relative;
   z-index: 1;
 }
 
-/* ---- Floating navigation pill (top-right) ---------------------------
-   The nav is `position: fixed` so it floats above the page and stays
-   in view while you scroll. It has two states:
-     data-open="false" → only the small handle pill is visible
-     data-open="true"  → the panel hangs below, listing all tools
-   State persists in localStorage between page loads.            */
 
+/* ---- Floating navigation pill (top-right) --------------------------
+   Two states, persisted in localStorage:
+     data-open="false" → only the small glass handle is visible
+     data-open="true"  → glass dropdown panel below it            */
 .slt-nav {
   position: fixed;
-  top: 12px;
-  right: 12px;
+  top: 14px;
+  right: 14px;
   z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  font-family: 'Orbitron', 'Audiowide', sans-serif;
+  font-family: var(--slt-font);
 }
 
-/* The always-visible handle pill — kept small so it doesn't crowd
-   page titles. */
 .slt-nav-handle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   width: auto;
   margin: 0;
-  padding: 5px 10px 5px 5px;
-  background: linear-gradient(180deg,
-    rgba(20,5,50,0.92) 0%, rgba(45,10,94,0.88) 100%);
-  border: 1.5px solid var(--slt-cyan);
+  padding: 6px 12px 6px 6px;
+  background: linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)), rgba(17, 10, 34, 0.65);
+  border: 1px solid var(--slt-edge);
   border-radius: 999px;
   cursor: pointer;
-  color: var(--slt-cyan);
+  color: var(--slt-txt);
   font-family: inherit;
-  font-size: 11px;
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  text-shadow: 0 0 6px rgba(0,240,255,0.5);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.4px;
   outline: none;
-  box-shadow:
-    0 0 0 1px rgba(255,0,214,0.3) inset,
-    0 0 14px rgba(0,240,255,0.35),
-    0 4px 16px rgba(0,0,0,0.5);
-  transition: box-shadow .18s, transform .12s, border-color .18s, color .18s;
-  -webkit-backdrop-filter: blur(6px);
-          backdrop-filter: blur(6px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
+  transition: box-shadow .18s, transform .12s, border-color .18s;
+  -webkit-backdrop-filter: blur(14px);
+          backdrop-filter: blur(14px);
 }
 .slt-nav-handle:hover {
   border-color: var(--slt-magenta);
-  color: var(--slt-magenta);
-  box-shadow:
-    0 0 0 1px var(--slt-magenta) inset,
-    0 0 22px var(--slt-magenta),
-    0 4px 18px rgba(0,0,0,0.5);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45), 0 0 22px rgba(255, 60, 172, 0.35);
   transform: translateY(1px);
 }
+.slt-nav-handle:focus-visible {
+  outline: 2px solid var(--slt-cyan);
+  outline-offset: 2px;
+}
 .slt-nav[data-open="true"] .slt-nav-handle {
-  border-color: var(--slt-gold);
-  color: var(--slt-gold);
-  box-shadow:
-    0 0 0 1px var(--slt-magenta) inset,
-    0 0 18px var(--slt-magenta),
-    0 4px 18px rgba(0,0,0,0.5);
+  border-color: transparent;
+  background:
+    linear-gradient(rgba(24, 14, 46, 0.92), rgba(24, 14, 46, 0.92)) padding-box,
+    var(--slt-grad) border-box;
+  background-size: auto, 300% 100%;
+  animation: slt-hue 9s linear infinite;
 }
 
 /* Current-tool badge inside the handle */
 .slt-nav-current {
   display: inline-flex;
-  align-items: center; justify-content: center;
-  width: 22px; height: 22px;
-  border: 1.5px solid var(--slt-gold);
+  align-items: center;
+  justify-content: center;
+  width: 24px; height: 24px;
   border-radius: 999px;
-  background: rgba(255,214,107,0.18);
-  color: var(--slt-gold);
-  font-family: 'Audiowide', sans-serif;
-  font-size: 9px;
+  background: linear-gradient(135deg, var(--slt-magenta), var(--slt-purple));
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
   letter-spacing: 0;
-  text-shadow: 0 0 6px var(--slt-gold);
-  box-shadow: 0 0 8px rgba(255,214,107,0.5);
-}
-
-/* Brand text (gradient) — used inside the panel header */
-.slt-nav-handle-brand {
-  display: block;
-  background: linear-gradient(180deg,
-    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
-    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%);
-  -webkit-background-clip: text;
-          background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 6px rgba(255,0,214,0.45));
-  font-family: 'Audiowide', sans-serif;
-  font-size: 13px;
-  letter-spacing: 2px;
-  text-align: center;
-}
-
-/* Panel header (brand + tagline) */
-.slt-nav-panel-header {
-  padding: 8px 6px 10px;
-  margin-bottom: 6px;
-  border-bottom: 1px dashed rgba(0,240,255,0.25);
-  text-align: center;
-}
-.slt-nav-panel-tagline {
-  display: block;
-  font-family: 'VT323', monospace;
-  font-size: 11px;
-  letter-spacing: 4px;
-  color: var(--slt-blue);
-  text-shadow: 0 0 6px var(--slt-cyan);
-  margin-top: 4px;
+  box-shadow: 0 2px 10px rgba(255, 60, 172, 0.45);
 }
 
 .slt-nav-chevron {
   display: inline-block;
   font-size: 10px;
+  color: var(--slt-dim);
   transition: transform .25s ease;
 }
 .slt-nav[data-open="true"] .slt-nav-chevron { transform: rotate(180deg); }
 
-/* The collapsible panel */
+/* Dropdown panel */
 .slt-nav-panel {
-  width: 280px;
-  max-width: calc(100vw - 24px);
-  background: linear-gradient(180deg,
-    rgba(20,5,50,0.92) 0%, rgba(45,10,94,0.88) 100%);
-  border: 1.5px solid var(--slt-cyan);
-  border-radius: 4px;
-  box-shadow:
-    0 0 0 1px rgba(255,0,214,0.3) inset,
-    0 0 22px rgba(0,240,255,0.35),
-    0 8px 32px rgba(0,0,0,0.6);
-  padding: 8px;
-  -webkit-backdrop-filter: blur(8px);
-          backdrop-filter: blur(8px);
+  width: 290px;
+  max-width: calc(100vw - 28px);
+  background: linear-gradient(160deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015)), rgba(17, 10, 34, 0.78);
+  border: 1px solid var(--slt-edge);
+  border-radius: 18px;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+  padding: 10px;
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+          backdrop-filter: blur(18px) saturate(1.3);
   position: relative;
 
-  /* Animated entry */
   opacity: 0;
   transform: translateY(-6px) scale(0.98);
   transform-origin: top right;
   pointer-events: none;
-  transition: opacity .18s ease, transform .22s cubic-bezier(.2,.9,.3,1.2);
+  transition: opacity .18s ease, transform .22s cubic-bezier(.2, .9, .3, 1.2);
 }
-.slt-nav-panel::before {
-  content: '';
-  position: absolute; inset: 4px;
-  border: 1px dashed rgba(0,240,255,0.22);
-  border-radius: 2px;
-  pointer-events: none;
-}
+.slt-nav-panel::before { content: none; }
 .slt-nav[data-open="true"] .slt-nav-panel {
   opacity: 1;
   transform: translateY(0) scale(1);
   pointer-events: auto;
 }
 
+/* Panel header (brand + tagline) */
+.slt-nav-panel-header {
+  padding: 8px 6px 10px;
+  margin-bottom: 6px;
+  border-bottom: 1px solid var(--slt-edge);
+  text-align: center;
+}
+.slt-nav-handle-brand {
+  display: block;
+  background: var(--slt-grad);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+          background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: slt-hue 9s linear infinite;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-align: center;
+}
+.slt-nav-panel-tagline {
+  display: block;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--slt-dim);
+  margin-top: 3px;
+}
+
 .slt-nav-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 5px;
   list-style: none;
-  margin: 0; padding: 0;
+  margin: 0;
+  padding: 0;
 }
 
 .slt-nav-btn {
@@ -332,86 +278,78 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav) {
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
-  font-family: 'Orbitron', sans-serif;
-  font-weight: 700;
-  font-size: 12px;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
   text-decoration: none;
-  color: var(--slt-cyan);
-  background: rgba(10,0,36,0.4);
-  border: 1.5px solid transparent;
-  border-radius: 3px;
+  color: var(--slt-txt);
+  background: var(--slt-glass);
+  border: 1px solid var(--slt-edge);
+  border-radius: 13px;
   cursor: pointer;
-  transition: all .15s;
-  text-shadow: 0 0 6px rgba(0,240,255,0.4);
+  transition: transform .15s, border-color .15s, box-shadow .15s;
 }
 .slt-nav-btn:hover {
-  border-color: var(--slt-magenta);
-  color: var(--slt-magenta);
-  background: rgba(255,0,214,0.08);
-  text-shadow: 0 0 8px var(--slt-magenta);
-  box-shadow: 0 0 12px rgba(255,0,214,0.4);
-  transform: translateX(-2px);
+  border-color: rgba(255, 255, 255, 0.28);
+  transform: translateX(-3px);
+  box-shadow: 0 4px 18px rgba(124, 43, 255, 0.25);
+}
+.slt-nav-btn:focus-visible {
+  outline: 2px solid var(--slt-cyan);
+  outline-offset: 2px;
 }
 .slt-nav-btn.current {
-  border-color: var(--slt-gold);
-  color: var(--slt-gold);
-  background: linear-gradient(180deg,
-    rgba(255,46,154,0.35) 0%, rgba(107,31,177,0.45) 100%);
-  text-shadow: 0 0 10px var(--slt-gold);
-  box-shadow:
-    0 0 0 1px var(--slt-magenta) inset,
-    0 0 14px rgba(255,0,214,0.5);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(rgba(32, 18, 62, 0.9), rgba(32, 18, 62, 0.9)) padding-box,
+    linear-gradient(90deg, var(--slt-magenta), var(--slt-purple), var(--slt-cyan)) border-box;
+  box-shadow: 0 0 20px rgba(124, 43, 255, 0.3);
   cursor: default;
 }
 .slt-nav-btn.current:hover { transform: none; }
 
 .slt-nav-badge {
-  width: 26px; height: 26px;
+  width: 28px; height: 28px;
   display: inline-flex;
-  align-items: center; justify-content: center;
-  border: 1.5px solid currentColor;
-  border-radius: 2px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9px;
   font-size: 11px;
-  font-family: 'Audiowide', sans-serif;
-  background: rgba(255,0,214,0.08);
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--slt-dim);
   flex-shrink: 0;
 }
 .slt-nav-btn.current .slt-nav-badge {
-  background: rgba(255,214,107,0.2);
-  box-shadow: 0 0 10px var(--slt-gold), inset 0 0 8px rgba(255,214,107,0.4);
+  background: linear-gradient(135deg, var(--slt-magenta), var(--slt-purple));
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(255, 60, 172, 0.4);
 }
 
-.slt-nav-name { line-height: 1.1; flex: 1; }
+.slt-nav-name { line-height: 1.2; flex: 1; min-width: 0; }
 .slt-nav-name small {
   display: block;
-  font-family: 'Share Tech Mono', monospace;
-  font-weight: normal;
-  font-size: 9px;
-  letter-spacing: 0.5px;
-  text-transform: none;
-  margin-top: 3px;
-  opacity: 0.75;
+  font-weight: 500;
+  font-size: 10.5px;
+  letter-spacing: 0.2px;
+  margin-top: 2px;
+  color: var(--slt-dim);
 }
 
 @media (max-width: 540px) {
   .slt-nav { top: 8px; right: 8px; }
-  .slt-nav-panel { width: 240px; }
+  .slt-nav-panel { width: 250px; }
 }
 
-/* ---- Smooth cross-page transitions --------------------------------
-   Both fade-in and fade-out are CSS animations. Using an animation
-   for fade-out is important: a CSS transition cannot override an
-   already-running animation on the same property, so on themed pages
-   (which run slt-page-in on load) the leaving fade has to win via
-   another animation declaration that supersedes it. */
+/* ---- Smooth cross-page transitions ---------------------------------
+   Both directions are CSS animations: a transition cannot override a
+   running/held animation on the same property, so the leaving fade
+   must also be an animation to beat slt-page-in. */
 body.slt-themed { animation: slt-page-in .28s ease-out both; }
 @keyframes slt-page-in {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-
 html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
 @keyframes slt-page-out {
   from { opacity: 1; }
@@ -420,162 +358,156 @@ html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
 
 
 /* =====================================================================
-   Synthwave UI overrides — applied on every tool that opts in via
-   .slt-themed (i.e. everything except Anim Combiner, which already
-   ships its own native synthwave styling and sets SLT_NO_BG=true).
-   We ride on top of each tool's existing CSS using !important so
-   the cascade lands on us regardless of source order or specificity.
+   Aurora UI — applied on every tool that opts in via
+   <body class="slt-themed">. !important keeps the cascade on our side
+   regardless of tool-local source order or specificity.
    ===================================================================== */
 
-/* ---- Big synthwave title block (matches Anim Combiner) -----------
-   Drop this on top of each themed tool:
+/* ---- Title block ----------------------------------------------------
+   Same HTML contract as v1:
      <header class="slt-titlebar">
-       <div class="slt-subtitle">/// 1986 :: TAGLINE ///</div>
-       <h1 class="slt-title">SL TOOL NAME</h1>
-       <div class="slt-subtitle slt-subtitle-edition">★ S Y N T H W A V E ★</div>
+       <div class="slt-subtitle">Tagline</div>
+       <h1 class="slt-title">SL Tool Name</h1>
        <p class="slt-lede">One-line description.</p>
      </header>                                                       */
 body.slt-themed .slt-titlebar {
   text-align: center;
-  margin: 8px auto 32px;
+  margin: 26px auto 30px;
   max-width: 940px;
   position: relative;
   z-index: 1;
+  padding: 0 16px;
 }
 body.slt-themed .slt-title {
-  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
-  font-weight: normal !important;
-  font-size: clamp(36px, 7vw, 64px) !important;
-  line-height: 1.05 !important;
-  letter-spacing: 2px !important;
-  /* scaleY(1.15) below renders the title ~15% taller than its layout
-     box. Padding-bottom would scale WITH the transform (no help), so
-     we use margin-bottom — which sits outside the transform — to
-     reserve breathing room before the lede. 0.6em is enough for up
-     to ~3 wrapped lines at any clamp size. */
-  margin: 8px 0 0.6em !important;
-  padding-bottom: 0.15em !important;
+  font-family: var(--slt-font) !important;
+  font-weight: 800 !important;
+  font-size: clamp(28px, 4.6vw, 44px) !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0.5px !important;
+  margin: 6px 0 0 !important;
+  padding: 0 0 6px !important;
   text-align: center !important;
-  text-transform: uppercase !important;
+  text-transform: none !important;
   text-wrap: balance;
-  background: linear-gradient(180deg,
-    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
-    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%) !important;
+  background: var(--slt-grad) !important;
+  background-size: 300% 100% !important;
   -webkit-background-clip: text !important;
           background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   color: transparent !important;
-  filter: drop-shadow(0 0 14px rgba(255,0,214,0.55))
-          drop-shadow(0 4px 0 rgba(0,240,255,0.7))
-          drop-shadow(0 8px 0 rgba(107,31,177,0.8)) !important;
+  animation: slt-hue 9s linear infinite;
+  filter: none !important;
   text-shadow: none !important;
-  transform: scaleY(1.15) !important;
-  transform-origin: center top !important;
+  transform: none !important;
   border: none !important;
 }
+@keyframes slt-hue {
+  to { background-position: 300% 0; }
+}
 body.slt-themed .slt-subtitle {
-  font-family: 'VT323', monospace !important;
-  font-size: 22px !important;
+  display: inline-block;
+  font-family: var(--slt-font) !important;
+  font-size: 10.5px !important;
+  font-weight: 700 !important;
   text-align: center !important;
-  color: var(--slt-blue) !important;
-  letter-spacing: 4px !important;
-  margin: 4px 0 8px !important;
-  text-shadow: 0 0 8px var(--slt-cyan) !important;
+  color: var(--slt-dim) !important;
+  letter-spacing: 3px !important;
+  text-transform: uppercase;
+  margin: 0 !important;
+  padding: 4px 14px;
+  border: 1px solid var(--slt-edge);
+  border-radius: 999px;
+  background: var(--slt-glass);
+  text-shadow: none !important;
 }
-body.slt-themed .slt-subtitle-edition {
-  font-size: 14px !important;
-  letter-spacing: 6px !important;
-  opacity: 0.7 !important;
-}
+body.slt-themed .slt-subtitle-edition { display: none !important; }
 body.slt-themed .slt-lede {
   text-align: center !important;
-  color: #c5e9ff !important;
-  margin: 18px auto 0 !important;
-  max-width: 640px !important;
-  font-size: 15px !important;
-  line-height: 1.5 !important;
-  text-shadow: 0 0 5px rgba(0,240,255,0.3) !important;
-  font-family: 'Share Tech Mono', monospace !important;
+  color: var(--slt-dim) !important;
+  margin: 12px auto 0 !important;
+  max-width: 620px !important;
+  font-size: 14px !important;
+  line-height: 1.6 !important;
+  text-shadow: none !important;
+  font-family: var(--slt-font) !important;
 }
 body.slt-themed .slt-lede code {
   color: var(--slt-gold) !important;
-  background: rgba(255,214,107,0.08) !important;
+  background: rgba(255, 207, 94, 0.08) !important;
   padding: 1px 6px !important;
-  border: 1px solid rgba(255,214,107,0.3) !important;
-  border-radius: 3px !important;
-  font-family: 'Share Tech Mono', monospace !important;
+  border: 1px solid rgba(255, 207, 94, 0.25) !important;
+  border-radius: 6px !important;
+  font-family: var(--slt-mono) !important;
+  font-size: 0.92em !important;
 }
 
-/* ---- Headings ----------------------------------------------------- */
+/* ---- Headings ------------------------------------------------------ */
 body.slt-themed h1 {
-  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
-  font-weight: normal !important;
-  letter-spacing: 2px !important;
-  text-transform: uppercase !important;
-  background: linear-gradient(180deg,
-    #fff8e1 0%, #ffd66b 25%, #ff8e2a 45%,
-    #ff2e9a 65%, #ff00d6 85%, #6b1fb1 100%) !important;
+  font-family: var(--slt-font) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.4px !important;
+  text-transform: none !important;
+  background: var(--slt-grad) !important;
+  background-size: 300% 100% !important;
   -webkit-background-clip: text !important;
           background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
   color: transparent !important;
-  filter: drop-shadow(0 0 14px rgba(255,0,214,0.55))
-          drop-shadow(0 4px 0 rgba(0,240,255,0.7))
-          drop-shadow(0 8px 0 rgba(107,31,177,0.8)) !important;
+  animation: slt-hue 9s linear infinite;
+  filter: none !important;
   text-shadow: none !important;
   border: none !important;
 }
 body.slt-themed h1 small {
   display: block !important;
-  font-family: 'VT323', monospace !important;
-  font-size: 18px !important;
-  letter-spacing: 4px !important;
-  font-weight: normal !important;
-  text-transform: uppercase !important;
+  font-family: var(--slt-font) !important;
+  font-size: 12px !important;
+  letter-spacing: 0.5px !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
   background: none !important;
-  -webkit-text-fill-color: var(--slt-blue) !important;
-  color: var(--slt-blue) !important;
+  -webkit-text-fill-color: var(--slt-dim) !important;
+  color: var(--slt-dim) !important;
   filter: none !important;
-  text-shadow: 0 0 8px var(--slt-cyan) !important;
+  text-shadow: none !important;
   margin: 4px 0 0 0 !important;
-  opacity: 0.85 !important;
+  animation: none;
 }
 body.slt-themed h2 {
-  font-family: 'Orbitron', sans-serif !important;
+  font-family: var(--slt-font) !important;
   font-weight: 700 !important;
-  letter-spacing: 2px !important;
+  letter-spacing: 1.6px !important;
   text-transform: uppercase !important;
-  color: var(--slt-magenta) !important;
-  text-shadow: 0 0 10px var(--slt-magenta) !important;
-  border-bottom-color: var(--slt-magenta) !important;
+  font-size: 12px !important;
+  color: var(--slt-cyan) !important;
+  text-shadow: none !important;
+  border-bottom-color: var(--slt-edge) !important;
 }
 body.slt-themed h3 {
-  font-family: 'Orbitron', sans-serif !important;
+  font-family: var(--slt-font) !important;
   font-weight: 700 !important;
-  letter-spacing: 1.5px !important;
+  letter-spacing: 1.4px !important;
   text-transform: uppercase !important;
+  font-size: 11px !important;
   color: var(--slt-gold) !important;
-  text-shadow: 0 0 8px rgba(255,214,107,0.4) !important;
+  text-shadow: none !important;
 }
 
-/* ---- Panels / cards / canvas wrappers ----------------------------- */
+/* ---- Panels / cards / canvas wrappers ------------------------------ */
 body.slt-themed .panel,
 body.slt-themed .preview-area,
 body.slt-themed .canvas-wrap,
 body.slt-themed details.advanced {
-  background: linear-gradient(180deg,
-    rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%) !important;
-  border: 1.5px solid var(--slt-cyan) !important;
-  border-radius: 4px !important;
-  box-shadow:
-    0 0 0 1px rgba(255,0,214,0.3) inset,
-    0 0 18px rgba(0,240,255,0.35),
-    0 0 40px rgba(255,0,214,0.18) !important;
-  backdrop-filter: blur(2px) !important;
+  background: linear-gradient(160deg, rgba(255,255,255,0.055), rgba(255,255,255,0.015)), rgba(17, 10, 34, 0.55) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+          backdrop-filter: blur(18px) saturate(1.3);
   position: relative;
 }
 
-/* ---- Inputs / selects / textareas --------------------------------- */
+/* ---- Inputs / selects / textareas ---------------------------------- */
 body.slt-themed input[type="text"],
 body.slt-themed input[type="number"],
 body.slt-themed input[type="search"],
@@ -585,35 +517,36 @@ body.slt-themed input[type="url"],
 body.slt-themed input[type="password"],
 body.slt-themed select,
 body.slt-themed textarea {
-  background: rgba(10,0,36,0.8) !important;
-  border: 1px solid var(--slt-cyan) !important;
-  border-radius: 2px !important;
-  color: var(--slt-cyan) !important;
-  font-family: 'Share Tech Mono', monospace !important;
-  letter-spacing: 0.5px !important;
-  text-shadow: 0 0 4px rgba(0,240,255,0.5) !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 11px !important;
+  color: var(--slt-txt) !important;
+  font-family: var(--slt-font) !important;
+  letter-spacing: 0.2px !important;
+  text-shadow: none !important;
   outline: none !important;
+  transition: border-color .15s, box-shadow .15s;
 }
 body.slt-themed input[type="text"]:focus,
 body.slt-themed input[type="number"]:focus,
 body.slt-themed input[type="search"]:focus,
 body.slt-themed select:focus,
 body.slt-themed textarea:focus {
-  border-color: var(--slt-magenta) !important;
-  box-shadow: 0 0 12px var(--slt-magenta) !important;
+  border-color: var(--slt-cyan) !important;
+  box-shadow: 0 0 0 3px rgba(43, 210, 255, 0.16) !important;
 }
 body.slt-themed input::placeholder,
 body.slt-themed textarea::placeholder {
-  color: rgba(0,240,255,0.4) !important;
+  color: rgba(157, 149, 184, 0.65) !important;
 }
 body.slt-themed select option {
-  background: var(--slt-bg-1) !important;
-  color: var(--slt-cyan) !important;
+  background: var(--slt-bg-2) !important;
+  color: var(--slt-txt) !important;
 }
 body.slt-themed input[type="color"] {
-  background: rgba(10,0,36,0.8) !important;
-  border: 1px solid var(--slt-cyan) !important;
-  border-radius: 2px !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 9px !important;
 }
 body.slt-themed input[type="checkbox"],
 body.slt-themed input[type="radio"],
@@ -621,70 +554,81 @@ body.slt-themed input[type="range"] {
   accent-color: var(--slt-magenta) !important;
 }
 
-/* ---- Buttons ------------------------------------------------------
-   Default <button> = primary synthwave style. Several tool-specific
-   classes get their own treatment further below (small toggle pads,
-   navigation arrows, thumbnail close, etc.). The .slt-nav-* classes
-   are excluded so the floating nav stays compact. */
-body.slt-themed button:not(.layout-btn):not(.deco-btn):not(.mode-btn):not(.preset-btn):not(.navbtn):not(.thumb-x):not(.aspect-sel):not(.apply-all):not(.clear-bar):not(.warn):not(.slt-nav-handle):not(.slt-nav-btn) {
-  font-family: 'Audiowide', 'Orbitron', sans-serif !important;
-  letter-spacing: 2px !important;
-  text-transform: uppercase !important;
-  color: #fff7b0 !important;
-  background: linear-gradient(180deg,
-    var(--slt-pink) 0%, var(--slt-magenta) 60%, var(--slt-purple) 100%) !important;
-  border: 2px solid var(--slt-gold) !important;
-  border-radius: 3px !important;
-  text-shadow: 0 0 8px var(--slt-gold), 0 2px 0 rgba(0,0,0,0.5) !important;
-  box-shadow:
-    0 0 0 2px var(--slt-magenta) inset,
-    0 0 16px var(--slt-magenta),
-    0 0 32px rgba(255,0,214,0.3),
-    0 4px 0 rgba(0,0,0,0.4) !important;
-  transition: filter .15s, transform .05s, box-shadow .15s !important;
+/* ---- Buttons --------------------------------------------------------
+   Plain <button> keeps its v1 role as the tool's PRIMARY action
+   (Load / Export / Combine) → pink→purple gradient pill with a sheen
+   sweep. Subtle variants: .secondary/.btn-secondary/.small and the
+   toggle-pad classes below. */
+body.slt-themed button:not(.layout-btn):not(.deco-btn):not(.mode-btn):not(.preset-btn):not(.navbtn):not(.thumb-x):not(.aspect-sel):not(.apply-all):not(.clear-bar):not(.warn):not(.slt-nav-handle):not(.slt-nav-btn):not(.marquee-btn) {
+  font-family: var(--slt-font) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3px !important;
+  text-transform: none !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, var(--slt-magenta), var(--slt-purple)) !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  text-shadow: none !important;
+  box-shadow: 0 4px 20px rgba(255, 60, 172, 0.35) !important;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform .15s, box-shadow .15s, filter .15s !important;
 }
-body.slt-themed button:not(:disabled):hover {
-  filter: brightness(1.15) saturate(1.2) !important;
+body.slt-themed button:not(:disabled):not(.thumb-x):hover {
+  transform: translateY(-1px) !important;
+  filter: brightness(1.08);
+  box-shadow: 0 6px 28px rgba(255, 60, 172, 0.5) !important;
 }
-body.slt-themed button:not(:disabled):active {
-  transform: translateY(2px) !important;
+body.slt-themed button:not(:disabled):not(.thumb-x):active {
+  transform: translateY(0) scale(0.98) !important;
 }
 body.slt-themed button:disabled {
-  opacity: 0.4 !important;
-  cursor: not-allowed !important;
-  filter: grayscale(0.3) !important;
+  opacity: 0.35 !important;
+  cursor: default !important;
+  filter: none !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+body.slt-themed button:focus-visible {
+  outline: 2px solid var(--slt-cyan) !important;
+  outline-offset: 2px !important;
 }
 body.slt-themed button.secondary,
 body.slt-themed button.btn-secondary {
-  background: rgba(10,0,36,0.6) !important;
-  color: var(--slt-cyan) !important;
-  border: 1.5px solid var(--slt-cyan) !important;
-  text-shadow: 0 0 6px var(--slt-cyan) !important;
-  box-shadow:
-    0 0 0 1px var(--slt-cyan) inset,
-    0 0 12px rgba(0,240,255,0.25) !important;
+  background: var(--slt-glass) !important;
+  color: var(--slt-txt) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+body.slt-themed button.secondary:hover:not(:disabled),
+body.slt-themed button.btn-secondary:hover:not(:disabled) {
+  border-color: var(--slt-purple) !important;
+  box-shadow: 0 4px 18px rgba(124, 43, 255, 0.28) !important;
 }
 body.slt-themed button.small {
-  font-size: 11px !important;
-  letter-spacing: 1px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.2px !important;
   padding: 6px 12px !important;
-  border-width: 1.5px !important;
+  border-radius: 9px !important;
 }
 
-/* ---- Toggle/option pad buttons (div-based grids) ------------------ */
+/* ---- Toggle/option pad buttons (div- or button-based grids) -------- */
 body.slt-themed .layout-btn,
 body.slt-themed .deco-btn,
 body.slt-themed .mode-btn,
 body.slt-themed .preset-btn,
 body.slt-themed .navbtn {
-  background: rgba(10,0,36,0.6) !important;
-  border: 1.5px solid var(--slt-cyan) !important;
-  color: var(--slt-cyan) !important;
-  border-radius: 2px !important;
-  font-family: 'Orbitron', sans-serif !important;
-  font-weight: 700 !important;
-  text-shadow: 0 0 6px rgba(0,240,255,0.4) !important;
-  transition: all .15s !important;
+  background: var(--slt-glass) !important;
+  border: 1px solid var(--slt-edge) !important;
+  color: var(--slt-dim) !important;
+  border-radius: 12px !important;
+  font-family: var(--slt-font) !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
+  transition: transform .15s, border-color .15s, box-shadow .15s, color .15s !important;
   box-shadow: none !important;
 }
 body.slt-themed .layout-btn:hover,
@@ -692,400 +636,433 @@ body.slt-themed .deco-btn:hover,
 body.slt-themed .mode-btn:hover,
 body.slt-themed .preset-btn:hover,
 body.slt-themed .navbtn:hover:not(:disabled) {
-  border-color: var(--slt-magenta) !important;
-  color: var(--slt-magenta) !important;
-  background: rgba(20,5,50,0.6) !important;
-  box-shadow: 0 0 12px var(--slt-magenta), inset 0 0 8px rgba(255,0,214,0.18) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  color: var(--slt-txt) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 4px 18px rgba(124, 43, 255, 0.22) !important;
   transform: translateY(-1px) !important;
 }
 body.slt-themed .layout-btn.active,
 body.slt-themed .deco-btn.active,
 body.slt-themed .mode-btn.active,
 body.slt-themed .preset-btn.active {
-  background: linear-gradient(180deg,
-    rgba(255,46,154,0.4) 0%, rgba(107,31,177,0.5) 100%) !important;
-  border-color: var(--slt-gold) !important;
-  color: var(--slt-gold) !important;
-  text-shadow: 0 0 10px var(--slt-gold) !important;
-  box-shadow:
-    0 0 0 1px var(--slt-magenta) inset,
-    0 0 18px var(--slt-magenta) !important;
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(rgba(32, 18, 62, 0.92), rgba(32, 18, 62, 0.92)) padding-box,
+    linear-gradient(90deg, var(--slt-magenta), var(--slt-cyan)) border-box !important;
+  color: var(--slt-txt) !important;
+  text-shadow: none !important;
+  box-shadow: 0 0 16px rgba(124, 43, 255, 0.35) !important;
 }
 body.slt-themed .layout-btn.active .layout-icon { color: var(--slt-gold) !important; }
-body.slt-themed .navbtn .arrow { color: var(--slt-magenta) !important; text-shadow: 0 0 8px var(--slt-magenta) !important; }
+body.slt-themed .navbtn .arrow {
+  color: var(--slt-magenta) !important;
+  text-shadow: none !important;
+}
 body.slt-themed .navbtn:disabled { opacity: 0.3 !important; }
 
-/* ---- Apply-all + aspect-sel pills --------------------------------- */
+/* ---- Apply-all + aspect-sel pills ----------------------------------- */
 body.slt-themed .apply-all {
-  background: rgba(10,0,36,0.8) !important;
-  color: var(--slt-magenta) !important;
-  border: 1px solid var(--slt-magenta) !important;
-  border-radius: 2px !important;
-  font-family: 'Orbitron', sans-serif !important;
-  font-size: 10px !important;
-  letter-spacing: 1px !important;
-  text-shadow: 0 0 6px var(--slt-magenta) !important;
-  box-shadow: 0 0 8px rgba(255,0,214,0.3) !important;
+  background: linear-gradient(135deg, var(--slt-magenta), var(--slt-purple)) !important;
+  color: #fff !important;
+  border: 1px solid transparent !important;
+  border-radius: 999px !important;
+  font-family: var(--slt-font) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.3px !important;
+  text-shadow: none !important;
+  box-shadow: 0 2px 10px rgba(255, 60, 172, 0.35) !important;
 }
 body.slt-themed .apply-all:hover:not(:disabled) {
-  background: rgba(255,0,214,0.15) !important;
-  box-shadow: 0 0 14px var(--slt-magenta) !important;
+  filter: brightness(1.08);
+  box-shadow: 0 4px 16px rgba(255, 60, 172, 0.5) !important;
 }
 body.slt-themed .aspect-sel {
-  background: rgba(10,0,36,0.8) !important;
-  color: var(--slt-cyan) !important;
-  border: 1px solid var(--slt-cyan) !important;
-  border-radius: 2px !important;
-  font-family: 'Share Tech Mono', monospace !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  color: var(--slt-txt) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 999px !important;
+  font-family: var(--slt-font) !important;
+  font-weight: 600 !important;
 }
 
-/* ---- Big banner clear button -------------------------------------- */
+/* ---- Big banner clear button ---------------------------------------- */
 body.slt-themed .clear-bar {
-  background: linear-gradient(180deg,
-    rgba(20,5,50,0.85) 0%, rgba(45,10,94,0.75) 100%) !important;
-  color: var(--slt-magenta) !important;
-  border: 1.5px solid var(--slt-magenta) !important;
+  background: rgba(17, 10, 34, 0.55) !important;
+  color: var(--slt-dim) !important;
+  border: 1px solid var(--slt-edge) !important;
   border-top: none !important;
-  border-radius: 0 0 4px 4px !important;
-  text-shadow: 0 0 8px var(--slt-magenta) !important;
-  font-family: 'Orbitron', sans-serif !important;
-  letter-spacing: 2px !important;
-  text-transform: uppercase !important;
-  box-shadow: 0 0 14px rgba(255,0,214,0.3) !important;
+  border-radius: 0 0 18px 18px !important;
+  text-shadow: none !important;
+  font-family: var(--slt-font) !important;
+  letter-spacing: 0.6px !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+  transition: background .18s, color .18s, box-shadow .18s !important;
 }
 body.slt-themed .clear-bar:hover {
-  background: linear-gradient(180deg,
-    rgba(255,46,154,0.4) 0%, rgba(107,31,177,0.5) 100%) !important;
-  color: var(--slt-gold) !important;
-  text-shadow: 0 0 10px var(--slt-gold) !important;
-  box-shadow: 0 0 22px var(--slt-magenta) !important;
+  background: rgba(255, 84, 112, 0.14) !important;
+  color: var(--slt-bad) !important;
+  text-shadow: none !important;
+  box-shadow: inset 0 0 30px rgba(255, 84, 112, 0.12) !important;
 }
 body.slt-themed .clear-bar.confirm {
-  background: linear-gradient(180deg,
-    var(--slt-pink) 0%, var(--slt-magenta) 60%, var(--slt-purple) 100%) !important;
-  color: #fff7b0 !important;
-  border-color: var(--slt-gold) !important;
-}
-
-/* ---- Thumbnail close button (small X) ----------------------------- */
-body.slt-themed .thumb-x {
-  background: var(--slt-magenta) !important;
+  background: linear-gradient(135deg, var(--slt-bad), #c2185b) !important;
   color: #fff !important;
-  border: 2px solid #1a0640 !important;
-  text-shadow: none !important;
-  box-shadow: 0 0 8px var(--slt-magenta) !important;
+  border-color: transparent !important;
 }
 
-/* ---- Info rows (key/value display) -------------------------------- */
+/* ---- Thumbnail close button (small X) ------------------------------- */
+body.slt-themed .thumb-x {
+  background: var(--slt-bad) !important;
+  color: #fff !important;
+  border: 2px solid var(--slt-bg-1) !important;
+  text-shadow: none !important;
+  box-shadow: 0 2px 8px rgba(255, 84, 112, 0.5) !important;
+}
+
+/* ---- Info rows (key/value display) ---------------------------------- */
 body.slt-themed .info-row {
-  border-bottom: 1px dashed rgba(0,240,255,0.25) !important;
-  font-family: 'Share Tech Mono', monospace !important;
-  color: var(--slt-cyan) !important;
+  border-bottom: 1px solid var(--slt-edge) !important;
+  font-family: var(--slt-font) !important;
+  color: var(--slt-txt) !important;
 }
 body.slt-themed .info-row span:first-child {
-  color: var(--slt-blue) !important;
-  font-family: 'Orbitron', sans-serif !important;
-  font-size: 11px !important;
-  letter-spacing: 1px !important;
-  text-transform: uppercase !important;
-  font-weight: 700 !important;
+  color: var(--slt-dim) !important;
+  font-family: var(--slt-font) !important;
+  font-size: 12px !important;
+  letter-spacing: 0.3px !important;
+  text-transform: none !important;
+  font-weight: 500 !important;
 }
 body.slt-themed .info-row span:last-child {
-  color: var(--slt-gold) !important;
-  text-shadow: 0 0 6px rgba(255,214,107,0.3) !important;
+  color: var(--slt-txt) !important;
+  font-weight: 600 !important;
+  font-variant-numeric: tabular-nums;
+  text-shadow: none !important;
 }
 
-/* ---- Stats grid (SL Text/HUD) ------------------------------------- */
+/* ---- Stats grid ------------------------------------------------------ */
 body.slt-themed .stat {
-  background: rgba(10,0,36,0.6) !important;
-  border: 1px solid var(--slt-cyan) !important;
-  border-radius: 2px !important;
+  background: rgba(0, 0, 0, 0.32) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 13px !important;
 }
 body.slt-themed .stat .label {
-  color: var(--slt-blue) !important;
-  font-family: 'Orbitron', sans-serif !important;
+  color: var(--slt-dim) !important;
+  font-family: var(--slt-font) !important;
   font-size: 10px !important;
   letter-spacing: 1px !important;
   text-transform: uppercase !important;
+  font-weight: 600 !important;
 }
 body.slt-themed .stat .value {
-  color: var(--slt-gold) !important;
-  text-shadow: 0 0 8px rgba(255,214,107,0.5) !important;
-  font-family: 'Audiowide', sans-serif !important;
+  color: var(--slt-txt) !important;
+  text-shadow: none !important;
+  font-family: var(--slt-font) !important;
+  font-weight: 800 !important;
+  font-variant-numeric: tabular-nums;
 }
-body.slt-themed .stat.warn .value { color: #ff6b6b !important; text-shadow: 0 0 8px #ff6b6b !important; }
-body.slt-themed .stat.good .value { color: #6bff8e !important; text-shadow: 0 0 8px #6bff8e !important; }
+body.slt-themed .stat.warn .value { color: var(--slt-bad) !important; text-shadow: none !important; }
+body.slt-themed .stat.good .value { color: var(--slt-good) !important; text-shadow: none !important; }
 
-/* ---- Status banner ------------------------------------------------ */
+/* ---- Status banner --------------------------------------------------- */
 body.slt-themed #status,
 body.slt-themed .status {
-  font-family: 'VT323', monospace !important;
-  font-size: 16px !important;
-  letter-spacing: 1px !important;
-  background: rgba(10,0,36,0.6) !important;
-  border: 1px solid var(--slt-cyan) !important;
-  border-radius: 2px !important;
-  color: var(--slt-cyan) !important;
+  font-family: var(--slt-font) !important;
+  font-size: 13px !important;
+  letter-spacing: 0.2px !important;
+  background: rgba(0, 0, 0, 0.32) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 11px !important;
+  color: var(--slt-dim) !important;
 }
 body.slt-themed #status.ok,
 body.slt-themed .status.ok {
-  color: #6bff8e !important;
-  background: rgba(107,255,142,0.08) !important;
-  border-color: #6bff8e !important;
-  text-shadow: 0 0 8px #6bff8e !important;
+  color: var(--slt-good) !important;
+  background: rgba(0, 229, 160, 0.08) !important;
+  border-color: rgba(0, 229, 160, 0.35) !important;
+  text-shadow: none !important;
 }
 body.slt-themed #status.error,
 body.slt-themed .status.error,
 body.slt-themed #status.err,
 body.slt-themed .status.err {
-  color: #ff6b6b !important;
-  background: rgba(255,107,107,0.08) !important;
-  border-color: #ff6b6b !important;
-  text-shadow: 0 0 8px #ff6b6b !important;
+  color: var(--slt-bad) !important;
+  background: rgba(255, 84, 112, 0.08) !important;
+  border-color: rgba(255, 84, 112, 0.4) !important;
+  text-shadow: none !important;
 }
 
-/* ---- Help / detail blocks ----------------------------------------- */
+/* ---- Help / detail blocks -------------------------------------------- */
 body.slt-themed details:not(.advanced) {
-  border: 1px solid rgba(0,240,255,0.3) !important;
-  border-radius: 4px !important;
-  background: linear-gradient(180deg,
-    rgba(20,5,50,0.7) 0%, rgba(45,10,94,0.6) 100%) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 14px !important;
+  background: var(--slt-glass) !important;
   padding: 10px 14px !important;
 }
 body.slt-themed details > summary {
   cursor: pointer !important;
-  font-family: 'Orbitron', sans-serif !important;
+  font-family: var(--slt-font) !important;
   font-weight: 700 !important;
-  letter-spacing: 1.5px !important;
-  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  text-transform: none !important;
   color: var(--slt-cyan) !important;
-  text-shadow: 0 0 8px var(--slt-cyan) !important;
-  font-size: 12px !important;
+  text-shadow: none !important;
+  font-size: 12.5px !important;
 }
 body.slt-themed details.advanced > summary {
   color: var(--slt-magenta) !important;
-  text-shadow: 0 0 10px var(--slt-magenta) !important;
+  text-shadow: none !important;
 }
 body.slt-themed .help,
 body.slt-themed details p,
 body.slt-themed details .help {
-  color: #b0d8ff !important;
-  font-family: 'Share Tech Mono', monospace !important;
-  font-size: 12px !important;
-  line-height: 1.55 !important;
+  color: var(--slt-dim) !important;
+  font-family: var(--slt-font) !important;
+  font-size: 12.5px !important;
+  line-height: 1.6 !important;
 }
 body.slt-themed details code,
 body.slt-themed .help code {
-  color: var(--slt-magenta) !important;
-  background: rgba(255,0,214,0.08) !important;
-  border: 1px solid rgba(255,0,214,0.3) !important;
-  padding: 1px 4px !important;
-  border-radius: 2px !important;
-  font-family: 'Share Tech Mono', monospace !important;
+  color: var(--slt-gold) !important;
+  background: rgba(255, 207, 94, 0.08) !important;
+  border: 1px solid rgba(255, 207, 94, 0.22) !important;
+  padding: 1px 5px !important;
+  border-radius: 6px !important;
+  font-family: var(--slt-mono) !important;
+  font-size: 0.92em !important;
 }
 
-/* ---- Filename / monospace label ----------------------------------- */
+/* ---- Filename / monospace label -------------------------------------- */
 body.slt-themed .filename {
-  background: rgba(10,0,36,0.8) !important;
-  border: 1px dashed var(--slt-cyan) !important;
+  background: rgba(0, 0, 0, 0.35) !important;
+  border: 1px dashed var(--slt-edge) !important;
   color: var(--slt-cyan) !important;
-  border-radius: 2px !important;
-  font-family: 'Share Tech Mono', monospace !important;
-  text-shadow: 0 0 4px rgba(0,240,255,0.5) !important;
+  border-radius: 11px !important;
+  font-family: var(--slt-mono) !important;
+  font-size: 12px !important;
+  text-shadow: none !important;
 }
 
-/* ---- Drop zone (label.drop) --------------------------------------- */
+/* ---- Drop zone (label.drop) ------------------------------------------ */
 body.slt-themed .drop {
-  border: 2px dashed var(--slt-cyan) !important;
-  border-radius: 3px !important;
-  background:
-    repeating-linear-gradient(45deg,
-      rgba(0,240,255,0.04) 0px, rgba(0,240,255,0.04) 8px,
-      transparent 8px, transparent 16px) !important;
-  color: var(--slt-cyan) !important;
-  font-family: 'Orbitron', sans-serif !important;
-  text-shadow: 0 0 8px var(--slt-cyan) !important;
+  border: 2px dashed rgba(255, 255, 255, 0.18) !important;
+  border-radius: 18px !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--slt-dim) !important;
+  font-family: var(--slt-font) !important;
+  text-shadow: none !important;
+  transition: border-color .2s, background .2s, box-shadow .2s, transform .2s !important;
 }
-body.slt-themed .drop:hover {
+body.slt-themed .drop:hover,
+body.slt-themed .drop.hover,
+body.slt-themed .drop.drag,
+body.slt-themed .drop.over {
   border-color: var(--slt-magenta) !important;
-  box-shadow: 0 0 24px var(--slt-magenta), inset 0 0 24px rgba(255,0,214,0.18) !important;
-  background:
-    repeating-linear-gradient(45deg,
-      rgba(255,0,214,0.08) 0px, rgba(255,0,214,0.08) 8px,
-      transparent 8px, transparent 16px) !important;
+  color: var(--slt-txt) !important;
+  background: rgba(255, 60, 172, 0.07) !important;
+  box-shadow: inset 0 0 34px rgba(255, 60, 172, 0.12) !important;
 }
+body.slt-themed .drop strong,
+body.slt-themed .drop b {
+  font-family: var(--slt-font) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.2px !important;
+  color: var(--slt-txt) !important;
+  text-shadow: none !important;
+  text-transform: none !important;
+}
+body.slt-themed .drop small { color: var(--slt-dim) !important; }
 
-/* ---- Thumbnails strip (Anim Priority + Sprite Sheet) -------------- */
+/* ---- Thumbnails strip ------------------------------------------------- */
 body.slt-themed .thumbs {
-  background: linear-gradient(180deg,
-    rgba(20,5,50,0.6) 0%, rgba(45,10,94,0.55) 100%) !important;
-  border: 1.5px solid var(--slt-magenta) !important;
+  background: rgba(17, 10, 34, 0.55) !important;
+  border: 1px solid var(--slt-edge) !important;
   border-bottom: none !important;
-  border-radius: 4px 4px 0 0 !important;
-  box-shadow: 0 0 14px rgba(255,0,214,0.2) !important;
+  border-radius: 18px 18px 0 0 !important;
+  box-shadow: none !important;
 }
 body.slt-themed .thumb {
-  background: rgba(10,0,36,0.5) !important;
-  border: 2px solid transparent !important;
-  border-radius: 2px !important;
-  transition: all .15s !important;
+  background: var(--slt-glass) !important;
+  border: 1px solid transparent !important;
+  border-radius: 13px !important;
+  transition: transform .15s, border-color .15s, box-shadow .15s !important;
 }
 body.slt-themed .thumb:hover {
-  border-color: var(--slt-cyan) !important;
-  box-shadow: 0 0 12px rgba(0,240,255,0.4) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 4px 18px rgba(124, 43, 255, 0.22) !important;
 }
 body.slt-themed .thumb.active {
-  border-color: var(--slt-magenta) !important;
-  background: rgba(45,10,94,0.6) !important;
-  box-shadow: 0 0 18px var(--slt-magenta) !important;
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(rgba(32, 18, 62, 0.9), rgba(32, 18, 62, 0.9)) padding-box,
+    linear-gradient(90deg, var(--slt-magenta), var(--slt-purple), var(--slt-cyan)) border-box !important;
+  box-shadow: 0 0 20px rgba(124, 43, 255, 0.3) !important;
 }
 body.slt-themed .thumb-icon {
-  background: rgba(20,5,50,0.85) !important;
-  color: var(--slt-cyan) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  color: var(--slt-dim) !important;
+  border-radius: 9px !important;
 }
 body.slt-themed .thumb-icon .pri-badge {
-  background: var(--slt-magenta) !important;
+  background: linear-gradient(135deg, var(--slt-magenta), var(--slt-purple)) !important;
   color: #fff !important;
-  font-family: 'Audiowide', sans-serif !important;
-  box-shadow: 0 0 6px var(--slt-magenta) !important;
+  font-family: var(--slt-font) !important;
+  font-weight: 800 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 2px 8px rgba(255, 60, 172, 0.4) !important;
 }
 body.slt-themed .thumb-icon.changed .pri-badge {
-  background: #6bff8e !important;
-  box-shadow: 0 0 6px #6bff8e !important;
+  background: var(--slt-good) !important;
+  color: #03121a !important;
+  box-shadow: 0 2px 8px rgba(0, 229, 160, 0.45) !important;
 }
 body.slt-themed .thumb-label {
-  color: var(--slt-cyan) !important;
-  font-family: 'Share Tech Mono', monospace !important;
+  color: var(--slt-dim) !important;
+  font-family: var(--slt-font) !important;
+  font-weight: 600 !important;
+}
+body.slt-themed .thumb.marked {
+  outline: 2px solid var(--slt-bad) !important;
+  outline-offset: 2px !important;
 }
 
-/* ---- Decorations btn-row (HUD per-button list) -------------------- */
+/* ---- Per-button list rows (HUD tool) ---------------------------------- */
 body.slt-themed .btn-row {
-  background: rgba(10,0,36,0.6) !important;
-  border: 1px solid rgba(0,240,255,0.3) !important;
-  border-radius: 2px !important;
+  background: var(--slt-glass) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 11px !important;
 }
 body.slt-themed .btn-row .idx {
-  color: var(--slt-blue) !important;
-  font-family: 'Orbitron', sans-serif !important;
-  font-weight: 700 !important;
+  color: var(--slt-dim) !important;
+  font-family: var(--slt-mono) !important;
+  font-weight: 600 !important;
 }
 
-/* ---- Info / tip box ----------------------------------------------- */
+/* ---- Info / tip box ---------------------------------------------------- */
 body.slt-themed .info-box {
-  background: rgba(0,240,255,0.06) !important;
-  border: 1px solid rgba(0,240,255,0.4) !important;
-  border-left: 3px solid var(--slt-magenta) !important;
-  color: #b0d8ff !important;
-  border-radius: 2px !important;
-  font-family: 'Share Tech Mono', monospace !important;
+  background: rgba(43, 210, 255, 0.05) !important;
+  border: 1px solid rgba(43, 210, 255, 0.22) !important;
+  border-left: 3px solid var(--slt-cyan) !important;
+  color: var(--slt-dim) !important;
+  border-radius: 11px !important;
+  font-family: var(--slt-font) !important;
 }
 body.slt-themed .info-box b {
-  color: var(--slt-gold) !important;
-  font-family: 'Orbitron', sans-serif !important;
-  text-shadow: 0 0 6px rgba(255,214,107,0.4) !important;
+  color: var(--slt-cyan) !important;
+  font-family: var(--slt-font) !important;
+  text-shadow: none !important;
 }
 body.slt-themed .info-box code {
-  color: var(--slt-magenta) !important;
-  background: rgba(255,0,214,0.08) !important;
-  border: 1px solid rgba(255,0,214,0.3) !important;
-  border-radius: 2px !important;
-  padding: 1px 4px !important;
+  color: var(--slt-gold) !important;
+  background: rgba(255, 207, 94, 0.08) !important;
+  border: 1px solid rgba(255, 207, 94, 0.22) !important;
+  border-radius: 6px !important;
+  padding: 1px 5px !important;
+  font-family: var(--slt-mono) !important;
 }
 
-/* ---- Toggle row (SL Text Creator) --------------------------------- */
+/* ---- Toggle row -------------------------------------------------------- */
 body.slt-themed .toggle-row {
-  background: rgba(10,0,36,0.6) !important;
-  border: 1px solid var(--slt-cyan) !important;
-  border-radius: 2px !important;
-  color: var(--slt-cyan) !important;
+  background: var(--slt-glass) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 11px !important;
+  color: var(--slt-txt) !important;
 }
 
-/* ---- Placeholder / 3D viewer placeholder -------------------------- */
+/* ---- Placeholder / viewer empty state ----------------------------------- */
 body.slt-themed .ph {
-  background: linear-gradient(180deg,
-    rgba(20,5,50,0.85) 0%, rgba(10,0,36,0.95) 100%) !important;
+  background: rgba(10, 7, 20, 0.85) !important;
   border-radius: 0 !important;
 }
-body.slt-themed .ph-icon { filter: drop-shadow(0 0 18px var(--slt-magenta)) !important; }
+body.slt-themed .ph-icon { filter: drop-shadow(0 0 18px rgba(255, 60, 172, 0.55)) !important; }
+body.slt-themed .ph-heart { filter: drop-shadow(0 0 22px rgba(255, 60, 172, 0.6)) !important; }
 body.slt-themed .ph-title {
-  color: var(--slt-magenta) !important;
-  font-family: 'Audiowide', sans-serif !important;
-  text-shadow: 0 0 14px var(--slt-magenta) !important;
+  color: var(--slt-txt) !important;
+  font-family: var(--slt-font) !important;
+  font-weight: 800 !important;
+  text-shadow: none !important;
 }
 body.slt-themed .ph-sub {
-  color: var(--slt-cyan) !important;
-  font-family: 'Share Tech Mono', monospace !important;
-}
-body.slt-themed .ph-heart {
-  filter: drop-shadow(0 0 22px var(--slt-magenta)) !important;
+  color: var(--slt-dim) !important;
+  font-family: var(--slt-font) !important;
 }
 
-/* ---- Playback controls -------------------------------------------- */
+/* ---- Playback controls --------------------------------------------------- */
 body.slt-themed .playback {
-  background: rgba(10,0,36,0.6) !important;
-  border: 1px dashed var(--slt-cyan) !important;
-  border-radius: 2px !important;
+  background: rgba(0, 0, 0, 0.32) !important;
+  border: 1px solid var(--slt-edge) !important;
+  border-radius: 13px !important;
 }
 body.slt-themed .playback button {
-  font-size: 11px !important;
-  letter-spacing: 1px !important;
-  padding: 4px 12px !important;
+  font-size: 12px !important;
+  letter-spacing: 0.2px !important;
+  padding: 5px 13px !important;
+  border-radius: 999px !important;
 }
 body.slt-themed .playback .timebar {
-  background: rgba(10,0,36,0.8) !important;
-  border: 1px solid rgba(0,240,255,0.4) !important;
+  background: rgba(0, 0, 0, 0.42) !important;
+  border: none !important;
+  border-radius: 999px !important;
 }
 body.slt-themed .playback .timebar .fill {
-  background: linear-gradient(90deg, var(--slt-cyan), var(--slt-magenta)) !important;
-  box-shadow: 0 0 8px var(--slt-magenta) !important;
+  background: linear-gradient(90deg, var(--slt-magenta), var(--slt-purple), var(--slt-cyan)) !important;
+  box-shadow: none !important;
+  border-radius: 999px !important;
 }
 body.slt-themed .playback .timetext {
-  color: var(--slt-cyan) !important;
-  font-family: 'Share Tech Mono', monospace !important;
+  color: var(--slt-dim) !important;
+  font-family: var(--slt-mono) !important;
+  font-variant-numeric: tabular-nums;
 }
 
-/* ---- Credit footer ------------------------------------------------ */
+/* ---- Credit footer --------------------------------------------------------- */
 body.slt-themed .credit {
-  color: var(--slt-blue) !important;
-  font-family: 'VT323', monospace !important;
-  letter-spacing: 2px !important;
-  opacity: 0.8;
+  color: var(--slt-dim) !important;
+  font-family: var(--slt-font) !important;
+  letter-spacing: 0.3px !important;
+  opacity: 0.85;
 }
 body.slt-themed .credit b,
 body.slt-themed .credit a {
-  color: var(--slt-gold) !important;
-  text-shadow: 0 0 6px rgba(255,214,107,0.4) !important;
+  color: var(--slt-pink) !important;
+  text-shadow: none !important;
+  text-decoration: none;
 }
+body.slt-themed .credit a:hover { text-decoration: underline; }
 
-/* ---- Scrollbar (WebKit) ------------------------------------------- */
-body.slt-themed ::-webkit-scrollbar { width: 12px; height: 12px; }
-body.slt-themed ::-webkit-scrollbar-track { background: rgba(10,0,36,0.5); }
+/* ---- Scrollbars (WebKit + Firefox) ------------------------------------------ */
+body.slt-themed ::-webkit-scrollbar { width: 10px; height: 10px; }
+body.slt-themed ::-webkit-scrollbar-track { background: transparent; }
 body.slt-themed ::-webkit-scrollbar-thumb {
-  background: var(--slt-magenta);
-  border: 2px solid rgba(10,0,36,0.7);
-  border-radius: 2px;
+  background: linear-gradient(180deg, var(--slt-purple), var(--slt-magenta));
+  border-radius: 6px;
+  border: 2px solid var(--slt-bg-1);
 }
 body.slt-themed ::-webkit-scrollbar-thumb:hover {
-  background: var(--slt-pink);
+  background: linear-gradient(180deg, var(--slt-magenta), var(--slt-pink));
+}
+body.slt-themed {
+  scrollbar-width: thin;
+  scrollbar-color: var(--slt-purple) transparent;
 }
 
-/* ---- Generic body text default colour ----------------------------- */
-body.slt-themed { color: var(--slt-cyan); }
-body.slt-themed label { color: var(--slt-cyan); }
-body.slt-themed .hint { color: var(--slt-blue) !important; opacity: 0.8 !important; }
+/* ---- Generic body text defaults ----------------------------------------------- */
+body.slt-themed { color: var(--slt-txt); }
+body.slt-themed label { color: var(--slt-txt); }
+body.slt-themed .hint { color: var(--slt-dim) !important; opacity: 1 !important; }
 
 
 /* =====================================================================
    Layout consolidations
    ---------------------------------------------------------------------
-   These rules used to be duplicated in each tool's inline <style>.
-   Pulling them up here means the tools only carry truly unique sizes
-   (e.g. #threeCanvas dimensions, panel max-widths) — everything that
-   was identical across two or more tools now lives in one place.
+   Structure-only rules shared by two or more tools (spacing, flex/grid
+   skeletons). Unchanged from v1 except font-family tokens.
    ===================================================================== */
 
-/* ---- Universal resets / form a11y (was in every themed tool) ---- */
-body.slt-themed { color-scheme: dark; }
+/* ---- Universal resets / form a11y ---- */
 body.slt-themed * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -1094,24 +1071,21 @@ body.slt-themed input,
 body.slt-themed select,
 body.slt-themed button { outline: none; }
 body.slt-themed input:focus-visible,
-body.slt-themed select:focus-visible,
-body.slt-themed button:focus-visible {
-  outline: 2px solid var(--slt-magenta);
+body.slt-themed select:focus-visible {
+  outline: 2px solid var(--slt-cyan);
   outline-offset: 1px;
 }
 body.slt-themed input:-webkit-autofill,
 body.slt-themed input:-webkit-autofill:hover,
 body.slt-themed input:-webkit-autofill:focus,
 body.slt-themed input:-webkit-autofill:active {
-  -webkit-box-shadow: 0 0 0 1000px rgba(10, 0, 36, 0.9) inset !important;
-  -webkit-text-fill-color: var(--slt-cyan) !important;
-  caret-color: var(--slt-cyan);
+  -webkit-box-shadow: 0 0 0 1000px rgba(10, 7, 20, 0.9) inset !important;
+  -webkit-text-fill-color: var(--slt-txt) !important;
+  caret-color: var(--slt-txt);
   transition: background-color 9999s ease-out;
 }
 
-/* ---- Workspace layout (Anim Priority + Sprite Sheet share these) - */
-
-/* Canvas wrapper + 3D/2D placeholder */
+/* ---- Workspace layout (Anim Priority + Sprite Sheet) ---- */
 body.slt-themed .canvas-wrap {
   padding: 12px;
   display: flex;
@@ -1134,10 +1108,9 @@ body.slt-themed .ph-heart {
   font-size: 56px;
   line-height: 1;
 }
-body.slt-themed .ph-title { font-size: 22px; letter-spacing: 0.3px; }
+body.slt-themed .ph-title { font-size: 20px; letter-spacing: 0.2px; }
 body.slt-themed .ph-sub { font-size: 14px; }
 
-/* Canvas previous/next nav arrows */
 body.slt-themed .canvas-nav {
   display: flex;
   align-items: center;
@@ -1158,9 +1131,8 @@ body.slt-themed .navbtn {
 }
 body.slt-themed .navbtn .arrow { font-size: 30px; line-height: 1; }
 
-/* Side panel + key/value rows */
-body.slt-themed .panel { width: 320px; padding: 18px; }
-body.slt-themed .panel h3 { margin: 0 0 8px; font-size: 13px; }
+body.slt-themed .panel { width: 320px; padding: 16px; }
+body.slt-themed .panel h3 { margin: 0 0 8px; font-size: 11px; }
 body.slt-themed .info-row {
   display: flex;
   justify-content: space-between;
@@ -1169,21 +1141,18 @@ body.slt-themed .info-row {
 }
 body.slt-themed .info-row:last-child { border-bottom: none !important; }
 
-/* Filename label */
 body.slt-themed .filename {
   padding: 10px 12px;
-  font-size: 12px;
   word-break: break-all;
   margin-top: 10px;
 }
 
-/* Thumbnail strip + items */
 body.slt-themed .thumbs {
   display: flex;
-  gap: 22px;
+  gap: 18px;
   margin-top: 14px;
   flex-wrap: wrap;
-  padding: 20px 18px;
+  padding: 18px;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -1223,22 +1192,16 @@ body.slt-themed .thumb-x {
   font-weight: bold;
   z-index: 5;
 }
-body.slt-themed .thumb.marked {
-  outline: 3px solid #ff4757;
-  outline-offset: 2px;
-}
 
-/* Big "Clear ALL" banner button (sits below the thumbnail strip) */
 body.slt-themed .clear-bar {
   width: 100%;
   display: block;
   margin: 0;
-  padding: 18px 24px;
+  padding: 16px 24px;
   cursor: pointer;
   text-align: center;
-  font-size: 17px;
-  font-weight: 800;
-  transition: background .18s, color .18s, box-shadow .18s, letter-spacing .18s;
+  font-size: 15px;
+  font-weight: 700;
 }
 @keyframes slt-pulse-clear {
   0%, 100% { transform: scale(1); }
@@ -1246,23 +1209,21 @@ body.slt-themed .clear-bar {
 }
 body.slt-themed .clear-bar.confirm {
   animation: slt-pulse-clear 1s ease-in-out infinite;
-  letter-spacing: 1.2px;
+  letter-spacing: 0.8px;
 }
 
-/* Drag-select rectangle */
 body.slt-themed .marquee {
   position: fixed;
   pointer-events: none;
   z-index: 1000;
   border: 1.5px solid var(--slt-cyan);
-  background: rgba(0, 240, 255, 0.12);
+  background: rgba(43, 210, 255, 0.12);
   box-shadow: 0 0 0 0.5px var(--slt-magenta);
-  border-radius: 2px;
+  border-radius: 4px;
 }
 
-/* Aspect select pill + small "Apply to all" button */
 body.slt-themed .aspect-sel {
-  padding: 4px 10px;
+  padding: 4px 12px;
   font-size: 12px;
   cursor: pointer;
 }
@@ -1272,7 +1233,7 @@ body.slt-themed .apply-all {
   cursor: pointer;
   margin: 0;
   width: auto;
-  transition: transform .12s, box-shadow .12s, background .12s;
+  transition: transform .12s, box-shadow .12s, filter .12s;
 }
 body.slt-themed .apply-all:hover:not(:disabled) {
   transform: translateY(-1px);
@@ -1284,13 +1245,12 @@ body.slt-themed .apply-all.flash {
   50% { box-shadow: 0 0 18px var(--slt-magenta); }
 }
 
-/* Custom dropdown chevron for .aspect-sel */
 body.slt-themed select.aspect-sel {
   appearance: none;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%2300f0ff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6' fill='none'><path d='M1 1l4 4 4-4' stroke='%239d95b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>");
   background-repeat: no-repeat;
-  background-position: right 8px center;
-  padding-right: 22px;
+  background-position: right 10px center;
+  padding-right: 26px;
 }
 
 /* ⓘ tooltip on hover */
@@ -1308,18 +1268,19 @@ body.slt-themed .warn:hover::before {
   bottom: 100%;
   right: 0;
   margin-bottom: 8px;
-  background: linear-gradient(180deg, rgba(20, 5, 50, 0.95) 0%, rgba(45, 10, 94, 0.92) 100%);
-  color: var(--slt-cyan);
+  background: rgba(24, 14, 46, 0.97);
+  color: var(--slt-txt);
   padding: 12px 16px;
-  border-radius: 2px;
-  border: 1.5px solid var(--slt-magenta);
+  border-radius: 13px;
+  border: 1px solid var(--slt-edge);
   white-space: pre-line;
   width: 270px;
-  font-size: 11px;
+  font-size: 11.5px;
   line-height: 1.55;
+  font-family: var(--slt-font);
   z-index: 100;
   pointer-events: none;
-  box-shadow: 0 6px 20px rgba(255, 0, 214, 0.4);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
 }
 body.slt-themed .warn:hover::after {
   content: '';
@@ -1328,11 +1289,10 @@ body.slt-themed .warn:hover::after {
   right: 4px;
   margin-bottom: 1px;
   border: 7px solid transparent;
-  border-top-color: var(--slt-magenta);
+  border-top-color: var(--slt-edge);
   z-index: 100;
 }
 
-/* Footer credit (used by some workspace tools) */
 body.slt-themed .credit {
   text-align: center;
   margin-top: 28px;
@@ -1340,33 +1300,27 @@ body.slt-themed .credit {
   font-size: 12px;
 }
 
-/* Hint text */
 body.slt-themed .hint {
   font-size: 12px;
   margin-top: 8px;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-/* ---- Form layout (3D Text Creator + HUD Buttons Creator) -------- */
-
-/* Two-column container (left panel + right preview) */
+/* ---- Form layout (3D Text + HUD Buttons) ---- */
 body.slt-themed .container {
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
   grid-template-columns: 400px 1fr;
-  gap: 20px;
+  gap: 18px;
 }
 body.slt-themed .container > h1 {
   grid-column: 1 / -1;
   margin-bottom: 10px;
-  font-size: 28px;
+  font-size: 26px;
 }
-body.slt-themed .container > h1 small { font-size: 14px; }
+body.slt-themed .container > h1 small { font-size: 13px; }
 
-/* Form-row inside .panel (label + input/select pair).
-   Scoped to `.panel .row` so we don't clash with the workspace `.row`
-   that Animation Priority and Sprite Sheet use as a flex layout. */
 body.slt-themed .panel .row {
   display: flex;
   align-items: center;
@@ -1377,7 +1331,7 @@ body.slt-themed .panel .row label { flex: 1; font-size: 13px; }
 body.slt-themed .panel .row input[type="number"],
 body.slt-themed .panel .row input[type="text"],
 body.slt-themed .panel .row select {
-  padding: 6px 8px;
+  padding: 7px 10px;
   font-size: 13px;
 }
 body.slt-themed .panel .row input[type="color"] {
@@ -1387,7 +1341,6 @@ body.slt-themed .panel .row input[type="color"] {
   padding: 0;
 }
 
-/* Right-hand preview area */
 body.slt-themed .preview-area {
   padding: 16px;
   display: flex;
@@ -1395,30 +1348,27 @@ body.slt-themed .preview-area {
   gap: 12px;
 }
 
-/* Stats grid */
 body.slt-themed .stats {
   display: grid;
   gap: 8px;
   font-size: 13px;
 }
 body.slt-themed .stat { padding: 8px; text-align: center; }
-body.slt-themed .stat .label { font-size: 11px; }
-body.slt-themed .stat .value { font-size: 18px; font-weight: bold; }
+body.slt-themed .stat .label { font-size: 10px; }
+body.slt-themed .stat .value { font-size: 17px; font-weight: 800; }
 
-/* Help / details */
 body.slt-themed details { margin-top: 12px; }
 body.slt-themed summary {
   cursor: pointer;
-  font-size: 12px;
+  font-size: 12.5px;
   padding: 4px 0;
 }
 body.slt-themed details p {
-  font-size: 11px;
-  line-height: 1.4;
+  font-size: 12px;
+  line-height: 1.6;
   padding: 6px 0;
 }
 
-/* Toggle pad buttons (deco-btn / preset-btn / layout-btn / mode-btn share base layout) */
 body.slt-themed .deco-btn,
 body.slt-themed .preset-btn,
 body.slt-themed .layout-btn,
@@ -1432,6 +1382,25 @@ body.slt-themed .mode-btn {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+}
+
+
+/* =====================================================================
+   Motion accessibility — kill every animation/transition for users who
+   ask for reduced motion. The aurora blobs freeze in place, the title
+   gradient stops cycling, panels appear instantly.
+   ===================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  body.slt-themed *,
+  body.slt-themed *::before,
+  body.slt-themed *::after,
+  body.slt-themed::before,
+  body.slt-themed::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  body.slt-themed { animation: none !important; opacity: 1 !important; }
+  .slt-glow { display: none !important; }
 }
 
 </style>
@@ -1469,29 +1438,29 @@ body.slt-themed .mode-btn {
 
   /* Tool-specific: thumbnail content is a per-frame canvas (Anim Priority
      uses .thumb-icon instead). */
-  .thumb canvas { display: block; width: 76px; height: 76px; border-radius: 2px; }
+  .thumb canvas { display: block; width: 76px; height: 76px; border-radius: 8px; }
   .thumb.marked canvas { filter: brightness(0.55) saturate(0.6); }
 
   /* Background colour picker (tool-specific UI) */
   .bg-controls { display: flex; align-items: center; gap: 8px; }
   .bg-swatch {
-    width: 22px; height: 22px; border-radius: 2px;
+    width: 22px; height: 22px; border-radius: 6px;
     border: 1.5px solid var(--slt-cyan); cursor: pointer;
     margin: 0; padding: 0; flex-shrink: 0;
     background-color: transparent;
     background-image:
-      linear-gradient(45deg, rgba(0,240,255,0.25) 25%, transparent 25%, transparent 75%, rgba(0,240,255,0.25) 75%, rgba(0,240,255,0.25)),
-      linear-gradient(45deg, rgba(0,240,255,0.25) 25%, rgba(10,0,36,0.8) 25%, rgba(10,0,36,0.8) 75%, rgba(0,240,255,0.25) 75%, rgba(0,240,255,0.25));
+      linear-gradient(45deg, rgba(43,210,255,0.25) 25%, transparent 25%, transparent 75%, rgba(43,210,255,0.25) 75%, rgba(43,210,255,0.25)),
+      linear-gradient(45deg, rgba(43,210,255,0.25) 25%, rgba(0,0,0,0.7) 25%, rgba(0,0,0,0.7) 75%, rgba(43,210,255,0.25) 75%, rgba(43,210,255,0.25));
     background-size: 10px 10px;
     background-position: 0 0, 5px 5px;
   }
   .bg-swatch:hover { border-color: var(--slt-magenta); box-shadow: 0 0 8px var(--slt-magenta); }
   .bg-popup {
     position: absolute; z-index: 20;
-    background: linear-gradient(180deg, rgba(20,5,50,0.95) 0%, rgba(45,10,94,0.92) 100%);
+    background: rgba(24,14,46,.97);
     border: 1.5px solid var(--slt-cyan);
-    border-radius: 2px; padding: 12px;
-    box-shadow: 0 8px 24px rgba(0,240,255,0.3), 0 0 0 1px rgba(255,0,214,0.3) inset;
+    border-radius: 10px; padding: 12px;
+    box-shadow: 0 8px 24px rgba(43,210,255,0.3), 0 0 0 1px rgba(255,60,172,0.3) inset;
     display: none;
   }
   .bg-popup.show { display: block; }
@@ -1499,19 +1468,19 @@ body.slt-themed .mode-btn {
   .bg-custom {
     display: flex; gap: 6px; align-items: center;
     margin-top: 10px; padding-top: 10px;
-    border-top: 1px dashed rgba(0,240,255,0.3);
+    border-top: 1px dashed rgba(43,210,255,0.3);
   }
   .bg-custom input[type="color"] {
     width: 28px; height: 28px; padding: 0;
-    border-radius: 2px; cursor: pointer; flex-shrink: 0;
+    border-radius: 6px; cursor: pointer; flex-shrink: 0;
   }
-  .bg-custom input[type="color"]::-webkit-color-swatch { border: none; border-radius: 2px; }
-  .bg-custom input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; border-radius: 2px; }
+  .bg-custom input[type="color"]::-webkit-color-swatch { border: none; border-radius: 6px; }
+  .bg-custom input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; border-radius: 6px; }
   .bg-custom input[type="text"] {
     flex: 1; padding: 5px 10px; min-width: 0; font-size: 11px;
   }
   .bg-pick {
-    width: 24px; height: 24px; border-radius: 2px;
+    width: 24px; height: 24px; border-radius: 6px;
     cursor: pointer; border: 1.5px solid transparent;
     margin: 0; padding: 0;
     transition: transform .12s, border-color .12s;
@@ -1521,8 +1490,8 @@ body.slt-themed .mode-btn {
   .bg-pick.transparent {
     background-color: transparent;
     background-image:
-      linear-gradient(45deg, rgba(0,240,255,0.25) 25%, transparent 25%, transparent 75%, rgba(0,240,255,0.25) 75%, rgba(0,240,255,0.25)),
-      linear-gradient(45deg, rgba(0,240,255,0.25) 25%, rgba(10,0,36,0.8) 25%, rgba(10,0,36,0.8) 75%, rgba(0,240,255,0.25) 75%, rgba(0,240,255,0.25));
+      linear-gradient(45deg, rgba(43,210,255,0.25) 25%, transparent 25%, transparent 75%, rgba(43,210,255,0.25) 75%, rgba(43,210,255,0.25)),
+      linear-gradient(45deg, rgba(43,210,255,0.25) 25%, rgba(0,0,0,0.7) 25%, rgba(0,0,0,0.7) 75%, rgba(43,210,255,0.25) 75%, rgba(43,210,255,0.25));
     background-size: 12px 12px;
     background-position: 0 0, 6px 6px;
   }
@@ -1533,31 +1502,33 @@ body.slt-themed .mode-btn {
 </style>
 </head>
 <body class="slt-themed">
-<div class="slt-scanlines"></div>
 <!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <script>
 /* =====================================================================
    SL Tools :: Navigation bootstrapper
    - Detects which sibling tools exist (modular: missing folder = hidden)
-   - Renders a synthwave nav bar at the top
-   - Adds the sun + grid + scanlines background layers
+   - Renders the floating synthwave nav pill (top-right, click to expand)
+   - Wires the smooth fade-out transition between tools
 
-   How it works
-   ------------
+   How modular detection works
+   ---------------------------
    Each tool folder contains a tiny `_meta.js` that registers its own
-   metadata into window.__SLT_AVAILABLE. We try to load that file via
-   <script> tags. file:// allows local <script> loads, and onerror fires
-   reliably when the file is missing — so removing a tool folder makes
-   it disappear from the nav automatically.
+   metadata into window.__SLT_AVAILABLE. This script tries to load that
+   file via <script> tags — file:// allows local <script> loads and
+   onerror fires reliably when the file is missing, so removing a tool
+   folder makes it disappear from the nav of every other tool with no
+   further configuration.
 
-   Adding a new tool:
-   - Add an entry below in REGISTRY
-   - Drop the folder with its main HTML and a `_meta.js`
-
-   Each tool's HTML opts in by including:
-     <link rel="stylesheet" href="../_shared/sl-nav.css">
-     <script>window.SLT_CURRENT = "anim-combiner";<\/script>
-     <script src="../_shared/sl-nav.js"><\/script>
+   Adding a new tool
+   -----------------
+   1. Add an entry to REGISTRY below.
+   2. Drop the new tool's folder next to the others, containing the main
+      HTML and a `_meta.js` registration line for its id.
+   3. In the new tool's <body>, set `window.SLT_CURRENT = "<id>"` BEFORE
+      this script runs.
+   4. Run `python "_shared/sync_inline.py"` to bake the latest shared
+      CSS + JS + Three.js (if needed) into every tool so each HTML is
+      standalone — works without _shared/ or any network.
    ===================================================================== */
 (function () {
   'use strict';
@@ -1569,7 +1540,7 @@ body.slt-themed .mode-btn {
     {
       id: 'anim-combiner',
       name: 'Animation Combiner',
-      subtitle: 'body + hands → combo',
+      subtitle: 'merge any two .anim',
       folder: 'SL Animation Combiner',
       file: 'sl_animation_combiner.html',
       badge: 'AC',
@@ -1606,17 +1577,58 @@ body.slt-themed .mode-btn {
       file: 'sl_hud_buttons_creator.html',
       badge: 'HD',
     },
+    {
+      id: 'alpha-maker',
+      name: 'Alpha Maker',
+      subtitle: 'body alpha mask painter',
+      folder: 'SL Alpha Maker',
+      file: 'sl_alpha_maker.html',
+      badge: 'AM',
+    },
+    {
+      id: 'music-slicer',
+      name: 'Music Slicer',
+      subtitle: 'songs → ≤30s SL clips',
+      folder: 'SL Music Slicer',
+      file: 'sl_music_slicer.html',
+      badge: 'MS',
+    },
   ];
 
   window.__SLT_AVAILABLE = window.__SLT_AVAILABLE || {};
 
   // ---------------------------------------------------------------------
-  // The body theme + sun + grid + scanlines are now applied entirely
-  // via CSS. Each themed tool sets <body class="slt-themed"> in its
-  // HTML and pre-renders <div class="slt-scanlines"></div> so there's
-  // no flash of unstyled content. This script's only job is to render
-  // the navigation bar after probing for sibling tools.
+  // The body theme (aurora blobs, glass panels) is applied entirely via
+  // CSS on <body class="slt-themed"> — no flash of unstyled content.
+  // This script renders the floating nav after probing for sibling
+  // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
+
+  // Mouse-follow glow layer. Purely decorative: skipped for
+  // reduced-motion users and coarse (touch) pointers.
+  function mountGlow() {
+    if (!document.body.classList.contains('slt-themed')) return;
+    var noMotion = false, coarse = false;
+    try {
+      noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      coarse = window.matchMedia('(pointer: coarse)').matches;
+    } catch (e) {}
+    if (noMotion || coarse) return;
+    var glow = document.createElement('div');
+    glow.className = 'slt-glow';
+    glow.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(glow);
+    var pending = false;
+    document.addEventListener('pointermove', function (e) {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(function () {
+        glow.style.setProperty('--slt-mx', e.clientX + 'px');
+        glow.style.setProperty('--slt-my', e.clientY + 'px');
+        pending = false;
+      });
+    }, { passive: true });
+  }
 
   // ---------------------------------------------------------------------
   // Step 2: detect which sibling tools exist
@@ -1701,8 +1713,8 @@ body.slt-themed .mode-btn {
     const header = document.createElement('div');
     header.className = 'slt-nav-panel-header';
     header.innerHTML =
-      '<span class="slt-nav-handle-brand">★ SL TOOLS ★</span>' +
-      '<small class="slt-nav-panel-tagline">NEON ROUTINE</small>';
+      '<span class="slt-nav-handle-brand">SL Tools</span>' +
+      '<small class="slt-nav-panel-tagline">Quicky Tools for Second Life</small>';
     panel.appendChild(header);
 
     const list = document.createElement('ul');
@@ -1776,6 +1788,7 @@ body.slt-themed .mode-btn {
   // Bootstrap once the DOM is ready
   // ---------------------------------------------------------------------
   function boot() {
+    mountGlow();
     detectAll().then(renderNav).catch((err) => {
       console.warn('[SL Tools nav] detection failed:', err);
       // fallback: still show current tool only
@@ -1795,7 +1808,7 @@ body.slt-themed .mode-btn {
 <!-- SHARED-JS:END -->
 
 <header class="slt-titlebar">
-  <div class="slt-subtitle">/// 1986 :: SPRITE PIPELINE ///</div>
+  <div class="slt-subtitle">GIF to sprite sheet pipeline</div>
   <h1 class="slt-title">SL Sprite Sheet Maker</h1>
   <p class="slt-lede">Drop GIFs in, get a single PNG sprite sheet out — sized for SL textures with smart cropping and palette optimisation.</p>
 </header>
@@ -1807,7 +1820,7 @@ body.slt-themed .mode-btn {
     <polyline points="17 8 12 3 7 8"></polyline>
     <line x1="12" y1="3" x2="12" y2="15"></line>
   </svg>
-  <span id="dropText">💕 Click to load GIFs (up to 100) — or drop them here ✨</span>
+  <span id="dropText">💕 Click to load GIFs or videos (up to 100) — or drop them here ✨</span>
 </label>
 
 <div id="workspace">
@@ -1819,8 +1832,8 @@ body.slt-themed .mode-btn {
         <canvas id="cnv"></canvas>
         <div id="placeholder" class="ph">
           <div class="ph-heart">💖</div>
-          <div class="ph-title">No GIFs loaded yet</div>
-          <div class="ph-sub">Click "Load GIFs" to start ✨</div>
+          <div class="ph-title">No files loaded yet</div>
+          <div class="ph-sub">Click "Load files" to start ✨</div>
         </div>
       </div>
       <button id="next" class="navbtn" disabled><span class="arrow">→</span><span>Next</span></button>
@@ -1828,9 +1841,9 @@ body.slt-themed .mode-btn {
   </div>
   <div class="panel">
     <button id="loadNew" type="button" style="margin-top:0">
-      <span id="loadNewText">Load GIFs</span>
+      <span id="loadNewText">Load files</span>
     </button>
-    <input type="file" id="file" accept="image/gif" multiple style="display:none">
+    <input type="file" id="file" accept="image/gif,video/mp4,video/webm,video/quicktime,video/x-m4v,video/ogg,video/*" multiple style="display:none">
     <h3 style="margin-top:14px">Source</h3>
     <div class="info-row"><span>File</span><span id="i-file">—</span></div>
     <div class="info-row"><span>Dimensions</span><span id="i-dim">—</span></div>
@@ -1844,7 +1857,7 @@ body.slt-themed .mode-btn {
         <option value="2:1">2:1 (landscape)</option>
       </select>
     </div>
-    <div class="info-row"><span>Apply to all GIFs</span>
+    <div class="info-row"><span>Apply to all files</span>
       <button id="aspectGlobal" type="button" class="apply-all">Apply</button>
     </div>
     <div class="info-row"><span>Box</span><span id="i-crop">drag on canvas…</span></div>
@@ -1867,21 +1880,21 @@ body.slt-themed .mode-btn {
         <option value="2048">2048 (2K)</option>
       </select>
     </div>
-    <div class="info-row"><span>Apply to all GIFs</span>
+    <div class="info-row"><span>Apply to all files</span>
       <button id="baseGlobal" type="button" class="apply-all">Apply</button>
     </div>
     <div class="info-row">
       <span>Background</span>
       <button id="bgSwatch" class="bg-swatch" title="Pick background color"></button>
     </div>
-    <div class="info-row"><span>Apply to all GIFs</span>
+    <div class="info-row"><span>Apply to all files</span>
       <button id="bgGlobal" type="button" class="apply-all">Apply</button>
     </div>
     <div class="info-row">
       <span>Trim to fit <span class="warn" data-tip="Drops a few frames so the grid becomes more square AND has no empty cells. e.g. 21 frames: default → 3×7 (very wide), with trim → 4×5 (cuts 1 frame, more balanced). Off = keep all frames, accept rectangular layouts or 1–2 empty cells.">ℹ️</span></span>
       <input type="checkbox" id="trimToFit" style="cursor:pointer; accent-color:#ff1493; width:16px; height:16px;">
     </div>
-    <div class="info-row"><span>Apply to all GIFs</span>
+    <div class="info-row"><span>Apply to all files</span>
       <button id="trimGlobal" type="button" class="apply-all">Apply</button>
     </div>
     <div class="info-row">
@@ -3477,14 +3490,16 @@ drop.addEventListener('drop', e => {
 });
 
 async function loadFiles(fileList) {
-  const allFiles = Array.from(fileList).filter(f => /\.gif$/i.test(f.name));
+  const allFiles = Array.from(fileList).filter(f =>
+    /\.gif$/i.test(f.name) || isVideoFile(f)
+  );
   if (!allFiles.length) return;
 
   // Append to existing list, capped at MAX_GIFS total
   const remaining = MAX_GIFS - gifs.length;
   if (remaining <= 0) {
     setLoadText(`Limit ${MAX_GIFS} reached`);
-    setTimeout(() => setLoadText('Load GIFs'), 2200);
+    setTimeout(() => setLoadText('Load files'), 2200);
     return;
   }
   const list = allFiles.slice(0, remaining);
@@ -3499,12 +3514,22 @@ async function loadFiles(fileList) {
     setLoadText(`Loading ${i+1}/${list.length}…`);
     setLoadDisabled(true);
     try {
-      const buf = await file.arrayBuffer();
-      const gif = parseGIF(buf);
-      const decompressed = decompressFrames(gif, true);
-      const w = gif.lsd.width, h = gif.lsd.height;
-      const fr = coalesce(gif, decompressed);
-      // Use current dropdown ratio as default for new GIFs
+      let w, h, fr, fpsOrig;
+      if (isVideoFile(file)) {
+        const onProgress = (k, n) => {
+          setLoadText(`Loading ${i+1}/${list.length}: frame ${k}/${n}…`);
+        };
+        const result = await decodeVideoToFrames(file, onProgress);
+        w = result.w; h = result.h; fr = result.frames; fpsOrig = result.fpsOrig;
+      } else {
+        const buf = await file.arrayBuffer();
+        const gif = parseGIF(buf);
+        const decompressed = decompressFrames(gif, true);
+        w = gif.lsd.width; h = gif.lsd.height;
+        fr = coalesce(gif, decompressed);
+        fpsOrig = avgFpsOf(fr);
+      }
+      // Use current dropdown ratio as default for new files
       const aspect = currentAspectFromSelect();
       let cw, ch;
       if (w / h >= aspect) { ch = h; cw = ch * aspect; } else { cw = w; ch = cw / aspect; }
@@ -3518,7 +3543,7 @@ async function loadFiles(fileList) {
         frameStep: 1,
         trim: false,
         crop: { x: (w - cw) / 2, y: (h - ch) / 2, w: cw, h: ch },
-        fpsOrig: avgFpsOf(fr),
+        fpsOrig,
       };
       gifs.push(g);
       addThumb(g);
@@ -3532,10 +3557,10 @@ async function loadFiles(fileList) {
   setLoadDisabled(false);
   if (gifs.length === 0) {
     setLoadText('Failed — try again');
-    setTimeout(() => setLoadText('Load GIFs'), 2500);
+    setTimeout(() => setLoadText('Load files'), 2500);
     return;
   }
-  setLoadText('Load GIFs');
+  setLoadText('Load files');
   exportAllBtn.disabled = false;
   exportAllBtn.textContent = `Export all (${gifs.length})`;
 
@@ -3572,6 +3597,90 @@ function coalesce(gif, decompressed) {
   return out;
 }
 
+// ---------- video → frames ----------
+function isVideoFile(file) {
+  if (file.type && file.type.startsWith('video/')) return true;
+  return /\.(mp4|webm|mov|m4v|ogv|avi|mkv)$/i.test(file.name);
+}
+
+// Decode a video file by seeking through evenly-spaced timestamps and capturing
+// each frame to a canvas. Returns the same shape as coalesce() does for GIFs.
+async function decodeVideoToFrames(file, onProgress) {
+  const url = URL.createObjectURL(file);
+  const video = document.createElement('video');
+  video.muted = true;
+  video.preload = 'auto';
+  video.playsInline = true;
+  video.crossOrigin = 'anonymous';
+  video.src = url;
+
+  const cleanup = () => {
+    try { video.removeAttribute('src'); video.load(); } catch (_) {}
+    URL.revokeObjectURL(url);
+  };
+
+  try {
+    // Wait for metadata so we know dimensions + duration.
+    await new Promise((resolve, reject) => {
+      const onLoad = () => { off(); resolve(); };
+      const onErr  = () => { off(); reject(new Error('Video load failed')); };
+      const off = () => {
+        video.removeEventListener('loadedmetadata', onLoad);
+        video.removeEventListener('error', onErr);
+      };
+      video.addEventListener('loadedmetadata', onLoad);
+      video.addEventListener('error', onErr);
+    });
+
+    const srcW = video.videoWidth, srcH = video.videoHeight;
+    const duration = video.duration;
+    if (!srcW || !srcH) throw new Error('Invalid video dimensions');
+    if (!isFinite(duration) || duration <= 0) throw new Error('Invalid video duration');
+
+    // Cap decode resolution: sprite-sheet output is at most 2048, so anything
+    // larger just wastes memory (64 frames × 4K = ~2 GB).
+    const MAX_DECODE_DIM = 2048;
+    const maxSrc = Math.max(srcW, srcH);
+    const scale = maxSrc > MAX_DECODE_DIM ? MAX_DECODE_DIM / maxSrc : 1;
+    const w = Math.max(1, Math.round(srcW * scale));
+    const h = Math.max(1, Math.round(srcH * scale));
+
+    // Sample at ~30 fps, capped at 64 frames (the sheet caps to 64 anyway).
+    const targetFps = 30;
+    const count = Math.max(2, Math.min(64, Math.round(duration * targetFps)));
+    const fps = count / duration;
+    const delay = Math.max(1, Math.round(1000 / fps));
+
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    const cc = c.getContext('2d');
+
+    const frames = [];
+    for (let i = 0; i < count; i++) {
+      // Center-of-slice timestamps avoid quirky frames at exactly 0 or duration.
+      const t = Math.min(duration - 0.001, Math.max(0, ((i + 0.5) / count) * duration));
+      await new Promise((resolve, reject) => {
+        const onSeeked = () => { off(); resolve(); };
+        const onErr    = () => { off(); reject(new Error('Seek failed')); };
+        const off = () => {
+          video.removeEventListener('seeked', onSeeked);
+          video.removeEventListener('error', onErr);
+        };
+        video.addEventListener('seeked', onSeeked);
+        video.addEventListener('error', onErr);
+        video.currentTime = t;
+      });
+      cc.drawImage(video, 0, 0, w, h);
+      frames.push({ imageData: cc.getImageData(0, 0, w, h), delay });
+      if (onProgress) onProgress(i + 1, count);
+    }
+
+    return { frames, w, h, fpsOrig: fps };
+  } finally {
+    cleanup();
+  }
+}
+
 // ---------- thumbnails ----------
 function addThumb(g) {
   const wrap = document.createElement('div');
@@ -3588,13 +3697,13 @@ function addThumb(g) {
   cc.drawImage(tmp, (76 - dw) / 2, (76 - dh) / 2, dw, dh);
   const lbl = document.createElement('div');
   lbl.className = 'thumb-label';
-  lbl.textContent = g.name.replace(/\.gif$/i, '');
+  lbl.textContent = g.name.replace(/\.(gif|mp4|webm|mov|m4v|ogv|avi|mkv)$/i, '');
   lbl.title = g.name;
   // Remove (X) button (top-right)
   const x = document.createElement('button');
   x.className = 'thumb-x';
   x.type = 'button';
-  x.title = 'Remove this GIF';
+  x.title = 'Remove this file';
   x.textContent = '×';
   x.addEventListener('click', (e) => {
     e.stopPropagation();

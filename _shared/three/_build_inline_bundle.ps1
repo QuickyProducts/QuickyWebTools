@@ -1,5 +1,8 @@
+# NOTE: superseded by _build_inline_bundle.py — kept only as the
+# original PowerShell version of the same logic. The Python script
+# is the canonical builder; this one is no longer required.
 param(
-  [string]$shared = "D:\Second Life\Tools for SL\_shared\three"
+  [string]$shared = $PSScriptRoot
 )
 
 $core  = [Convert]::ToBase64String([IO.File]::ReadAllBytes("$shared\three.core.min.js"))

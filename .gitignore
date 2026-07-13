@@ -1,14 +1,32 @@
-# OS
+# ----- Local-only reference material -----------------------------------
+# Full upstream Three.js source distribution + sample assets the tools
+# don't actually need at runtime. Build inputs already live in
+# _shared/three/ and _shared/fonts/.
+zEXTRA FILES/
+
+# ----- IDE / harness ---------------------------------------------------
+.claude/
+.vscode/
+.idea/
+
+# ----- Python build-script artefacts -----------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# ----- OS noise --------------------------------------------------------
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Editor
-.vscode/
-.idea/
 *.swp
 *~
 
-# Python
-__pycache__/
-*.pyc
+# ----- Temp / backup ---------------------------------------------------
+*.bak
+*.orig
+*.tmp
+
+# ----- Local dev notes -------------------------------------------------
+_export_logic.txt
