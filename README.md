@@ -13,7 +13,7 @@ Or jump straight into a tool:
 | | Tool | What it does | |
 | :---: | --- | --- | --- |
 | **AC** | Animation Combiner | Merge two animations into one — e.g. put a hand pose on a dance. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20Animation%20Combiner/sl_animation_combiner.html) |
-| **AP** | Animation Priority Changer | Change the priority of your `.anim` files — no re-upload needed. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20Animation%20Priority%20Changer/sl_animation_priority_changer.html) |
+| **AP** | Animation Priority Changer | Change the priority of your `.anim` files. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20Animation%20Priority%20Changer/sl_animation_priority_changer.html) |
 | **SS** | Sprite Sheet Maker | Turn GIFs into sprite-sheet textures for animated faces in SL. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20Sprite%20Sheet%20Maker/sl_sprite_sheet_maker.html) |
 | **TX** | 3D Text Creator | Type a word, pick a font, download a 3D mesh ready to upload. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%203D%20Text%20Creator/sl_3d_text_creator.html) |
 | **HD** | HUD Buttons Creator | Build HUD button layouts and export them as an optimised mesh. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20HUD%20Buttons%20Creator/sl_hud_buttons_creator.html) |
