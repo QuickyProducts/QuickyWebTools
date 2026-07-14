@@ -31,14 +31,13 @@ Song-length music playback in Second Life despite the 30-second sound-clip limit
 
 - `NN` = part number, `TT` = total parts (2-digit, so ≤99 parts ≈ 49 min max), then **this clip's duration in seconds** (full clips are exactly `30`; the last clip carries its real length, 1 decimal) — the script schedules its timer from this, so the short last clip never leaves dead air.
 - The scanner tolerates the older, longer form `<Title> ~NN-TT~DD.DD` too (it splits on `~` and trims) — already-uploaded clips keep working.
-- Title may not contain `~ \ / : * ? " < > | [ ]` (tool strips them). Full clip name ≤63 bytes → title ≤52 bytes: the input caps typing, and export auto-shortens anything still over (keeping an instrument tag intact) with an ℹ note in the log — never a hard error.
+- Title may not contain `~ \ / : * ? " < > | [ ]` (tool strips them). Full clip name ≤63 bytes → title ≤52 bytes: the input caps typing, and export auto-shortens anything still over with an ℹ note in the log — never a hard error.
 - Zero-padded numbers make prim inventory (alphabetical) return parts in order, so a player can group consecutive same-title items reliably.
 
 ## Slicer details
 
 - Slicing is fixed and predictable: full 30s clips + one shorter last clip, no settings. Trimmed length + clip count show top-left inside the waveform (amber when the tail lands under 3s). If SL ever rejects a 30.00s clip, change `maxLen: 30` in sl_music_slicer.html to 29.9.
 - **Auto-mastering, zero settings**: export is always **mono** (SL downmixes uploads anyway — half the file size, identical in-world) and every song is loudness-normalized to the same loud-but-clean level: gated-RMS measurement → gain toward −10.5 dB → 2ms-lookahead brickwall limiter at −0.26 dB ceiling (max ~6 dB of peak taming for very dynamic sources; quiet tracks get boosted, hot masters get pulled down — the whole playlist ends up equally loud, never distorted). The export log reports the applied gain per song. Preview plays through the same gain + a limiter so you hear roughly the export loudness. Sources are resampled to 44.1 kHz automatically.
-- **Instrument tags**: buttons under the title (🎹 Synthesizer, 🎸 Acoustic Guitar, 🎸⚡ E Guitar, 🥁 Drums — extend the `INSTRUMENTS` list in sl_music_slicer.html) append a short letter tag to the title: ` (S)`, ` (A)`, ` (E)`, ` (D)`. Click another to swap the tag, click the same to remove it; the title auto-shrinks so tag + name stay within the byte limit. Old long tags like `(Synthesizer)` are recognized and migrated to the short form on the next tag click / intake / export. **✔ Apply to all** (right end of the row) copies the current song's tag state to every song in the queue (no tag = removes tags everywhere).
 - De-click boundary fades and song fade in/out still exist as internal constants (`declick`, `fadeIn`, `fadeOut` per song, default 0) — no UI.
 
 ## Troubleshooting

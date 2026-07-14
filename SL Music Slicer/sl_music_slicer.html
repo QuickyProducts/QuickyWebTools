@@ -1475,9 +1475,6 @@ button:disabled{opacity:.35;cursor:default;transform:none;box-shadow:none}
 #waveInfo{position:absolute;left:10px;top:7px;font-size:11px;font-weight:600;color:rgba(255,255,255,.6);pointer-events:none;font-variant-numeric:tabular-nums}
 #waveInfo.warn{color:var(--warn)}
 #waveInfo.bad{color:var(--bad);font-weight:800}
-button.inst{border-radius:999px;padding:6px 13px;font-size:12px;background:rgba(255,255,255,.04)}
-button.inst.on{border:1px solid transparent;background:linear-gradient(rgba(32,18,62,.92),rgba(32,18,62,.92)) padding-box,linear-gradient(90deg,var(--acc1),var(--acc3)) border-box;box-shadow:0 0 14px rgba(124,43,255,.35)}
-button.inst.apply{margin-left:auto;color:var(--good);border-color:rgba(0,229,160,.35)}
 .gone{display:none}
 #cutF,#cutB{border-color:rgba(255,84,112,.5);color:#ffb9c4}
 #cutF:hover,#cutB:hover{border-color:var(--bad);box-shadow:0 4px 18px rgba(255,84,112,.3)}
@@ -1853,7 +1850,6 @@ body{animation:slt-page-in .28s ease-out both}
       <div class="row">
         <input type="text" id="title" spellcheck="false" maxlength="52" placeholder="Song title, e.g. Haddaway - What Is Love (Extended)">
       </div>
-      <div class="row" id="instRow" style="margin-top:10px"></div>
     </div>
     <div class="panel">
       <div id="waveWrap"><canvas id="wave"></canvas><div id="waveHint">wheel: zoom · shift+wheel: pan · dbl-click: fit</div><div id="waveInfo"></div></div>
@@ -1909,13 +1905,7 @@ function sanitizeTitle(s) {
 }
 function clampBytes(s, max) { while (bytes(s) > max) s = s.slice(0, -1); return s.trim(); }
 function fitTitle(t) {
-  t = sanitizeTitle(t);
-  const tag = instOf(t);
-  if (tag) {
-    const base = t.replace(instRe, '').trim();
-    return clampBytes(base, TITLE_MAX - bytes(' (' + tag + ')')) + ' (' + tag + ')';
-  }
-  return clampBytes(t, TITLE_MAX);
+  return clampBytes(sanitizeTitle(t), TITLE_MAX);
 }
 function titleFromFile(name) {
   return fitTitle(name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' '));
@@ -2323,7 +2313,6 @@ function updateInfo() {
     wi.textContent = fmtMS(T) + ' · ' + lens.length + (lens.length === 1 ? ' clip' : ' clips');
     wi.className = lens.length > 1 && last < 3 ? 'warn' : '';
   }
-  instRefresh();
 }
 
 function renderList() {
@@ -2554,57 +2543,6 @@ $('title').addEventListener('input', () => {
   updateInfo();
 });
 $('title').addEventListener('change', () => { const s = songs[cur]; if (s) { $('title').value = s.title; renderList(); } });
-const INSTRUMENTS = [['🎹', 'Synthesizer', 'S'], ['🎸', 'Acoustic Guitar', 'A'], ['🎸⚡', 'E Guitar', 'E'], ['🥁', 'Drums', 'D']];
-const TAG_ALIAS = { 'Synthesizer': 'S', 'Acoustic Guitar': 'A', 'Electric Guitar': 'E', 'E Guitar': 'E', 'Drums': 'D' };
-const instRe = new RegExp(' \\((Synthesizer|Acoustic Guitar|Electric Guitar|E Guitar|Drums|[SAED])\\)$');
-function instOf(t) {
-  const m = t.match(instRe);
-  if (!m) return null;
-  return TAG_ALIAS[m[1]] || m[1];
-}
-function instRefresh() {
-  const s = songs[cur];
-  const on = s ? instOf(s.title) : null;
-  document.querySelectorAll('#instRow button').forEach(b => b.classList.toggle('on', b.dataset.inst === on));
-}
-for (const [ic, nm, tag] of INSTRUMENTS) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'inst';
-  b.dataset.inst = tag;
-  b.textContent = ic + ' ' + nm;
-  b.title = 'tag the title with (' + tag + ')';
-  b.onclick = () => {
-    const s = songs[cur]; if (!s) return;
-    const base = s.title.replace(instRe, '').trim();
-    if (instOf(s.title) === tag) s.title = base;
-    else s.title = clampBytes(base, TITLE_MAX - bytes(' (' + tag + ')')) + ' (' + tag + ')';
-    $('title').value = s.title;
-    renderList(); updateInfo();
-  };
-  $('instRow').appendChild(b);
-}
-{
-  const ab = document.createElement('button');
-  ab.type = 'button';
-  ab.className = 'inst apply';
-  ab.textContent = '✔ Apply to all';
-  ab.title = 'set this song\'s instrument tag on every song in the queue';
-  ab.onclick = () => {
-    const s = songs[cur]; if (!s) return;
-    const tag = instOf(s.title);
-    for (const o of songs) {
-      if (o === s) continue;
-      const base = o.title.replace(instRe, '').trim();
-      if (tag) o.title = clampBytes(base, TITLE_MAX - bytes(' (' + tag + ')')) + ' (' + tag + ')';
-      else o.title = base;
-    }
-    renderList();
-    if (tag) log('tag (' + tag + ') applied to all ' + songs.length + ' songs');
-    else log('instrument tags removed from all songs');
-  };
-  $('instRow').appendChild(ab);
-}
 
 window.addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
