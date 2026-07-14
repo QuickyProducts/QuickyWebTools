@@ -15,8 +15,8 @@ Or jump straight into a tool:
 | **AC** | Animation Combiner | Merge two animations into one - e.g. put a hand pose on a dance. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20Animation%20Combiner/sl_animation_combiner.html) |
 | **AP** | Animation Priority Changer | Change the priority of your `.anim` files. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20Animation%20Priority%20Changer/sl_animation_priority_changer.html) |
 | **SS** | Sprite Sheet Maker | Turn GIFs into sprite-sheet textures for animated faces in SL. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20Sprite%20Sheet%20Maker/sl_sprite_sheet_maker.html) |
-| **TX** | 3D Text Creator | Type a word, pick a font, download a 3D mesh ready to upload. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%203D%20Text%20Creator/sl_3d_text_creator.html) |
-| **HD** | HUD Buttons Creator | Build HUD button layouts and export them as an optimised mesh. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20HUD%20Buttons%20Creator/sl_hud_buttons_creator.html) |
+| **TX** | 3D Text Creator 🚧 | Type a word, pick a font, download a 3D mesh ready to upload. *(work in progress)* | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%203D%20Text%20Creator/sl_3d_text_creator.html) |
+| **HD** | HUD Buttons Creator 🚧 | Build HUD button layouts and export them as an optimised mesh. *(work in progress)* | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20HUD%20Buttons%20Creator/sl_hud_buttons_creator.html) |
 | **AM** | Alpha Maker | Paint over body parts to hide them - download the alpha mask PNG. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20Alpha%20Maker/sl_alpha_maker.html) |
 | **MS** | Music Slicer | Cut songs into SL-ready ≤30-second sound clips, evenly loud. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20Music%20Slicer/sl_music_slicer.html) |
 

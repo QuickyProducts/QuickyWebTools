@@ -307,6 +307,31 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   color: var(--slt-dim);
 }
 
+/* Work-in-progress entries: amber badge + tinted border. */
+.slt-nav-btn.wip { border-color: rgba(255, 184, 77, 0.35); }
+.slt-nav-btn.wip:hover { border-color: rgba(255, 184, 77, 0.6); }
+.slt-nav-wip {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--slt-warn);
+  background: rgba(255, 184, 77, 0.12);
+  border: 1px solid rgba(255, 184, 77, 0.4);
+}
+
+/* Amber WIP chip variant for tool titlebars (sits next to the
+   regular .slt-subtitle tagline chip). */
+body.slt-themed .slt-subtitle.slt-wip {
+  color: var(--slt-warn) !important;
+  border-color: rgba(255, 184, 77, 0.4);
+  background: rgba(255, 184, 77, 0.08);
+  margin-left: 8px !important;
+}
+
 @media (max-width: 540px) {
   .slt-nav { top: 8px; right: 8px; }
   .slt-nav-panel { width: 250px; }

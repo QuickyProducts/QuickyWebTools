@@ -357,6 +357,31 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   color: var(--slt-dim);
 }
 
+/* Work-in-progress entries: amber badge + tinted border. */
+.slt-nav-btn.wip { border-color: rgba(255, 184, 77, 0.35); }
+.slt-nav-btn.wip:hover { border-color: rgba(255, 184, 77, 0.6); }
+.slt-nav-wip {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  color: var(--slt-warn);
+  background: rgba(255, 184, 77, 0.12);
+  border: 1px solid rgba(255, 184, 77, 0.4);
+}
+
+/* Amber WIP chip variant for tool titlebars (sits next to the
+   regular .slt-subtitle tagline chip). */
+body.slt-themed .slt-subtitle.slt-wip {
+  color: var(--slt-warn) !important;
+  border-color: rgba(255, 184, 77, 0.4);
+  background: rgba(255, 184, 77, 0.08);
+  margin-left: 8px !important;
+}
+
 @media (max-width: 540px) {
   .slt-nav { top: 8px; right: 8px; }
   .slt-nav-panel { width: 250px; }
@@ -1589,6 +1614,7 @@ body.slt-themed .mode-btn {
       folder: 'SL 3D Text Creator',
       file: 'sl_3d_text_creator.html',
       badge: 'TX',
+      wip: true,   // shown with an amber WIP badge in the nav
     },
     {
       id: 'sl-hud',
@@ -1597,6 +1623,7 @@ body.slt-themed .mode-btn {
       folder: 'SL HUD Buttons Creator',
       file: 'sl_hud_buttons_creator.html',
       badge: 'HD',
+      wip: true,   // shown with an amber WIP badge in the nav
     },
     {
       id: 'alpha-maker',
@@ -1741,10 +1768,14 @@ body.slt-themed .mode-btn {
     const list = document.createElement('ul');
     list.className = 'slt-nav-list';
 
-    for (const tool of tools) {
+    // Alphabetical menu order (detection order stays as-registered).
+    const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+
+    for (const tool of sorted) {
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.className = 'slt-nav-btn';
+      if (tool.wip) a.classList.add('wip');
       if (tool.id === window.SLT_CURRENT) {
         a.classList.add('current');
         a.setAttribute('aria-current', 'page');
@@ -1755,11 +1786,13 @@ body.slt-themed .mode-btn {
         // smooth fade-out before navigating
         a.addEventListener('click', smoothNavigate);
       }
-      a.title = tool.name + ' - ' + tool.subtitle;
+      a.title = tool.name + ' - ' + tool.subtitle +
+        (tool.wip ? ' (work in progress)' : '');
       a.innerHTML =
         '<span class="slt-nav-badge">' + tool.badge + '</span>' +
         '<span class="slt-nav-name">' + tool.name +
-          '<small>' + tool.subtitle + '</small></span>';
+          '<small>' + tool.subtitle + '</small></span>' +
+        (tool.wip ? '<span class="slt-nav-wip" aria-label="work in progress">WIP</span>' : '');
       li.appendChild(a);
       list.appendChild(li);
     }

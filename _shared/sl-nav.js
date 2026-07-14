@@ -62,6 +62,7 @@
       folder: 'SL 3D Text Creator',
       file: 'sl_3d_text_creator.html',
       badge: 'TX',
+      wip: true,   // shown with an amber WIP badge in the nav
     },
     {
       id: 'sl-hud',
@@ -70,6 +71,7 @@
       folder: 'SL HUD Buttons Creator',
       file: 'sl_hud_buttons_creator.html',
       badge: 'HD',
+      wip: true,   // shown with an amber WIP badge in the nav
     },
     {
       id: 'alpha-maker',
@@ -214,10 +216,14 @@
     const list = document.createElement('ul');
     list.className = 'slt-nav-list';
 
-    for (const tool of tools) {
+    // Alphabetical menu order (detection order stays as-registered).
+    const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+
+    for (const tool of sorted) {
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.className = 'slt-nav-btn';
+      if (tool.wip) a.classList.add('wip');
       if (tool.id === window.SLT_CURRENT) {
         a.classList.add('current');
         a.setAttribute('aria-current', 'page');
@@ -228,11 +234,13 @@
         // smooth fade-out before navigating
         a.addEventListener('click', smoothNavigate);
       }
-      a.title = tool.name + ' - ' + tool.subtitle;
+      a.title = tool.name + ' - ' + tool.subtitle +
+        (tool.wip ? ' (work in progress)' : '');
       a.innerHTML =
         '<span class="slt-nav-badge">' + tool.badge + '</span>' +
         '<span class="slt-nav-name">' + tool.name +
-          '<small>' + tool.subtitle + '</small></span>';
+          '<small>' + tool.subtitle + '</small></span>' +
+        (tool.wip ? '<span class="slt-nav-wip" aria-label="work in progress">WIP</span>' : '');
       li.appendChild(a);
       list.appendChild(li);
     }

@@ -154,6 +154,21 @@ p.tool-desc { color: var(--dim); font-size: 13px; flex: 1; }
   background: linear-gradient(135deg, var(--magenta), var(--purple));
   box-shadow: 0 4px 18px rgba(255,60,172,.35);
 }
+/* Work-in-progress cards: amber chip + tinted border */
+a.tool.wip { border-color: rgba(255, 184, 77, 0.3); }
+a.tool.wip:hover { border-color: rgba(255, 184, 77, 0.55); }
+.wip-chip {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: #ffb84d;
+  background: rgba(255, 184, 77, 0.12);
+  border: 1px solid rgba(255, 184, 77, 0.4);
+}
 a.tool:hover .tool-cta { box-shadow: 0 6px 26px rgba(255,60,172,.55); }
 
 footer {
@@ -232,13 +247,14 @@ footer a:hover { text-decoration: underline; }
       <div class="tool-cta">Launch</div>
     </a>
 
-    <a class="tool" href="./SL%203D%20Text%20Creator/sl_3d_text_creator.html">
+    <a class="tool wip" href="./SL%203D%20Text%20Creator/sl_3d_text_creator.html">
       <div class="tool-head">
         <span class="badge">TX</span>
         <div>
           <h2 class="tool-name">3D Text Creator</h2>
           <p class="tool-sub">text → 3D mesh</p>
         </div>
+        <span class="wip-chip" title="work in progress">WIP</span>
       </div>
       <p class="tool-desc">
         Type a word, pick a font and depth, export a clean Collada .dae mesh
@@ -247,13 +263,14 @@ footer a:hover { text-decoration: underline; }
       <div class="tool-cta">Launch</div>
     </a>
 
-    <a class="tool" href="./SL%20HUD%20Buttons%20Creator/sl_hud_buttons_creator.html">
+    <a class="tool wip" href="./SL%20HUD%20Buttons%20Creator/sl_hud_buttons_creator.html">
       <div class="tool-head">
         <span class="badge">HD</span>
         <div>
           <h2 class="tool-name">HUD Buttons Creator</h2>
           <p class="tool-sub">buttons grid → mesh</p>
         </div>
+        <span class="wip-chip" title="work in progress">WIP</span>
       </div>
       <p class="tool-desc">
         Lay out a grid of HUD buttons, pick shapes and colours, export an
