@@ -1505,6 +1505,9 @@ body.playing #play{animation:playpulse 1.5s ease-in-out infinite}
 @keyframes playpulse{50%{box-shadow:0 0 30px rgba(255,60,172,.8)}}
 #waveWrap{transition:box-shadow .4s,border-color .4s}
 body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43,210,255,.1);border-color:rgba(255,60,172,.35)}
+#flatZipRow{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim);cursor:pointer;user-select:none;padding:0 2px}
+#flatZipRow input{accent-color:var(--acc1);width:14px;height:14px;cursor:pointer;margin:0}
+#flatZipRow:hover{color:var(--txt)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 body{animation:slt-page-in .28s ease-out both}
 @keyframes slt-page-in{from{opacity:0}to{opacity:1}}
@@ -1827,6 +1830,9 @@ body{animation:slt-page-in .28s ease-out both}
     <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus" multiple hidden>
     <div id="songList"></div>
     <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
+    <label id="flatZipRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level — handy for bulk-uploading everything in one go.">
+      <input type="checkbox" id="flatZip"> No folders in ZIP (all clips top-level)
+    </label>
   </div>
   <div id="editor" class="hidden">
     <div class="panel">
@@ -2741,16 +2747,26 @@ $('exportOne').onclick = async () => {
   prog(false);
   $('exportOne').disabled = false;
 };
+// "No folders in ZIP" toggle — flat Export-ALL for one-shot bulk
+// uploads. Clip names are collision-free without folders: they start
+// with the song title and duplicate titles are blocked by validate().
+// State persists across sessions.
+try { $('flatZip').checked = localStorage.getItem('ms-flat-zip') === '1'; } catch (e) {}
+$('flatZip').onchange = () => {
+  try { localStorage.setItem('ms-flat-zip', $('flatZip').checked ? '1' : '0'); } catch (e) {}
+};
+
 $('exportAll').onclick = async () => {
   if (!songs.length) return;
   stopPB();
   $('exportAll').disabled = true;
+  const flat = $('flatZip').checked;
   const all = []; let done = 0, fail = 0, clips = 0;
   for (const s of songs) {
     try {
       prog(true, done / songs.length * 100, s.title);
       const res = await renderSong(s);
-      all.push(...res.files.map(f => ({ name: s.title + '/' + f.name, data: f.data })));
+      all.push(...res.files.map(f => ({ name: (flat ? '' : s.title + '/') + f.name, data: f.data })));
       clips += res.files.length;
       s.status = 'done'; done++;
     } catch (e) { log('✖ ' + s.title + ': ' + (e.message || e), true); fail++; }
@@ -2758,7 +2774,7 @@ $('exportAll').onclick = async () => {
   }
   if (all.length) {
     download(makeZip(all), 'SL_Music_Clips.zip');
-    log('✔ ' + done + ' songs / ' + clips + ' clips → SL_Music_Clips.zip (one folder per title inside)' + (fail ? ' — ' + fail + ' FAILED, see above' : ''));
+    log('✔ ' + done + ' songs / ' + clips + ' clips → SL_Music_Clips.zip (' + (flat ? 'all clips top-level, no folders' : 'one folder per title inside') + ')' + (fail ? ' — ' + fail + ' FAILED, see above' : ''));
     boom($('exportAll'));
   }
   prog(false);

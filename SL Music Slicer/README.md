@@ -16,7 +16,7 @@ Song-length music playback in Second Life despite the 30-second sound-clip limit
 
 1. Drop songs (mp3/wav/flac/ogg/m4a) into the slicer. The title fills itself from the file's **embedded metadata tags** as `Artist - Songtitle` (ID3v1/v2, Vorbis comments, iTunes atoms, WAV INFO — read locally, no internet); files without tags fall back to the cleaned filename. Edit freely — a title you typed is never overwritten by late-arriving tags. It becomes the display name in SL.
 2. Trim: click the wave to place the playhead, hit **✂ Cut**, then choose *delete front part* or *delete back part* (for junk before/after the song). Fine-tuning: drag the green/red handles or `[` / `]` keys. Click a clip number to hear across that boundary.
-3. Export → ZIP download (per song, or **Export ALL** for one big ZIP). Inside, every song has **its own folder named after its title** with its clips (16-bit / 44.1 kHz WAV, SL-upload-ready). Unzip it wherever you like.
+3. Export → ZIP download (per song, or **Export ALL** for one big ZIP). Inside, every song has **its own folder named after its title** with its clips (16-bit / 44.1 kHz WAV, SL-upload-ready). Unzip it wherever you like. Tick **"No folders in ZIP"** under the Export-ALL button to put all clips at the top level instead — handy for bulk-uploading everything in a single go (clip names stay unique because they start with the song title).
 4. In the SL viewer: **bulk upload** the .wav files from a song's folder (L$10 each).
 5. Drag the uploaded sound clips into your player prim. (The companion
    MusicPlayer script that consumes these clips is not part of this
