@@ -8,7 +8,7 @@
    ---------------------------
    Each tool folder contains a tiny `_meta.js` that registers its own
    metadata into window.__SLT_AVAILABLE. This script tries to load that
-   file via <script> tags — file:// allows local <script> loads and
+   file via <script> tags - file:// allows local <script> loads and
    onerror fires reliably when the file is missing, so removing a tool
    folder makes it disappear from the nav of every other tool with no
    further configuration.
@@ -22,7 +22,7 @@
       this script runs.
    4. Run `python "_shared/sync_inline.py"` to bake the latest shared
       CSS + JS + Three.js (if needed) into every tool so each HTML is
-      standalone — works without _shared/ or any network.
+      standalone - works without _shared/ or any network.
    ===================================================================== */
 (function () {
   'use strict';
@@ -93,7 +93,7 @@
 
   // ---------------------------------------------------------------------
   // The body theme (aurora blobs, glass panels) is applied entirely via
-  // CSS on <body class="slt-themed"> — no flash of unstyled content.
+  // CSS on <body class="slt-themed"> - no flash of unstyled content.
   // This script renders the floating nav after probing for sibling
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
@@ -195,7 +195,7 @@
     handle.innerHTML =
       '<span class="slt-nav-current">' + currentBadge + '</span>' +
       '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
-    handle.title = 'SL Tools — click to switch';
+    handle.title = 'SL Tools - click to switch';
     nav.appendChild(handle);
 
     // Collapsible panel (the actual menu)
@@ -228,7 +228,7 @@
         // smooth fade-out before navigating
         a.addEventListener('click', smoothNavigate);
       }
-      a.title = tool.name + ' — ' + tool.subtitle;
+      a.title = tool.name + ' - ' + tool.subtitle;
       a.innerHTML =
         '<span class="slt-nav-badge">' + tool.badge + '</span>' +
         '<span class="slt-nav-name">' + tool.name +

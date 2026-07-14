@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """
-Build fonts_inline.js — base64-encodes every .ttf in this folder
+Build fonts_inline.js - base64-encodes every .ttf in this folder
 (NOT the ui/ subfolder) and writes them as Object.assign(FONT_DATA, …)
 so the SL 3D Text Creator can offer them in its picker.
 
 The companion file _build_ui_fonts.py handles the synthwave UI fonts
-in fonts/ui/ — those go straight into sl-nav.css as @font-face rules.
+in fonts/ui/ - those go straight into sl-nav.css as @font-face rules.
 
 USAGE
 -----
@@ -28,7 +28,7 @@ HEADER = """\
    All fonts here are SIL Open Font License (free + redistributable).
 
    Note: the Pacifico FONT_DATA is declared as `const` in the inline script
-   just before this one. We use Object.assign on the object directly —
+   just before this one. We use Object.assign on the object directly -
    const binds the reference, not the contents, so mutating works. */
 Object.assign(FONT_DATA, {
 """

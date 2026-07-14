@@ -15,13 +15,13 @@
   see THIRD-PARTY-NOTICES.md at the repo root for full licence texts)
   --------------------------------------------------------------------
 
-    • gifuct-js — © 2015 Matt Way. MIT License.
+    • gifuct-js - © 2015 Matt Way. MIT License.
       Source: https://github.com/matt-way/gifuct-js
 
   Ya claims NO authorship over the bundled library. It is included
   unmodified under the redistribution terms granted by its licence.
 
-  MIT License (applies to gifuct-js — Copyright (c) 2015 Matt Way):
+  MIT License (applies to gifuct-js - Copyright (c) 2015 Matt Way):
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -46,7 +46,7 @@
 <head>
 <meta charset="utf-8">
 <title>Ya's GIF→SL Sprite Sheet Maker 💕 (Milo Edition)</title>
-<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
    SL Tools :: "Aurora Glass" shared theme + navigation  (v2)
@@ -55,7 +55,7 @@
      - deep indigo base with two slowly drifting blurred aurora blobs
      - frosted-glass panels (backdrop blur + 1px light edge + 18px radius)
      - animated pink→purple→cyan gradient headlines
-     - system font stack — no embedded webfonts, maximum readability
+     - system font stack - no embedded webfonts, maximum readability
      - full prefers-reduced-motion support
 
    The selector contract from v1 is preserved verbatim: every class,
@@ -128,7 +128,7 @@ body.slt-themed::after {
 }
 body.slt-themed ::selection { background: rgba(255, 60, 172, 0.4); }
 
-/* Legacy element from the v1 theme — kept as a no-op so old tool HTML
+/* Legacy element from the v1 theme - kept as a no-op so old tool HTML
    that still renders <div class="slt-scanlines"> stays harmless. */
 .slt-scanlines { display: none !important; }
 
@@ -379,7 +379,7 @@ html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
 
 
 /* =====================================================================
-   Aurora UI — applied on every tool that opts in via
+   Aurora UI - applied on every tool that opts in via
    <body class="slt-themed">. !important keeps the cascade on our side
    regardless of tool-local source order or specificity.
    ===================================================================== */
@@ -1407,7 +1407,7 @@ body.slt-themed .mode-btn {
 
 
 /* =====================================================================
-   Motion accessibility — kill every animation/transition for users who
+   Motion accessibility - kill every animation/transition for users who
    ask for reduced motion. The aurora blobs freeze in place, the title
    gradient stops cycling, panels appear instantly.
    ===================================================================== */
@@ -1428,7 +1428,7 @@ body.slt-themed .mode-btn {
 <!-- SHARED-CSS:END -->
 <script>window.SLT_CURRENT = 'sprite-sheet';</script>
 <style>
-  /* Tool-local CSS — only the truly unique bits.
+  /* Tool-local CSS - only the truly unique bits.
      All shared theming + layout lives in ../_shared/sl-nav.css. */
   body { padding: 14px 24px 24px; }
 
@@ -1523,7 +1523,7 @@ body.slt-themed .mode-btn {
 </style>
 </head>
 <body class="slt-themed">
-<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-JS:BEGIN - auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <script>
 /* =====================================================================
    SL Tools :: Navigation bootstrapper
@@ -1535,7 +1535,7 @@ body.slt-themed .mode-btn {
    ---------------------------
    Each tool folder contains a tiny `_meta.js` that registers its own
    metadata into window.__SLT_AVAILABLE. This script tries to load that
-   file via <script> tags — file:// allows local <script> loads and
+   file via <script> tags - file:// allows local <script> loads and
    onerror fires reliably when the file is missing, so removing a tool
    folder makes it disappear from the nav of every other tool with no
    further configuration.
@@ -1549,7 +1549,7 @@ body.slt-themed .mode-btn {
       this script runs.
    4. Run `python "_shared/sync_inline.py"` to bake the latest shared
       CSS + JS + Three.js (if needed) into every tool so each HTML is
-      standalone — works without _shared/ or any network.
+      standalone - works without _shared/ or any network.
    ===================================================================== */
 (function () {
   'use strict';
@@ -1620,7 +1620,7 @@ body.slt-themed .mode-btn {
 
   // ---------------------------------------------------------------------
   // The body theme (aurora blobs, glass panels) is applied entirely via
-  // CSS on <body class="slt-themed"> — no flash of unstyled content.
+  // CSS on <body class="slt-themed"> - no flash of unstyled content.
   // This script renders the floating nav after probing for sibling
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
@@ -1722,7 +1722,7 @@ body.slt-themed .mode-btn {
     handle.innerHTML =
       '<span class="slt-nav-current">' + currentBadge + '</span>' +
       '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
-    handle.title = 'SL Tools — click to switch';
+    handle.title = 'SL Tools - click to switch';
     nav.appendChild(handle);
 
     // Collapsible panel (the actual menu)
@@ -1755,7 +1755,7 @@ body.slt-themed .mode-btn {
         // smooth fade-out before navigating
         a.addEventListener('click', smoothNavigate);
       }
-      a.title = tool.name + ' — ' + tool.subtitle;
+      a.title = tool.name + ' - ' + tool.subtitle;
       a.innerHTML =
         '<span class="slt-nav-badge">' + tool.badge + '</span>' +
         '<span class="slt-nav-name">' + tool.name +
@@ -1831,7 +1831,7 @@ body.slt-themed .mode-btn {
 <header class="slt-titlebar">
   <div class="slt-subtitle">GIF to sprite sheet pipeline</div>
   <h1 class="slt-title">SL Sprite Sheet Maker</h1>
-  <p class="slt-lede">Drop GIFs in, get a single PNG sprite sheet out — sized for SL textures with smart cropping and palette optimisation.</p>
+  <p class="slt-lede">Drop GIFs in, get a single PNG sprite sheet out - sized for SL textures with smart cropping and palette optimisation.</p>
 </header>
 
 <label class="drop" id="drop" style="display:none">
@@ -1841,7 +1841,7 @@ body.slt-themed .mode-btn {
     <polyline points="17 8 12 3 7 8"></polyline>
     <line x1="12" y1="3" x2="12" y2="15"></line>
   </svg>
-  <span id="dropText">💕 Click to load GIFs or videos (up to 100) — or drop them here ✨</span>
+  <span id="dropText">💕 Click to load GIFs or videos (up to 100) - or drop them here ✨</span>
 </label>
 
 <div id="workspace">
@@ -1866,10 +1866,10 @@ body.slt-themed .mode-btn {
     </button>
     <input type="file" id="file" accept="image/gif,video/mp4,video/webm,video/quicktime,video/x-m4v,video/ogg,video/*" multiple style="display:none">
     <h3 style="margin-top:14px">Source</h3>
-    <div class="info-row"><span>File</span><span id="i-file">—</span></div>
-    <div class="info-row"><span>Dimensions</span><span id="i-dim">—</span></div>
-    <div class="info-row"><span>Frames</span><span id="i-frames">—</span></div>
-    <div class="info-row"><span>Original FPS</span><span id="i-fps">—</span></div>
+    <div class="info-row"><span>File</span><span id="i-file">-</span></div>
+    <div class="info-row"><span>Dimensions</span><span id="i-dim">-</span></div>
+    <div class="info-row"><span>Frames</span><span id="i-frames">-</span></div>
+    <div class="info-row"><span>Original FPS</span><span id="i-fps">-</span></div>
 
     <h3 style="margin-top:14px">Crop</h3>
     <div class="info-row"><span>Ratio</span>
@@ -1912,25 +1912,25 @@ body.slt-themed .mode-btn {
       <button id="bgGlobal" type="button" class="apply-all">Apply</button>
     </div>
     <div class="info-row">
-      <span>Trim to fit <span class="warn" data-tip="Drops a few frames so the grid becomes more square AND has no empty cells. e.g. 21 frames: default → 3×7 (very wide), with trim → 4×5 (cuts 1 frame, more balanced). Off = keep all frames, accept rectangular layouts or 1–2 empty cells.">ℹ️</span></span>
+      <span>Trim to fit <span class="warn" data-tip="Drops a few frames so the grid becomes more square AND has no empty cells. e.g. 21 frames: default → 3×7 (very wide), with trim → 4×5 (cuts 1 frame, more balanced). Off = keep all frames, accept rectangular layouts or 1-2 empty cells.">ℹ️</span></span>
       <input type="checkbox" id="trimToFit" style="cursor:pointer; accent-color:#ff1493; width:16px; height:16px;">
     </div>
     <div class="info-row"><span>Apply to all files</span>
       <button id="trimGlobal" type="button" class="apply-all">Apply</button>
     </div>
     <div class="info-row">
-      <span>Optimize size <span class="warn" data-tip="Exports the PNG with a 256-color indexed palette (like GIFs use). Reduces file size by ~50–70%. Since GIFs are already 256-color and SL re-encodes textures internally, quality stays identical.">ℹ️</span></span>
+      <span>Optimize size <span class="warn" data-tip="Exports the PNG with a 256-color indexed palette (like GIFs use). Reduces file size by ~50-70%. Since GIFs are already 256-color and SL re-encodes textures internally, quality stays identical.">ℹ️</span></span>
       <span style="display:flex; align-items:center; gap:8px;">
         <small style="color:#d896b3;">256 colors</small>
         <input type="checkbox" id="opt256" checked style="cursor:pointer; accent-color:#ff1493; width:16px; height:16px;">
       </span>
     </div>
-    <div class="info-row"><span>Frames used</span><span id="i-used">—</span></div>
-    <div class="info-row"><span>Grid</span><span id="i-grid">—</span></div>
-    <div class="info-row"><span>Canvas</span><span id="i-canvas">—</span></div>
-    <div class="info-row"><span>Cell</span><span id="i-cell">—</span></div>
-    <div class="info-row"><span>FPS</span><span id="i-out-fps">—</span></div>
-    <div class="filename" id="i-name">—</div>
+    <div class="info-row"><span>Frames used</span><span id="i-used">-</span></div>
+    <div class="info-row"><span>Grid</span><span id="i-grid">-</span></div>
+    <div class="info-row"><span>Canvas</span><span id="i-canvas">-</span></div>
+    <div class="info-row"><span>Cell</span><span id="i-cell">-</span></div>
+    <div class="info-row"><span>FPS</span><span id="i-out-fps">-</span></div>
+    <div class="filename" id="i-name">-</div>
     <button id="export" disabled>Export current</button>
     <button id="exportAll" class="btn-secondary" disabled>Export all (0)</button>
   </div>
@@ -1952,7 +1952,7 @@ body.slt-themed .mode-btn {
 
 <script>
 /* ============================================================
-   THIRD-PARTY CODE — gifuct-js by Matt Way, MIT License (2015)
+   THIRD-PARTY CODE - gifuct-js by Matt Way, MIT License (2015)
    This entire script block is the unmodified gifuct-js bundle.
    Source: https://github.com/matt-way/gifuct-js
    See HTML header comment for the full MIT license text.
@@ -2979,7 +2979,7 @@ exports.lzw = lzw;
 </script>
 <script>
 /* Ya's GIF→SL Sprite Sheet Maker · © 2026 Ya · All rights reserved.
-   Personal use only — see HTML header for license. */
+   Personal use only - see HTML header for license. */
 'use strict';
 const { parseGIF, decompressFrames } = window.gifuct;
 const cnv = document.getElementById('cnv');
@@ -3095,7 +3095,7 @@ window.addEventListener('mouseup', (e) => {
           if (_clearArmed) resetClearBtn();
           suppressNextClick = true;
         } else {
-          // Plain click — anchor for future Shift+Click
+          // Plain click - anchor for future Shift+Click
           lastClickedIdx = idx;
         }
       }
@@ -3199,9 +3199,9 @@ function wipeWorkspace() {
   prevBtn.disabled = true;
   nextBtn.disabled = true;
   ['i-file','i-dim','i-frames','i-fps','i-used','i-grid','i-canvas','i-cell','i-out-fps']
-    .forEach(id => document.getElementById(id).textContent = '—');
-  document.getElementById('i-crop').textContent = '—';
-  document.getElementById('i-name').textContent = '—';
+    .forEach(id => document.getElementById(id).textContent = '-');
+  document.getElementById('i-crop').textContent = '-';
+  document.getElementById('i-name').textContent = '-';
 }
 
 // Load GIFs button: open the hidden file input
@@ -3577,7 +3577,7 @@ async function loadFiles(fileList) {
 
   setLoadDisabled(false);
   if (gifs.length === 0) {
-    setLoadText('Failed — try again');
+    setLoadText('Failed - try again');
     setTimeout(() => setLoadText('Load files'), 2500);
     return;
   }
@@ -3767,9 +3767,9 @@ function removeGif(idx) {
     nextBtn.disabled = true;
     // reset info
     ['i-file','i-dim','i-frames','i-fps','i-used','i-grid','i-canvas','i-cell','i-out-fps']
-      .forEach(id => document.getElementById(id).textContent = '—');
-    document.getElementById('i-crop').textContent = '—';
-    document.getElementById('i-name').textContent = '—';
+      .forEach(id => document.getElementById(id).textContent = '-');
+    document.getElementById('i-crop').textContent = '-';
+    document.getElementById('i-name').textContent = '-';
     return;
   }
   // Adjust currentIdx if it points beyond the new array
@@ -3792,7 +3792,7 @@ function selectGif(idx) {
   frames = g.frames;
   gifW = g.w;
   gifH = g.h;
-  cropRect = g.crop;        // reference – edits persist on the gif
+  cropRect = g.crop;        // reference - edits persist on the gif
   currentName = g.name;
 
   const maxW = 800, maxH = 600;
@@ -3824,7 +3824,7 @@ function animTick(ts) {
   if (!frames.length) return;
   if (!animStart) animStart = ts;
   // When trim drops frames, play only the kept ones (uniform timing across the
-  // original duration — matches the export, which averages to a single FPS).
+  // original duration - matches the export, which averages to a single FPS).
   const g = currentIdx >= 0 ? gifs[currentIdx] : null;
   const p = g && g.trim ? plan() : null;
   const active = (p && p.indices && p.indices.length && p.indices.length < frames.length)
@@ -4036,7 +4036,7 @@ function bestRectGrid(n) {
 
 // Find best (cols, rows, k) where c*r = k ≤ n and c,r ≤ 8.
 // Trims (n - k) frames evenly so the grid fills perfectly with no empty cells.
-// Score = cuts + aspectDist — prefers fewer cuts and squarer layouts.
+// Score = cuts + aspectDist - prefers fewer cuts and squarer layouts.
 function bestPerfectGrid(n) {
   if (n <= 0) return { c: 1, r: 1, k: 1, cuts: 0, score: 1 };
   let best = null;
@@ -4160,7 +4160,7 @@ function updateInfo() {
   document.getElementById('i-fps').textContent = p.fpsOrig.toFixed(1);
   document.getElementById('i-crop').textContent = cropRect
     ? `${Math.round(cropRect.w)}×${Math.round(cropRect.h)} @ (${Math.round(cropRect.x)},${Math.round(cropRect.y)})`
-    : '—';
+    : '-';
   document.getElementById('i-used').textContent = p.target_n + (p.target_n < frames.length ? ` (sub from ${frames.length})` : '');
   document.getElementById('i-grid').textContent = `${p.cols} × ${p.rows}`;
   document.getElementById('i-canvas').textContent = `${p.canvasW} × ${p.canvasH}`;
@@ -4347,7 +4347,7 @@ function _quantize(imgData, maxColors = 256) {
   const data = imgData.data;
   const w = imgData.width, h = imgData.height;
 
-  // Treat low-alpha pixels as "fully transparent" — they get a dedicated palette
+  // Treat low-alpha pixels as "fully transparent" - they get a dedicated palette
   // entry (0,0,0,0) so they won't be misrendered as a tinted color.
   const ALPHA_THRESHOLD = 8;
 
@@ -4500,7 +4500,7 @@ async function canvasToIndexedPngBlob(canvas) {
 
   const chunks = [
     _pngChunk('IHDR', ihdr),
-    // Color space tags BEFORE PLTE — tells viewers (esp. Safari on P3 displays)
+    // Color space tags BEFORE PLTE - tells viewers (esp. Safari on P3 displays)
     // to render this image as sRGB instead of guessing.
     _pngChunk('sRGB', srgb),
     _pngChunk('gAMA', gama),

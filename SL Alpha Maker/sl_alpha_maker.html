@@ -31,7 +31,7 @@
 <head>
 <meta charset="UTF-8">
 <title>SL Alpha Maker</title>
-<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
    SL Tools :: "Aurora Glass" shared theme + navigation  (v2)
@@ -40,7 +40,7 @@
      - deep indigo base with two slowly drifting blurred aurora blobs
      - frosted-glass panels (backdrop blur + 1px light edge + 18px radius)
      - animated pink→purple→cyan gradient headlines
-     - system font stack — no embedded webfonts, maximum readability
+     - system font stack - no embedded webfonts, maximum readability
      - full prefers-reduced-motion support
 
    The selector contract from v1 is preserved verbatim: every class,
@@ -113,7 +113,7 @@ body.slt-themed::after {
 }
 body.slt-themed ::selection { background: rgba(255, 60, 172, 0.4); }
 
-/* Legacy element from the v1 theme — kept as a no-op so old tool HTML
+/* Legacy element from the v1 theme - kept as a no-op so old tool HTML
    that still renders <div class="slt-scanlines"> stays harmless. */
 .slt-scanlines { display: none !important; }
 
@@ -364,7 +364,7 @@ html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
 
 
 /* =====================================================================
-   Aurora UI — applied on every tool that opts in via
+   Aurora UI - applied on every tool that opts in via
    <body class="slt-themed">. !important keeps the cascade on our side
    regardless of tool-local source order or specificity.
    ===================================================================== */
@@ -1392,7 +1392,7 @@ body.slt-themed .mode-btn {
 
 
 /* =====================================================================
-   Motion accessibility — kill every animation/transition for users who
+   Motion accessibility - kill every animation/transition for users who
    ask for reduced motion. The aurora blobs freeze in place, the title
    gradient stops cycling, panels appear instantly.
    ===================================================================== */
@@ -1473,7 +1473,7 @@ body.slt-themed .mode-btn {
     letter-spacing: 1px !important;
     padding: 7px 14px !important;
   }
-  /* Soft "nothing to undo" state — the button stays clickable so it
+  /* Soft "nothing to undo" state - the button stays clickable so it
      can report the empty state, but it's dimmed so the user can tell
      at a glance that there's no work to revert. */
   .toolbar button.secondary.is-empty {
@@ -1569,7 +1569,7 @@ body.slt-themed .mode-btn {
   }
 
   /* Shape selection marquee for rect/ellipse tools. NOTE: this is
-     deliberately .shape-marquee, NOT .marquee — the shared sl-nav.css
+     deliberately .shape-marquee, NOT .marquee - the shared sl-nav.css
      already defines a `body.slt-themed .marquee` rule (used by Sprite
      Sheet Maker for its viewport-level drag-select, with position:
      fixed). Sharing the class name would let that rule override our
@@ -1651,7 +1651,7 @@ body.slt-themed .mode-btn {
     text-shadow: 0 1px 0 rgba(0,0,0,0.5);
   }
 
-  /* Resize handles — eight per marquee (four corners + four edge
+  /* Resize handles - eight per marquee (four corners + four edge
      midpoints). Only visible once the marquee is "pending" (i.e. the
      user has finished the initial drag). pointer-events:auto so they
      intercept their own drags before the marquee body's move drag. */
@@ -1793,7 +1793,7 @@ body.slt-themed .mode-btn {
 </head>
 <body class="slt-themed">
 <script>window.SLT_CURRENT = 'alpha-maker';</script>
-<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-JS:BEGIN - auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <script>
 /* =====================================================================
    SL Tools :: Navigation bootstrapper
@@ -1805,7 +1805,7 @@ body.slt-themed .mode-btn {
    ---------------------------
    Each tool folder contains a tiny `_meta.js` that registers its own
    metadata into window.__SLT_AVAILABLE. This script tries to load that
-   file via <script> tags — file:// allows local <script> loads and
+   file via <script> tags - file:// allows local <script> loads and
    onerror fires reliably when the file is missing, so removing a tool
    folder makes it disappear from the nav of every other tool with no
    further configuration.
@@ -1819,7 +1819,7 @@ body.slt-themed .mode-btn {
       this script runs.
    4. Run `python "_shared/sync_inline.py"` to bake the latest shared
       CSS + JS + Three.js (if needed) into every tool so each HTML is
-      standalone — works without _shared/ or any network.
+      standalone - works without _shared/ or any network.
    ===================================================================== */
 (function () {
   'use strict';
@@ -1890,7 +1890,7 @@ body.slt-themed .mode-btn {
 
   // ---------------------------------------------------------------------
   // The body theme (aurora blobs, glass panels) is applied entirely via
-  // CSS on <body class="slt-themed"> — no flash of unstyled content.
+  // CSS on <body class="slt-themed"> - no flash of unstyled content.
   // This script renders the floating nav after probing for sibling
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
@@ -1992,7 +1992,7 @@ body.slt-themed .mode-btn {
     handle.innerHTML =
       '<span class="slt-nav-current">' + currentBadge + '</span>' +
       '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
-    handle.title = 'SL Tools — click to switch';
+    handle.title = 'SL Tools - click to switch';
     nav.appendChild(handle);
 
     // Collapsible panel (the actual menu)
@@ -2025,7 +2025,7 @@ body.slt-themed .mode-btn {
         // smooth fade-out before navigating
         a.addEventListener('click', smoothNavigate);
       }
-      a.title = tool.name + ' — ' + tool.subtitle;
+      a.title = tool.name + ' - ' + tool.subtitle;
       a.innerHTML =
         '<span class="slt-nav-badge">' + tool.badge + '</span>' +
         '<span class="slt-nav-name">' + tool.name +
@@ -2201,13 +2201,13 @@ body.slt-themed .mode-btn {
 
   <details class="advanced">
     <summary>How to use this in Second Life</summary>
-    <p><b>1. (Optional) Load your own template</b> — Click <kbd>Load Upper…</kbd> / <kbd>Load Lower…</kbd>, or drag&drop an image straight onto the canvas. The default templates (Linden Lab's official Fashion Design Templates) work for any mesh body that shares the classic SL UV layout. If your body ships its own template (Reborn, Legacy, Maitreya…) load it here so the wireframe matches exactly.</p>
-    <p><b>2. Pick a tool</b> — <kbd>BRUSH</kbd> for free-hand. <kbd>RECT</kbd> / <kbd>ELLIPSE</kbd> drop a marquee that stays put after you release the mouse: drag inside it to reposition, switch between Rect and Ellipse to morph the shape, then hit the green <kbd>✓</kbd> (or <kbd>Enter</kbd>) to commit the cut — or the red <kbd>✗</kbd> (or <kbd>Esc</kbd>) to discard.</p>
-    <p><b>3. Erase / Restore</b> — Drag with <kbd>ERASE</kbd> to make pixels transparent (checker pattern reveals where the body will be invisible). Switch to <kbd>RESTORE</kbd> (or hold <kbd>Alt</kbd>) to bring them back.</p>
-    <p><b>4. Undo</b> — <kbd>↺ Undo</kbd> (or <kbd>Ctrl+Z</kbd>) reverts the last action. Holds up to 30 steps in memory.</p>
-    <p><b>5. Download</b> — <kbd>Upper</kbd> / <kbd>Lower</kbd> save individual PNGs. <kbd>Both</kbd> bundles them into a single <code>alpha_mask.zip</code> — one save dialog, two files inside. You get clean white-on-transparent PNGs with no decorative template artwork — just the alpha mask.</p>
-    <p><b>6. Upload to SL</b> — <code>Build → Upload → Image…</code>, then apply via your body's HUD as a custom alpha layer. The transparent areas of the PNG become invisible body parts.</p>
-    <p style="opacity:0.8;font-size:13px;">Default templates: Second Life™ Fashion Design Templates © 2003 Linden Research, Inc., <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a> (flattened, upscaled to 1024×1024). Custom templates can be any image; they stay on your machine — nothing is uploaded.</p>
+    <p><b>1. (Optional) Load your own template</b> - Click <kbd>Load Upper…</kbd> / <kbd>Load Lower…</kbd>, or drag&drop an image straight onto the canvas. The default templates (Linden Lab's official Fashion Design Templates) work for any mesh body that shares the classic SL UV layout. If your body ships its own template (Reborn, Legacy, Maitreya…) load it here so the wireframe matches exactly.</p>
+    <p><b>2. Pick a tool</b> - <kbd>BRUSH</kbd> for free-hand. <kbd>RECT</kbd> / <kbd>ELLIPSE</kbd> drop a marquee that stays put after you release the mouse: drag inside it to reposition, switch between Rect and Ellipse to morph the shape, then hit the green <kbd>✓</kbd> (or <kbd>Enter</kbd>) to commit the cut - or the red <kbd>✗</kbd> (or <kbd>Esc</kbd>) to discard.</p>
+    <p><b>3. Erase / Restore</b> - Drag with <kbd>ERASE</kbd> to make pixels transparent (checker pattern reveals where the body will be invisible). Switch to <kbd>RESTORE</kbd> (or hold <kbd>Alt</kbd>) to bring them back.</p>
+    <p><b>4. Undo</b> - <kbd>↺ Undo</kbd> (or <kbd>Ctrl+Z</kbd>) reverts the last action. Holds up to 30 steps in memory.</p>
+    <p><b>5. Download</b> - <kbd>Upper</kbd> / <kbd>Lower</kbd> save individual PNGs. <kbd>Both</kbd> bundles them into a single <code>alpha_mask.zip</code> - one save dialog, two files inside. You get clean white-on-transparent PNGs with no decorative template artwork - just the alpha mask.</p>
+    <p><b>6. Upload to SL</b> - <code>Build → Upload → Image…</code>, then apply via your body's HUD as a custom alpha layer. The transparent areas of the PNG become invisible body parts.</p>
+    <p style="opacity:0.8;font-size:13px;">Default templates: Second Life™ Fashion Design Templates © 2003 Linden Research, Inc., <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a> (flattened, upscaled to 1024×1024). Custom templates can be any image; they stay on your machine - nothing is uploaded.</p>
   </details>
 
   <div class="footer-bar">
@@ -2221,7 +2221,7 @@ body.slt-themed .mode-btn {
 'use strict';
 
 /* =====================================================================
-   SL Alpha Maker — paint transparent areas over the classic SL avatar
+   SL Alpha Maker - paint transparent areas over the classic SL avatar
    UV template (Linden Lab's official Fashion Design Templates,
    CC BY 3.0) and download as a ready-to-upload alpha mask PNG. The
    same UV layout is used by Legacy, Reborn, Maitreya, and most other
@@ -2233,14 +2233,14 @@ body.slt-themed .mode-btn {
    template image is drawn into the canvas once on load.
 
    "Erase" paints with globalCompositeOperation = 'destination-out'
-   which punches a circular hole in the canvas alpha — pixels become
+   which punches a circular hole in the canvas alpha - pixels become
    transparent and reveal the checker stage behind. "Restore" uses
    createPattern(srcImage, 'no-repeat') as the fill, which puts the
    original template pixels back where the brush passes (pattern is
    aligned to canvas origin since both are the same size).
 
    Export builds a fresh white canvas at source resolution and uses
-   'destination-in' against the live editor canvas — wherever the user
+   'destination-in' against the live editor canvas - wherever the user
    erased, the white pixel is dropped, producing a clean white-on-
    transparent alpha mask with no decorative artwork from the template.
    ===================================================================== */
@@ -2272,7 +2272,7 @@ const state = {
                           //                    originalCanvasRect, pointerId }
   pendingShape: null,     // committed-but-not-cut shape:
                           //   { side, tool, canvasRect:{x,y,w,h} }
-                          //   canvasRect is the single source of truth —
+                          //   canvasRect is the single source of truth -
                           //   the marquee's on-screen position is derived
                           //   from it via canvasRectToCss(), so visual and
                           //   cut can never disagree. Waits for the user
@@ -2284,7 +2284,7 @@ const editors = {};
 
 // History stack of "before" snapshots for undo. Entries record the
 // side affected, a pixel snapshot of that side's canvas, AND the
-// srcImg reference at that moment — because loading a custom template
+// srcImg reference at that moment - because loading a custom template
 // is also an undo-able change, and the restore brush depends on srcImg.
 const history = [];
 const MAX_HISTORY = 30;
@@ -2368,7 +2368,7 @@ function undo() {
     setStatus('>> Nothing to undo', 'err');
     return;
   }
-  // Drop any pending marquee — its coords may no longer be meaningful
+  // Drop any pending marquee - its coords may no longer be meaningful
   // against the canvas state we're rolling back to.
   clearPendingShape();
   const entry = history.pop();
@@ -2447,7 +2447,7 @@ function paintDot(editor, x, y, r, mode) {
   } else {
     // Restore the original template pixels. The pattern is aligned to
     // canvas origin (0,0), so painting an arc anywhere uses the
-    // corresponding source pixel — no manual coord math needed.
+    // corresponding source pixel - no manual coord math needed.
     ctx.globalCompositeOperation = 'source-over';
     ctx.fillStyle = ctx.createPattern(srcImg, 'no-repeat');
   }
@@ -2471,7 +2471,7 @@ function paintStroke(editor, x0, y0, x1, y1, r, mode) {
 }
 
 // ---- Shape primitives (rect / ellipse marquee) ----
-// (x0,y0)–(x1,y1) are in canvas-internal pixels. Tool decides shape;
+// (x0,y0)-(x1,y1) are in canvas-internal pixels. Tool decides shape;
 // mode decides whether to punch alpha out or restore from the source
 // pattern.
 function applyShape(editor, x0, y0, x1, y1, tool, mode) {
@@ -2500,7 +2500,7 @@ function applyShape(editor, x0, y0, x1, y1, tool, mode) {
 
 // ---- Coordinate helpers ----
 // Returns BOTH the CSS-pixel position (relative to the canvas's
-// border-box, which equals the stage's padding edge — i.e. the
+// border-box, which equals the stage's padding edge - i.e. the
 // coord system the .shape-marquee div lives in) AND the canvas
 // internal-pixel position. Using one source of truth eliminates
 // drift that would make marquee and cut disagree on where the
@@ -2531,7 +2531,7 @@ function pointInCanvasRect(px, py, r) {
 // ---- Marquee preview ----
 // CRITICAL: the marquee's on-screen position is derived from the SAME
 // canvasRect the eventual cut consumes. Both go through canvasRectToCss,
-// so they share a single source of truth and can never disagree — even
+// so they share a single source of truth and can never disagree - even
 // if the window resizes or the canvas reflows between draw and apply.
 function canvasRectToCss(side, canvasRect) {
   const canvas = editors[side].canvas;
@@ -2578,12 +2578,12 @@ function refreshPendingMarquee() {
 
 // ---- Pending shape (the marquee that waits for explicit Apply) ----
 function setPendingShape(side, tool, canvasRect) {
-  // Drop minute selections — they're almost always misclicks.
+  // Drop minute selections - they're almost always misclicks.
   if (canvasRect.w < 1 || canvasRect.h < 1) {
     clearPendingShape();
     return;
   }
-  // Only one pending at a time — wipe any leftover marquee on the other side.
+  // Only one pending at a time - wipe any leftover marquee on the other side.
   if (state.pendingShape && state.pendingShape.side !== side) {
     hideMarquee(state.pendingShape.side);
   }
@@ -2628,7 +2628,7 @@ function getResizeAnchor(handle, r) {
 function applyResizeDrag(handle, anchor, original, mouseX, mouseY) {
   const d = HANDLE_DEF[handle];
   if (d.fx === null) {
-    // N / S — only Y axis moves; X span preserved.
+    // N / S - only Y axis moves; X span preserved.
     return {
       x: original.x, w: original.w,
       y: Math.min(mouseY, anchor.y),
@@ -2636,14 +2636,14 @@ function applyResizeDrag(handle, anchor, original, mouseX, mouseY) {
     };
   }
   if (d.fy === null) {
-    // E / W — only X axis moves; Y span preserved.
+    // E / W - only X axis moves; Y span preserved.
     return {
       x: Math.min(mouseX, anchor.x),
       w: Math.abs(mouseX - anchor.x),
       y: original.y, h: original.h,
     };
   }
-  // Corner — both axes move.
+  // Corner - both axes move.
   return {
     x: Math.min(mouseX, anchor.x),
     y: Math.min(mouseY, anchor.y),
@@ -2670,7 +2670,7 @@ function bindStage(stage, side) {
   stage.addEventListener('pointerenter', (e) => { showCursor(); moveCursor(e); });
   stage.addEventListener('pointerleave', () => {
     cursor.style.display = 'none';
-    // Don't auto-end the stroke/marquee here — pointer capture
+    // Don't auto-end the stroke/marquee here - pointer capture
     // already handles drags that wander off the stage.
   });
 
@@ -2695,7 +2695,7 @@ function bindStage(stage, side) {
         const canvasRect = normalizeRect(sd.startCanvas.x, sd.startCanvas.y, p.canvasX, p.canvasY);
         showMarquee(side, sd.tool, canvasRect, 'drawing');
       } else if (sd.mode === 'move' && state.pendingShape) {
-        // Drag the pending shape around as a rigid body — in CANVAS
+        // Drag the pending shape around as a rigid body - in CANVAS
         // coords, the truth that the cut consumes.
         const ps = state.pendingShape;
         ps.canvasRect.x = p.canvasX - sd.grabCanvas.x;
@@ -2717,7 +2717,7 @@ function bindStage(stage, side) {
     e.preventDefault();
 
     if (state.tool === 'brush') {
-      // Brush also dismisses any pending shape — you switched contexts.
+      // Brush also dismisses any pending shape - you switched contexts.
       clearPendingShape();
       pushHistory(side);
       const { canvasX, canvasY, sx } = eventToCanvas(e, ed.canvas);
@@ -2728,7 +2728,7 @@ function bindStage(stage, side) {
     }
 
     // Rect / Ellipse: either MOVE an existing pending shape or DRAW a new one.
-    // (Resize handles handle their own pointerdown — they stopPropagation,
+    // (Resize handles handle their own pointerdown - they stopPropagation,
     //  so this listener never sees those clicks.)
     const p = eventToCanvas(e, ed.canvas);
     const ps = state.pendingShape;
@@ -2741,7 +2741,7 @@ function bindStage(stage, side) {
         pointerId: e.pointerId,
       };
     } else {
-      // Fresh draw — dismiss any prior pending marquee first.
+      // Fresh draw - dismiss any prior pending marquee first.
       clearPendingShape();
       state.shapeDrag = {
         mode: 'draw', side, tool: state.tool,
@@ -2766,7 +2766,7 @@ function bindStage(stage, side) {
       state.shapeDrag = null;
 
       if (sd.mode === 'draw') {
-        // Convert the just-finished drag into a pending shape — the
+        // Convert the just-finished drag into a pending shape - the
         // marquee stays put until the user hits Apply / Cancel.
         const canvasRect = normalizeRect(sd.startCanvas.x, sd.startCanvas.y, sd.currentCanvas.x, sd.currentCanvas.y);
         setPendingShape(side, sd.tool, canvasRect);
@@ -2915,7 +2915,7 @@ els.clearLower.addEventListener('click', () => clearSide('lower'));
 function clearSide(side) {
   const ed = editors[side];
   if (!ed.loaded) return;
-  // Drop any in-flight selection on this side — clear means "restart".
+  // Drop any in-flight selection on this side - clear means "restart".
   if (state.pendingShape && state.pendingShape.side === side) clearPendingShape();
   pushHistory(side);
   ed.ctx.clearRect(0, 0, ed.canvas.width, ed.canvas.height);
@@ -2980,7 +2980,7 @@ window.addEventListener('resize', () => {
 // NOT erase, fully transparent where they did. The decorative bits
 // of the source template (UV wireframe, text, borders) get masked
 // away because we start from a fresh white fill and only keep pixels
-// where the editor canvas has alpha > 0 — except erased ones, which
+// where the editor canvas has alpha > 0 - except erased ones, which
 // now have alpha=0. The source JPGs are fully opaque so the kept
 // region covers the entire 1024×1024 except the user's erasures.
 function exportSide(side) {
@@ -3034,7 +3034,7 @@ async function download(side) {
 // ---- Minimal ZIP writer (STORE method only, no compression) ----
 // PNGs are already losslessly compressed via DEFLATE inside the .png
 // container, so wrapping them in DEFLATE again gains almost nothing.
-// STORE keeps the writer tiny — ~50 lines of bit-banging, no library.
+// STORE keeps the writer tiny - ~50 lines of bit-banging, no library.
 //
 // Each entry needs a CRC-32 of its raw bytes, which the standard
 // polynomial 0xEDB88320 produces. The 256-entry table is built once
@@ -3057,7 +3057,7 @@ function crc32(data) {
 }
 
 // Build a ZIP blob from [{ name, blob }] entries. All offsets and
-// sizes are 32-bit (fine for our ~MB-sized PNGs — ZIP64 not needed).
+// sizes are 32-bit (fine for our ~MB-sized PNGs - ZIP64 not needed).
 async function createZip(files) {
   const enc  = new TextEncoder();
   const now  = new Date();
@@ -3165,7 +3165,7 @@ function setStatus(msg, kind) {
   els.status.className = 'status' + (kind ? ' ' + kind : '');
 }
 
-// Nothing else to do here — the two editors finish loading async
+// Nothing else to do here - the two editors finish loading async
 // and flip their stages' data-loaded attribute on their own.
 </script>
 

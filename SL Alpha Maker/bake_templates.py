@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 """
-bake_templates.py — inline the body templates as base64 data URLs.
+bake_templates.py - inline the body templates as base64 data URLs.
 
 Why we need this
 ----------------
 SL Alpha Maker is opened over file:// from disk. Chrome (and most
 Chromium browsers) treat every local file as its own origin, so when
 an <img> loads ./Robin Wood/foo.jpg and we drawImage it onto a canvas,
-the canvas becomes "tainted" — toBlob() then throws a SecurityError
+the canvas becomes "tainted" - toBlob() then throws a SecurityError
 and the user can't download the alpha mask.
 
 Inlining the templates as data: URLs sidesteps the origin check
@@ -34,8 +34,8 @@ import sys
 ROOT = Path(__file__).resolve().parent
 HTML = ROOT / "sl_alpha_maker.html"
 
-# Linden Lab's official Fashion Design Templates (CC BY 3.0 — see
-# LL Templates/LICENSE.txt) — one Upper, one Lower. Most mesh bodies
+# Linden Lab's official Fashion Design Templates (CC BY 3.0 - see
+# LL Templates/LICENSE.txt) - one Upper, one Lower. Most mesh bodies
 # (Legacy, Reborn, Maitreya, …) use this same classic UV layout, so
 # one alpha mask is enough for all of them.
 SOURCES = {

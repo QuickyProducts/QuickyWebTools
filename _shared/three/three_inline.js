@@ -25,14 +25,14 @@
   var coreText = b64ToText(B64_CORE);
   var coreUrl  = makeBlob(coreText);
 
-  // three.module.min.js imports the core via "./three.core.min.js" — rewrite
+  // three.module.min.js imports the core via "./three.core.min.js" - rewrite
   // both occurrences to the blob URL of the inlined core so the module file
   // resolves correctly when loaded as a blob.
   var modText = b64ToText(B64_MOD)
     .replace(/['"]\.\/three\.core\.min\.js['"]/g, JSON.stringify(coreUrl));
   var moduleUrl = makeBlob(modText);
 
-  // OrbitControls + RoomEnvironment use bare `from "three"` — these resolve
+  // OrbitControls + RoomEnvironment use bare `from "three"` - these resolve
   // via the importmap below.
   var orbitUrl = makeBlob(b64ToText(B64_ORBIT));
   var roomUrl  = makeBlob(b64ToText(B64_ROOM));

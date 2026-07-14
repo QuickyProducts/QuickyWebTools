@@ -11,7 +11,7 @@
   Terms: https://polyformproject.org/licenses/noncommercial/1.0.0
 
   This tool bundles no third-party libraries; the UI fonts inlined
-  via the SHARED-CSS block are SIL OFL — see THIRD-PARTY-NOTICES.md
+  via the SHARED-CSS block are SIL OFL - see THIRD-PARTY-NOTICES.md
   at the repo root for their attributions.
   ====================================================================
 -->
@@ -20,7 +20,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>SL Animation Combiner</title>
-<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
    SL Tools :: "Aurora Glass" shared theme + navigation  (v2)
@@ -29,7 +29,7 @@
      - deep indigo base with two slowly drifting blurred aurora blobs
      - frosted-glass panels (backdrop blur + 1px light edge + 18px radius)
      - animated pink→purple→cyan gradient headlines
-     - system font stack — no embedded webfonts, maximum readability
+     - system font stack - no embedded webfonts, maximum readability
      - full prefers-reduced-motion support
 
    The selector contract from v1 is preserved verbatim: every class,
@@ -102,7 +102,7 @@ body.slt-themed::after {
 }
 body.slt-themed ::selection { background: rgba(255, 60, 172, 0.4); }
 
-/* Legacy element from the v1 theme — kept as a no-op so old tool HTML
+/* Legacy element from the v1 theme - kept as a no-op so old tool HTML
    that still renders <div class="slt-scanlines"> stays harmless. */
 .slt-scanlines { display: none !important; }
 
@@ -353,7 +353,7 @@ html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
 
 
 /* =====================================================================
-   Aurora UI — applied on every tool that opts in via
+   Aurora UI - applied on every tool that opts in via
    <body class="slt-themed">. !important keeps the cascade on our side
    regardless of tool-local source order or specificity.
    ===================================================================== */
@@ -1381,7 +1381,7 @@ body.slt-themed .mode-btn {
 
 
 /* =====================================================================
-   Motion accessibility — kill every animation/transition for users who
+   Motion accessibility - kill every animation/transition for users who
    ask for reduced motion. The aurora blobs freeze in place, the title
    gradient stops cycling, panels appear instantly.
    ===================================================================== */
@@ -1403,7 +1403,7 @@ body.slt-themed .mode-btn {
 <script>window.SLT_CURRENT = 'anim-combiner';</script>
 <style>
   /* =====================================================================
-     Tool-local styles — layout & spacing only ("Aurora Glass" v2).
+     Tool-local styles - layout & spacing only ("Aurora Glass" v2).
      Colors, fonts, glass panels, buttons, drop zones, status pills and
      details/summary chrome all come from the SHARED-CSS block above.
      The #jointsCard rules use the container id to out-rank the shared
@@ -1442,7 +1442,7 @@ body.slt-themed .mode-btn {
   .role { font-weight: 700; font-size: 13.5px; color: var(--slt-txt); line-height: 1.25; }
   .role small { display: block; color: var(--slt-dim); font-weight: 500; font-size: 11.5px; margin-top: 3px; }
 
-  /* Border + colors come from the shared .drop rules — layout only here. */
+  /* Border + colors come from the shared .drop rules - layout only here. */
   .drop { display: block; padding: 22px 14px; text-align: center; cursor: pointer; }
   .drop strong { display: block; margin-bottom: 6px; font-size: 13px; }
   .drop small { font-size: 11px; }
@@ -1602,7 +1602,7 @@ body.slt-themed .mode-btn {
 </style>
 </head>
 <body class="slt-themed">
-<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-JS:BEGIN - auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <script>
 /* =====================================================================
    SL Tools :: Navigation bootstrapper
@@ -1614,7 +1614,7 @@ body.slt-themed .mode-btn {
    ---------------------------
    Each tool folder contains a tiny `_meta.js` that registers its own
    metadata into window.__SLT_AVAILABLE. This script tries to load that
-   file via <script> tags — file:// allows local <script> loads and
+   file via <script> tags - file:// allows local <script> loads and
    onerror fires reliably when the file is missing, so removing a tool
    folder makes it disappear from the nav of every other tool with no
    further configuration.
@@ -1628,7 +1628,7 @@ body.slt-themed .mode-btn {
       this script runs.
    4. Run `python "_shared/sync_inline.py"` to bake the latest shared
       CSS + JS + Three.js (if needed) into every tool so each HTML is
-      standalone — works without _shared/ or any network.
+      standalone - works without _shared/ or any network.
    ===================================================================== */
 (function () {
   'use strict';
@@ -1699,7 +1699,7 @@ body.slt-themed .mode-btn {
 
   // ---------------------------------------------------------------------
   // The body theme (aurora blobs, glass panels) is applied entirely via
-  // CSS on <body class="slt-themed"> — no flash of unstyled content.
+  // CSS on <body class="slt-themed"> - no flash of unstyled content.
   // This script renders the floating nav after probing for sibling
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
@@ -1801,7 +1801,7 @@ body.slt-themed .mode-btn {
     handle.innerHTML =
       '<span class="slt-nav-current">' + currentBadge + '</span>' +
       '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
-    handle.title = 'SL Tools — click to switch';
+    handle.title = 'SL Tools - click to switch';
     nav.appendChild(handle);
 
     // Collapsible panel (the actual menu)
@@ -1834,7 +1834,7 @@ body.slt-themed .mode-btn {
         // smooth fade-out before navigating
         a.addEventListener('click', smoothNavigate);
       }
-      a.title = tool.name + ' — ' + tool.subtitle;
+      a.title = tool.name + ' - ' + tool.subtitle;
       a.innerHTML =
         '<span class="slt-nav-badge">' + tool.badge + '</span>' +
         '<span class="slt-nav-name">' + tool.name +
@@ -1911,14 +1911,14 @@ body.slt-themed .mode-btn {
   <header class="slt-titlebar">
     <div class="slt-subtitle">Merge two animations into one</div>
     <h1 class="slt-title">SL Animation Combiner</h1>
-    <p class="slt-lede">Drop two <code>.anim</code> files — in <b>any order</b> — and hit Combine. For every bone the file with the higher priority wins automatically, useless "pinned" bones are dropped, and the result loops cleanly. Everything happens locally in your browser, nothing is uploaded.</p>
+    <p class="slt-lede">Drop two <code>.anim</code> files - in <b>any order</b> - and hit Combine. For every bone the file with the higher priority wins automatically, useless "pinned" bones are dropped, and the result loops cleanly. Everything happens locally in your browser, nothing is uploaded.</p>
   </header>
 
   <div class="row">
     <div class="card">
       <div class="card-head">
         <div class="badge">A</div>
-        <div class="role">Animation A<small>drop either file — order doesn't matter</small></div>
+        <div class="role">Animation A<small>drop either file - order doesn't matter</small></div>
       </div>
       <label class="drop" id="dropA">
         <strong>&gt;&gt; CHOOSE FILE OR DROP IT HERE &lt;&lt;</strong>
@@ -1931,7 +1931,7 @@ body.slt-themed .mode-btn {
     <div class="card">
       <div class="card-head">
         <div class="badge">B</div>
-        <div class="role">Animation B<small>higher priority wins each bone — ties go to B</small></div>
+        <div class="role">Animation B<small>higher priority wins each bone - ties go to B</small></div>
       </div>
       <label class="drop" id="dropB">
         <strong>&gt;&gt; CHOOSE FILE OR DROP IT HERE &lt;&lt;</strong>
@@ -1945,7 +1945,7 @@ body.slt-themed .mode-btn {
   <div class="meta" id="summary"></div>
 
   <details class="options" id="jointsCard" style="display:none">
-    <summary>Joint Control — fine-tune who wins (optional)</summary>
+    <summary>Joint Control - fine-tune who wins (optional)</summary>
     <div class="joint-toolbar">
       <span class="tb-label">Quick set:</span>
       <button class="mini" data-allset="auto">AUTO</button>
@@ -1962,7 +1962,7 @@ body.slt-themed .mode-btn {
       <label class="field">
         <div class="field-label">Take duration &amp; loop from</div>
         <select id="optDuration">
-          <option value="auto" selected>Auto — the longer file (recommended)</option>
+          <option value="auto" selected>Auto - the longer file (recommended)</option>
           <option value="a">Animation A</option>
           <option value="b">Animation B</option>
         </select>
@@ -1970,9 +1970,9 @@ body.slt-themed .mode-btn {
       <label class="field">
         <div class="field-label">Cycle timing (bones from the other file)</div>
         <select id="optTiming">
-          <option value="tile" selected>Tile — repeat cycle at original speed (recommended)</option>
-          <option value="stretch">Stretch — fit whole file into the loop window</option>
-          <option value="raw">Raw — keep key times untouched</option>
+          <option value="tile" selected>Tile - repeat cycle at original speed (recommended)</option>
+          <option value="stretch">Stretch - fit whole file into the loop window</option>
+          <option value="raw">Raw - keep key times untouched</option>
         </select>
       </label>
       <label class="field">
@@ -1994,8 +1994,8 @@ body.slt-themed .mode-btn {
   <details class="help">
     <summary>What does this tool actually do?</summary>
     <p>An SL animation is a list of "joints" (skeleton bones) with keyframes per joint. This tool merges two files into one. The AUTO rules do what SL itself would do if you played both at once: for every bone that exists in both files, <b>the one with the higher joint priority wins</b> (tie → B). Duration and loop come from the longer file, the other file's motion cycle is tiled into it at original speed.</p>
-    <p><b>Pinned bones are dropped automatically:</b> many animations carry static, do-nothing joints — e.g. an <code>mPelvis</code> frozen at zero that would kill your AO's stand sway. AUTO detects those (static <i>and</i> at rest pose) and sets them OFF. Open Joint Control to bring one back or to override any pick by hand: <b>A</b>, <b>B</b>, or <b>OFF</b> per bone or per group.</p>
-    <p><b>Cycle timing:</b> bones taken from the file that does <i>not</i> drive the duration must be re-timed to fit the new length. <b>Tile</b> repeats that file's loop cycle at (almost) original speed until it fills the output loop — best for cyclic motion like typing or rubbing. <b>Stretch</b> squeezes the whole file once into the loop window — best for slow poses, but it slows the motion down. <b>Raw</b> copies key times 1:1 — only correct if both files have the same duration.</p>
+    <p><b>Pinned bones are dropped automatically:</b> many animations carry static, do-nothing joints - e.g. an <code>mPelvis</code> frozen at zero that would kill your AO's stand sway. AUTO detects those (static <i>and</i> at rest pose) and sets them OFF. Open Joint Control to bring one back or to override any pick by hand: <b>A</b>, <b>B</b>, or <b>OFF</b> per bone or per group.</p>
+    <p><b>Cycle timing:</b> bones taken from the file that does <i>not</i> drive the duration must be re-timed to fit the new length. <b>Tile</b> repeats that file's loop cycle at (almost) original speed until it fills the output loop - best for cyclic motion like typing or rubbing. <b>Stretch</b> squeezes the whole file once into the loop window - best for slow poses, but it slows the motion down. <b>Raw</b> copies key times 1:1 - only correct if both files have the same duration.</p>
     <p class="hint">Joint priorities are kept per joint from their source file, so in-world layering keeps working the way it did with the two originals.</p>
   </details>
 
@@ -2142,7 +2142,7 @@ function lerpAt(keys, t) {
 
 // Tile the source file's loop cycle into [winIn, winOut] of the output at
 // (nearly) original speed. The cycle count is rounded so the last cycle
-// ends exactly on winOut — the result loops seamlessly, at worst a few
+// ends exactly on winOut - the result loops seamlessly, at worst a few
 // percent faster or slower than the original.
 function tileKeys(keys, src, outDur, winIn, winOut) {
   if (!keys.length) return [];
@@ -2235,7 +2235,7 @@ function combine(a, b, opts) {
       posKeys: retime(src.posKeys),
     });
   }
-  if (!finalJoints.length) throw new Error('every joint is set to OFF — nothing to write');
+  if (!finalJoints.length) throw new Error('every joint is set to OFF - nothing to write');
   return writeAnim(header, finalJoints);
 }
 
@@ -2298,11 +2298,11 @@ function summarize() {
   const list = side => GROUPS
     .filter(g => wins[side][g.id])
     .map(g => `${g.label} (${wins[side][g.id]})`)
-    .join(' · ') || '—';
+    .join(' · ') || '-';
   const drv = resolveDuration() === 'b' ? state.b : state.a;
   els.summary.innerHTML = `<b>RESULT PREVIEW</b><br>
-    <span class="field">from A · ${state.aName}:</span> ${ca} bones — ${list('A')}<br>
-    <span class="field">from B · ${state.bName}:</span> ${cb} bones — ${list('B')}<br>
+    <span class="field">from A · ${state.aName}:</span> ${ca} bones - ${list('A')}<br>
+    <span class="field">from B · ${state.bName}:</span> ${cb} bones - ${list('B')}<br>
     <span class="field">dropped pins:</span> ${dropped.length ? dropped.join(', ') : 'none'}<br>
     <span class="field">duration &amp; loop:</span> ${drv.duration.toFixed(2)}s from ${drv === state.a ? 'A' : 'B'}${drv.loop ? ' · loops' : ''}`;
   els.summary.classList.add('shown');
@@ -2352,7 +2352,7 @@ function renderJoints() {
     for (const n of list) {
       const inA = !!state.a.jointsByName[n], inB = !!state.b.jointsByName[n];
       html += `<div class="jrow" data-joint="${n}">
-        <span class="jname" title="${n} — in ${inA && inB ? 'A + B' : inA ? 'A only' : 'B only'}">${n}</span>
+        <span class="jname" title="${n} - in ${inA && inB ? 'A + B' : inA ? 'A only' : 'B only'}">${n}</span>
         <span class="jseg">
           <button data-c="A"${inA ? '' : ' disabled'}>A</button>
           <button data-c="B"${inB ? '' : ' disabled'}>B</button>

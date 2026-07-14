@@ -16,14 +16,14 @@ still satisfies MIT, ISC, SIL OFL, and CC BY notice requirements.
 
 The tools' own application code (UI, file parsers, builders, styles
 written by Ya) is licensed separately under the **PolyForm
-Noncommercial License 1.0.0** — see the `LICENSE` file at the repo
+Noncommercial License 1.0.0** - see the `LICENSE` file at the repo
 root for the full text.
 
 ---
 
 ## 1. JavaScript libraries
 
-### Three.js — MIT
+### Three.js - MIT
 
 **Used in:** `SL Animation Priority Changer`, `SL 3D Text Creator`
 **Version bundled:** r184
@@ -56,7 +56,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### earcut — ISC
+### earcut - ISC
 
 **Used in:** `SL 3D Text Creator`
 **Source:** https://github.com/mapbox/earcut
@@ -82,7 +82,7 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
 PERFORMANCE OF THIS SOFTWARE.
 ```
 
-### opentype.js — MIT
+### opentype.js - MIT
 
 **Used in:** `SL 3D Text Creator`
 **Source:** https://github.com/opentypejs/opentype.js
@@ -114,7 +114,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### gifuct-js — MIT
+### gifuct-js - MIT
 
 **Used in:** `SL Sprite Sheet Maker`
 **Source:** https://github.com/matt-way/gifuct-js
@@ -148,9 +148,9 @@ SOFTWARE.
 
 ---
 
-## 2. Fonts — SIL Open Font License v1.1
+## 2. Fonts - SIL Open Font License v1.1
 
-*(The tool UI itself uses the operating system's native font stack —
+*(The tool UI itself uses the operating system's native font stack -
 no UI webfonts are embedded.)*
 
 ### 3D-Text-Creator picker fonts
@@ -168,7 +168,7 @@ embedded in the shipped builds:
 | Audiowide       | Copyright © 2012 Brian J. Bonislawsky DBA Astigmatic (AOETI), Reserved Font Name "Audiowide" |
 | Anton           | Copyright 2020 The Anton Project Authors (github.com/googlefonts/AntonFont.git) |
 | Bebas Neue      | Copyright 2019 The Bebas Neue Project Authors (github.com/dharmatype/Bebas-Neue) |
-| Black Ops One   | Copyright 2022 The PinyonScript Project Authors (github.com/SorkinType/Black-Ops) *(upstream metadata quirk — this is the Black Ops One repo)* |
+| Black Ops One   | Copyright 2022 The PinyonScript Project Authors (github.com/SorkinType/Black-Ops) *(upstream metadata quirk - this is the Black Ops One repo)* |
 | Press Start 2P  | Copyright 2012 The Press Start 2P Project Authors, Reserved Font Name "Press Start 2P" |
 | Righteous       | Copyright © 2011 Brian J. Bonislawsky DBA Astigmatic (AOETI), Reserved Font Name "Righteous" |
 | Russo One       | Copyright © 2011-2012 Jovanny Lemonad (jovanny.ru), Reserved Font Name "Russo" |
@@ -274,7 +274,7 @@ SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.
 
 ## 3. Image assets
 
-### Second Life™ Fashion Design Templates (Linden Lab) — CC BY 3.0
+### Second Life™ Fashion Design Templates (Linden Lab) - CC BY 3.0
 
 **Used in:** `SL Alpha Maker`
 **Files:** `SL Alpha Maker/LL Templates/SL-Upper-1024.jpg`,
@@ -309,4 +309,4 @@ No other modifications were made.
 | gifuct-js | inlined into Sprite Sheet Maker | MIT | yes |
 | Picker fonts: Pacifico seed in 3DText HTML; 7 others via `_shared/fonts/fonts_inline.js` | 3DText + `_shared/fonts/` | SIL OFL 1.1 | yes (bundled) |
 | Linden Lab Fashion Design Templates (Upper/Lower) | `SL Alpha Maker/LL Templates/` + baked into the tool | CC BY 3.0 (© 2003 Linden Research, Inc.) | yes, with attribution + change notes (included) |
-| Application code (UI, parsers, builders, styles; incl. Music Slicer) | each tool's HTML + `_shared/` | PolyForm Noncommercial 1.0.0 — see `LICENSE` | for noncommercial use |
+| Application code (UI, parsers, builders, styles; incl. Music Slicer) | each tool's HTML + `_shared/` | PolyForm Noncommercial 1.0.0 - see `LICENSE` | for noncommercial use |

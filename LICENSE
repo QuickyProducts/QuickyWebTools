@@ -1,7 +1,7 @@
 Required Notice: Copyright © 2026 Ya. All rights reserved.
 
 This LICENSE applies ONLY to the application code in this repository
-that was written by Ya — that is: the UI, the SL .anim binary parser
+that was written by Ya - that is: the UI, the SL .anim binary parser
 and writer, the sprite-sheet pipeline, the 3D-text glyph extraction
 and Collada (.dae) writer, the HUD-buttons mesh builder, the alpha-
 mask editor, the build scripts under _shared/, and all custom styles.
@@ -12,7 +12,7 @@ License 1.0.0**, reproduced verbatim below.
 Plain-language summary (not part of the licence):
 
   • You may use, copy, modify, and redistribute the application code
-    for any NONCOMMERCIAL purpose — personal hobby use, learning,
+    for any NONCOMMERCIAL purpose - personal hobby use, learning,
     private study, charitable / educational organisations, etc.
 
   • You may NOT use it for commercial purposes. In particular: you
@@ -26,7 +26,7 @@ Plain-language summary (not part of the licence):
 
 Third-party material bundled into the tools (Three.js, earcut,
 opentype.js, gifuct-js, the SIL-OFL fonts, and the Robin Wood UV
-templates) is **not** covered by this licence — each one keeps its
+templates) is **not** covered by this licence - each one keeps its
 own permissive licence. See THIRD-PARTY-NOTICES.md at the repo root
 for the full attribution and licence texts.
 

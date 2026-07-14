@@ -17,7 +17,7 @@
 <head>
 <meta charset="utf-8">
 <title>SL Music Slicer</title>
-<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
    SL Tools :: "Aurora Glass" shared theme + navigation  (v2)
@@ -26,7 +26,7 @@
      - deep indigo base with two slowly drifting blurred aurora blobs
      - frosted-glass panels (backdrop blur + 1px light edge + 18px radius)
      - animated pink→purple→cyan gradient headlines
-     - system font stack — no embedded webfonts, maximum readability
+     - system font stack - no embedded webfonts, maximum readability
      - full prefers-reduced-motion support
 
    The selector contract from v1 is preserved verbatim: every class,
@@ -99,7 +99,7 @@ body.slt-themed::after {
 }
 body.slt-themed ::selection { background: rgba(255, 60, 172, 0.4); }
 
-/* Legacy element from the v1 theme — kept as a no-op so old tool HTML
+/* Legacy element from the v1 theme - kept as a no-op so old tool HTML
    that still renders <div class="slt-scanlines"> stays harmless. */
 .slt-scanlines { display: none !important; }
 
@@ -350,7 +350,7 @@ html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
 
 
 /* =====================================================================
-   Aurora UI — applied on every tool that opts in via
+   Aurora UI - applied on every tool that opts in via
    <body class="slt-themed">. !important keeps the cascade on our side
    regardless of tool-local source order or specificity.
    ===================================================================== */
@@ -1378,7 +1378,7 @@ body.slt-themed .mode-btn {
 
 
 /* =====================================================================
-   Motion accessibility — kill every animation/transition for users who
+   Motion accessibility - kill every animation/transition for users who
    ask for reduced motion. The aurora blobs freeze in place, the title
    gradient stops cycling, panels appear instantly.
    ===================================================================== */
@@ -1415,7 +1415,7 @@ body::before{width:55vw;height:55vw;background:radial-gradient(circle,#5b2ba8,tr
 body::after{width:46vw;height:46vw;background:radial-gradient(circle,#b41f7e,transparent 65%);bottom:-16vw;right:-10vw;animation:drift 30s -15s ease-in-out infinite alternate-reverse}
 @keyframes drift{to{transform:translate(6vw,4vh) scale(1.18)}}
 ::selection{background:rgba(255,60,172,.4)}
-/* Centered titlebar — mirrors the .slt-titlebar pattern used by the
+/* Centered titlebar - mirrors the .slt-titlebar pattern used by the
    other tools (tagline chip, gradient h1, lede). */
 header{text-align:center;margin:26px auto 4px;max-width:940px;padding:0 16px}
 header .tagline{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--dim);padding:4px 14px;border:1px solid var(--edge);border-radius:999px;background:var(--glass)}
@@ -1429,7 +1429,7 @@ header h1{font-size:clamp(28px,4.6vw,44px);line-height:1.15;font-weight:800;lett
 @keyframes hue{to{background-position:300% 0}}
 main{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:18px 24px 40px;max-width:1200px;margin:0 auto}
 /* Start state (no song loaded yet): the editor is hidden, so collapse
-   the grid to one centered column — the drop zone sits in the middle
+   the grid to one centered column - the drop zone sits in the middle
    instead of hugging the left edge. Progressive enhancement via :has
    (all current Chrome/Edge/Firefox/Safari support it). */
 main:has(#editor.hidden){grid-template-columns:1fr;max-width:520px}
@@ -1521,7 +1521,7 @@ body{animation:slt-page-in .28s ease-out both}
 </style>
 </head>
 <body>
-<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-JS:BEGIN - auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <script>
 /* =====================================================================
    SL Tools :: Navigation bootstrapper
@@ -1533,7 +1533,7 @@ body{animation:slt-page-in .28s ease-out both}
    ---------------------------
    Each tool folder contains a tiny `_meta.js` that registers its own
    metadata into window.__SLT_AVAILABLE. This script tries to load that
-   file via <script> tags — file:// allows local <script> loads and
+   file via <script> tags - file:// allows local <script> loads and
    onerror fires reliably when the file is missing, so removing a tool
    folder makes it disappear from the nav of every other tool with no
    further configuration.
@@ -1547,7 +1547,7 @@ body{animation:slt-page-in .28s ease-out both}
       this script runs.
    4. Run `python "_shared/sync_inline.py"` to bake the latest shared
       CSS + JS + Three.js (if needed) into every tool so each HTML is
-      standalone — works without _shared/ or any network.
+      standalone - works without _shared/ or any network.
    ===================================================================== */
 (function () {
   'use strict';
@@ -1618,7 +1618,7 @@ body{animation:slt-page-in .28s ease-out both}
 
   // ---------------------------------------------------------------------
   // The body theme (aurora blobs, glass panels) is applied entirely via
-  // CSS on <body class="slt-themed"> — no flash of unstyled content.
+  // CSS on <body class="slt-themed"> - no flash of unstyled content.
   // This script renders the floating nav after probing for sibling
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
@@ -1720,7 +1720,7 @@ body{animation:slt-page-in .28s ease-out both}
     handle.innerHTML =
       '<span class="slt-nav-current">' + currentBadge + '</span>' +
       '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
-    handle.title = 'SL Tools — click to switch';
+    handle.title = 'SL Tools - click to switch';
     nav.appendChild(handle);
 
     // Collapsible panel (the actual menu)
@@ -1753,7 +1753,7 @@ body{animation:slt-page-in .28s ease-out both}
         // smooth fade-out before navigating
         a.addEventListener('click', smoothNavigate);
       }
-      a.title = tool.name + ' — ' + tool.subtitle;
+      a.title = tool.name + ' - ' + tool.subtitle;
       a.innerHTML =
         '<span class="slt-nav-badge">' + tool.badge + '</span>' +
         '<span class="slt-nav-name">' + tool.name +
@@ -1833,7 +1833,7 @@ body{animation:slt-page-in .28s ease-out both}
     <h1>SL Music Slicer</h1>
     <div class="eq"><i></i><i></i><i></i><i></i><i></i></div>
   </div>
-  <p class="lede">Cut songs into ≤30s clips, boost loudness to one even level, and export upload-ready WAVs — everything runs locally in your browser.</p>
+  <p class="lede">Cut songs into ≤30s clips, boost loudness to one even level, and export upload-ready WAVs - everything runs locally in your browser.</p>
 </header>
 <main>
   <div id="queuePanel">
@@ -1841,7 +1841,7 @@ body{animation:slt-page-in .28s ease-out both}
     <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus" multiple hidden>
     <div id="songList"></div>
     <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
-    <label id="flatZipRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level — handy for bulk-uploading everything in one go.">
+    <label id="flatZipRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level - handy for bulk-uploading everything in one go.">
       <input type="checkbox" id="flatZip"> No folders in ZIP (all clips top-level)
     </label>
   </div>
@@ -2293,7 +2293,7 @@ function open(i) {
     if (songs[cur] !== s) return;
     if (fresh) { view = { v0: 0, v1: s.dur }; ph = s.trimS; fillFields(); }
     draw();
-  }).catch(e => log('decode failed: ' + s.file.name + ' — ' + e, true));
+  }).catch(e => log('decode failed: ' + s.file.name + ' - ' + e, true));
 }
 function fillFields() {
   const s = songs[cur];
@@ -2664,7 +2664,7 @@ async function renderSong(s, onprog) {
   if (L > -60 && peak > 1e-6) G = clamp(Math.pow(10, (LOUD_DB - L) / 20), 0.1, Math.min(16, 2 * CEIL / peak));
   const minG = limitInPlace(x, G, CEIL);
   const lens = sliceLens(outLen, Math.round(s.maxLen * SR));
-  if (!lens) throw 'more than 99 clips — trim more';
+  if (!lens) throw 'more than 99 clips - trim more';
   const dk = Math.round(s.declick * SR / 1000);
   const files = []; let offs = 0;
   for (let i = 0; i < lens.length; i++) {
@@ -2699,7 +2699,7 @@ $('exportOne').onclick = async () => {
   prog(false);
   $('exportOne').disabled = false;
 };
-// "No folders in ZIP" toggle — flat Export-ALL for one-shot bulk
+// "No folders in ZIP" toggle - flat Export-ALL for one-shot bulk
 // uploads. Clip names are collision-free without folders: they start
 // with the song title and duplicate titles are blocked by validate().
 // State persists across sessions.
@@ -2726,7 +2726,7 @@ $('exportAll').onclick = async () => {
   }
   if (all.length) {
     download(makeZip(all), 'SL_Music_Clips.zip');
-    log('✔ ' + done + ' songs / ' + clips + ' clips → SL_Music_Clips.zip (' + (flat ? 'all clips top-level, no folders' : 'one folder per title inside') + ')' + (fail ? ' — ' + fail + ' FAILED, see above' : ''));
+    log('✔ ' + done + ' songs / ' + clips + ' clips → SL_Music_Clips.zip (' + (flat ? 'all clips top-level, no folders' : 'one folder per title inside') + ')' + (fail ? ' - ' + fail + ' FAILED, see above' : ''));
     boom($('exportAll'));
   }
   prog(false);

@@ -11,7 +11,7 @@
   Terms: https://polyformproject.org/licenses/noncommercial/1.0.0
 
   This tool bundles no third-party libraries; the UI fonts inlined
-  via the SHARED-CSS block are SIL OFL — see THIRD-PARTY-NOTICES.md
+  via the SHARED-CSS block are SIL OFL - see THIRD-PARTY-NOTICES.md
   at the repo root for their attributions.
   ====================================================================
 -->
@@ -19,7 +19,7 @@
 <head>
 <meta charset="UTF-8">
 <title>SL HUD Buttons Creator</title>
-<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
    SL Tools :: "Aurora Glass" shared theme + navigation  (v2)
@@ -28,7 +28,7 @@
      - deep indigo base with two slowly drifting blurred aurora blobs
      - frosted-glass panels (backdrop blur + 1px light edge + 18px radius)
      - animated pink→purple→cyan gradient headlines
-     - system font stack — no embedded webfonts, maximum readability
+     - system font stack - no embedded webfonts, maximum readability
      - full prefers-reduced-motion support
 
    The selector contract from v1 is preserved verbatim: every class,
@@ -101,7 +101,7 @@ body.slt-themed::after {
 }
 body.slt-themed ::selection { background: rgba(255, 60, 172, 0.4); }
 
-/* Legacy element from the v1 theme — kept as a no-op so old tool HTML
+/* Legacy element from the v1 theme - kept as a no-op so old tool HTML
    that still renders <div class="slt-scanlines"> stays harmless. */
 .slt-scanlines { display: none !important; }
 
@@ -352,7 +352,7 @@ html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
 
 
 /* =====================================================================
-   Aurora UI — applied on every tool that opts in via
+   Aurora UI - applied on every tool that opts in via
    <body class="slt-themed">. !important keeps the cascade on our side
    regardless of tool-local source order or specificity.
    ===================================================================== */
@@ -1380,7 +1380,7 @@ body.slt-themed .mode-btn {
 
 
 /* =====================================================================
-   Motion accessibility — kill every animation/transition for users who
+   Motion accessibility - kill every animation/transition for users who
    ask for reduced motion. The aurora blobs freeze in place, the title
    gradient stops cycling, panels appear instantly.
    ===================================================================== */
@@ -1401,7 +1401,7 @@ body.slt-themed .mode-btn {
 <!-- SHARED-CSS:END -->
 <script>window.SLT_CURRENT = 'sl-hud';</script>
 <style>
-  /* Tool-local CSS — only the truly unique bits.
+  /* Tool-local CSS - only the truly unique bits.
      All shared theming + layout lives in ../_shared/sl-nav.css. */
   body { padding: 20px; }
   .panel { padding: 16px; margin-bottom: 16px; }
@@ -1471,7 +1471,7 @@ body.slt-themed .mode-btn {
 </style>
 </head>
 <body class="slt-themed">
-<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-JS:BEGIN - auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <script>
 /* =====================================================================
    SL Tools :: Navigation bootstrapper
@@ -1483,7 +1483,7 @@ body.slt-themed .mode-btn {
    ---------------------------
    Each tool folder contains a tiny `_meta.js` that registers its own
    metadata into window.__SLT_AVAILABLE. This script tries to load that
-   file via <script> tags — file:// allows local <script> loads and
+   file via <script> tags - file:// allows local <script> loads and
    onerror fires reliably when the file is missing, so removing a tool
    folder makes it disappear from the nav of every other tool with no
    further configuration.
@@ -1497,7 +1497,7 @@ body.slt-themed .mode-btn {
       this script runs.
    4. Run `python "_shared/sync_inline.py"` to bake the latest shared
       CSS + JS + Three.js (if needed) into every tool so each HTML is
-      standalone — works without _shared/ or any network.
+      standalone - works without _shared/ or any network.
    ===================================================================== */
 (function () {
   'use strict';
@@ -1568,7 +1568,7 @@ body.slt-themed .mode-btn {
 
   // ---------------------------------------------------------------------
   // The body theme (aurora blobs, glass panels) is applied entirely via
-  // CSS on <body class="slt-themed"> — no flash of unstyled content.
+  // CSS on <body class="slt-themed"> - no flash of unstyled content.
   // This script renders the floating nav after probing for sibling
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
@@ -1670,7 +1670,7 @@ body.slt-themed .mode-btn {
     handle.innerHTML =
       '<span class="slt-nav-current">' + currentBadge + '</span>' +
       '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
-    handle.title = 'SL Tools — click to switch';
+    handle.title = 'SL Tools - click to switch';
     nav.appendChild(handle);
 
     // Collapsible panel (the actual menu)
@@ -1703,7 +1703,7 @@ body.slt-themed .mode-btn {
         // smooth fade-out before navigating
         a.addEventListener('click', smoothNavigate);
       }
-      a.title = tool.name + ' — ' + tool.subtitle;
+      a.title = tool.name + ' - ' + tool.subtitle;
       a.innerHTML =
         '<span class="slt-nav-badge">' + tool.badge + '</span>' +
         '<span class="slt-nav-name">' + tool.name +
@@ -1779,7 +1779,7 @@ body.slt-themed .mode-btn {
 <header class="slt-titlebar">
   <div class="slt-subtitle">HUD button grids to mesh</div>
   <h1 class="slt-title">SL HUD Buttons Creator</h1>
-  <p class="slt-lede">Lay out HUD buttons in any grid, choose a shape, export an optimised mesh — minimal triangles, configurable face slots.</p>
+  <p class="slt-lede">Lay out HUD buttons in any grid, choose a shape, export an optimised mesh - minimal triangles, configurable face slots.</p>
 </header>
 
 <div class="container">
@@ -2019,7 +2019,7 @@ body.slt-themed .mode-btn {
         <label><input type="checkbox" id="genLODs"> Generate optimized LODs</label>
       </div>
       <div class="help" id="lodHelp">
-        When enabled, "Download" exports 4 separate DAE files (LOWEST/LOW/MED/HIGH) you upload as Lowest/Low/Medium/High in SL's mesh importer. Each LOD has progressively fewer curve segments — drastically reducing Land Impact for in-world objects.
+        When enabled, "Download" exports 4 separate DAE files (LOWEST/LOW/MED/HIGH) you upload as Lowest/Low/Medium/High in SL's mesh importer. Each LOD has progressively fewer curve segments - drastically reducing Land Impact for in-world objects.
       </div>
 
       <div class="info-box" style="margin-top:12px;">
@@ -2064,7 +2064,7 @@ body.slt-themed .mode-btn {
       <p><b>Glow setup in SL:</b> Build → Features → Select Face → Glow 0.15-0.3, Full Bright ON.</p>
       <p><b>HUD vs in-world:</b> HUDs ignore LODs (always close). For rezzed objects, enable LOD generation for low Land Impact.</p>
       <p><b>Per-face UV:</b> Each face uses 0-1 UV. Apply any 1024×1024 button texture &amp; it fills perfectly. Set UV mode to per-face (default).</p>
-      <p><b>Click detection in LSL:</b> Use <code>llDetectedTouchFace()</code> – per-button face mode lets you detect which button was clicked directly from the face index.</p>
+      <p><b>Click detection in LSL:</b> Use <code>llDetectedTouchFace()</code> - per-button face mode lets you detect which button was clicked directly from the face index.</p>
       <p><b>Drag preview:</b> Drag inside the preview to live-resize buttons.</p>
     </details>
   </div>
@@ -3134,7 +3134,7 @@ function downloadUVTemplate() {
   ctx.fillStyle = '#ff69b4';
   ctx.font = 'bold 16px Segoe UI, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText(`UV Template – ${meshName} (${uvMode})`, 8, 22);
+  ctx.fillText(`UV Template - ${meshName} (${uvMode})`, 8, 22);
   ctx.textAlign = 'right';
   ctx.fillStyle = '#f6c7de';
   ctx.font = '12px Segoe UI, sans-serif';

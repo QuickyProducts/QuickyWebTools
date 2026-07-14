@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-sync_inline.py — keep every SL tool standalone
+sync_inline.py - keep every SL tool standalone
 
 Each tool's HTML used to load its theme via:
     <link rel="stylesheet" href="../_shared/sl-nav.css">
@@ -14,7 +14,7 @@ each tool HTML is a self-contained file: copy it anywhere on disk, open
 in a browser, and it still looks and behaves identically.
 
 The inlined block is wrapped in BEGIN/END markers, so this script is
-idempotent — re-run after editing the shared files and the snapshot
+idempotent - re-run after editing the shared files and the snapshot
 inside each tool gets refreshed.
 
 USAGE
@@ -61,7 +61,7 @@ PICKER_FONTS_TEXT    = _escape_script(_read(PICKER_FONTS))  if PICKER_FONTS.exis
 #   three          False/True → bake _shared/three/three_inline.js + bridge
 #   picker_fonts   False/True → bake _shared/fonts/fonts_inline.js
 #                               (only the 3D Text Creator's font picker
-#                                needs this — Anton, BebasNeue, etc.)
+#                                needs this - Anton, BebasNeue, etc.)
 TOOLS = [
     {"path": "SL Animation Combiner/sl_animation_combiner.html",                  "three": False, "picker_fonts": False},
     {"path": "SL Animation Priority Changer/sl_animation_priority_changer.html",  "three": True,  "picker_fonts": False},
@@ -74,19 +74,19 @@ TOOLS = [
 
 # ----- Markers wrap each inlined block so the script can find &
 # replace it next time without producing duplicates. -----------
-CSS_BEGIN   = ("<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css "
+CSS_BEGIN   = ("<!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css "
                "by _shared/sync_inline.py. Do not hand-edit; edit the source "
                "and re-run the script. -->")
 CSS_END     = "<!-- SHARED-CSS:END -->"
-JS_BEGIN    = ("<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js "
+JS_BEGIN    = ("<!-- SHARED-JS:BEGIN - auto-inlined from _shared/sl-nav.js "
                "by _shared/sync_inline.py. Do not hand-edit; edit the source "
                "and re-run the script. -->")
 JS_END      = "<!-- SHARED-JS:END -->"
-THREE_BEGIN = ("<!-- SHARED-THREE:BEGIN — auto-inlined from _shared/three/ "
+THREE_BEGIN = ("<!-- SHARED-THREE:BEGIN - auto-inlined from _shared/three/ "
                "by _shared/sync_inline.py. Do not hand-edit; edit the source "
                "and re-run the script. -->")
 THREE_END   = "<!-- SHARED-THREE:END -->"
-PICKER_BEGIN = ("<!-- SHARED-PICKER-FONTS:BEGIN — auto-inlined from "
+PICKER_BEGIN = ("<!-- SHARED-PICKER-FONTS:BEGIN - auto-inlined from "
                 "_shared/fonts/fonts_inline.js by _shared/sync_inline.py. "
                 "Do not hand-edit; edit the source and re-run the script. -->")
 PICKER_END   = "<!-- SHARED-PICKER-FONTS:END -->"
@@ -97,7 +97,7 @@ JS_BLOCK  = f"{JS_BEGIN}\n<script>\n{JS_TEXT}\n</script>\n{JS_END}"
 
 def three_block() -> str:
     if THREE_INLINE_TEXT is None:
-        raise FileNotFoundError("_shared/three/three_inline.js missing — "
+        raise FileNotFoundError("_shared/three/three_inline.js missing - "
                                 "run _shared/three/_build_inline_bundle.py first")
     return (
         f"{THREE_BEGIN}\n"
@@ -118,11 +118,11 @@ def three_block() -> str:
 
 def picker_block() -> str:
     if PICKER_FONTS_TEXT is None:
-        raise FileNotFoundError("_shared/fonts/fonts_inline.js missing — "
+        raise FileNotFoundError("_shared/fonts/fonts_inline.js missing - "
                                 "run _shared/fonts/_build_fonts_inline.py first")
     return (
         f"{PICKER_BEGIN}\n"
-        f"<script>/* SL 3D Text Creator picker fonts — base64 TTFs merged "
+        f"<script>/* SL 3D Text Creator picker fonts - base64 TTFs merged "
         f"into FONT_DATA via Object.assign. All SIL OFL v1.1. */\n"
         f"{PICKER_FONTS_TEXT}\n"
         f"</script>\n"
@@ -153,7 +153,7 @@ def inline_one(text: str, tool: dict) -> tuple[str, list[str]]:
     elif CSS_LINK_TAG in text:
         text = text.replace(CSS_LINK_TAG, CSS_BLOCK);          refreshed.append("CSS")
     else:
-        print(f"  WARN: {name}: no SHARED-CSS marker or <link> tag — "
+        print(f"  WARN: {name}: no SHARED-CSS marker or <link> tag - "
               f"skipped CSS", file=sys.stderr)
 
     # ----- shared JS (the floating-nav bootstrap) -----
@@ -162,7 +162,7 @@ def inline_one(text: str, tool: dict) -> tuple[str, list[str]]:
     elif JS_LINK_TAG in text:
         text = text.replace(JS_LINK_TAG, JS_BLOCK);            refreshed.append("JS")
     else:
-        print(f"  WARN: {name}: no SHARED-JS marker or <script src> tag — "
+        print(f"  WARN: {name}: no SHARED-JS marker or <script src> tag - "
               f"skipped JS", file=sys.stderr)
 
     # ----- Three.js (only for tools that use it) -----
@@ -222,7 +222,7 @@ def main() -> int:
 
     print()
     print("Done. Each tool HTML now carries its own inlined copies of the "
-          "shared CSS + JS (and Three.js where needed). Standalone — no "
+          "shared CSS + JS (and Three.js where needed). Standalone - no "
           "_shared/ folder or internet required.")
     return 0
 

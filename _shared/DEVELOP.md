@@ -1,11 +1,11 @@
 # Developer notes
 
 Internal documentation for working on the Quicky Web Tools. Users
-don't need anything from this file — see the root README instead.
+don't need anything from this file - see the root README instead.
 
 ## How the tools are built
 
-Everything user-visible lives **inlined** inside each tool's HTML —
+Everything user-visible lives **inlined** inside each tool's HTML -
 you can hand-edit any tool directly. The shared look + floating nav +
 Three.js are maintained as sources in `_shared/` and baked into every
 tool by a Python script, so each HTML stays a standalone single file
@@ -32,7 +32,7 @@ Tools for SL/
 │   │   ├── *.ttf               picker fonts for the 3D Text Creator
 │   │   ├── _build_fonts_inline.py  → write fonts_inline.js
 │   │   ├── fonts_inline.js     built artefact, inlined by the 3D Text Creator
-│   │   └── ui/                 (retired — UI now uses system fonts)
+│   │   └── ui/                 (retired - UI now uses system fonts)
 │   └── three/
 │       ├── three.core.min.js   Three.js r184 ESM sources
 │       ├── three.module.min.js
@@ -54,11 +54,11 @@ python "_shared/fonts/_build_fonts_inline.py"
 # 2. If you touched any .js in _shared/three/:
 python "_shared/three/_build_inline_bundle.py"
 
-# 3. Always last — push the latest source into every tool:
+# 3. Always last - push the latest source into every tool:
 python "_shared/sync_inline.py"
 ```
 
-All scripts are idempotent — re-run as often as you like. The inlined
+All scripts are idempotent - re-run as often as you like. The inlined
 snapshots inside each tool are wrapped in marker comments
 (`SHARED-CSS:BEGIN/END` etc.); never hand-edit between the markers.
 
@@ -94,12 +94,12 @@ snapshots inside each tool are wrapped in marker comments
    ```
    Use `<body class="slt-themed">` so the Aurora Glass theme picks it
    up. (A tool may also skip `slt-themed` and keep fully custom
-   styling — the Music Slicer does this — and still gets the nav.)
+   styling - the Music Slicer does this - and still gets the nav.)
 6. Add a card for it on `index.html` (landing page).
 7. Run `python "_shared/sync_inline.py"`.
 
 ## The floating nav is modular
 
-Each tool probes its sibling folders for `_meta.js` at runtime — a
+Each tool probes its sibling folders for `_meta.js` at runtime - a
 deleted tool folder disappears from every other tool's nav menu
 automatically, no configuration needed. This works on `file://` too.

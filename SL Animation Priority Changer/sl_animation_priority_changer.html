@@ -15,7 +15,7 @@
   see THIRD-PARTY-NOTICES.md at the repo root for full licence texts)
   --------------------------------------------------------------------
 
-    • Three.js r184 — © 2010-2026 three.js authors. MIT License.
+    • Three.js r184 - © 2010-2026 three.js authors. MIT License.
       Source: https://github.com/mrdoob/three.js
       (Inlined via the SHARED-THREE block below as base64 Blob URLs.)
 
@@ -27,7 +27,7 @@
 <head>
 <meta charset="utf-8">
 <title>Ya's Anim Priority Changer</title>
-<!-- SHARED-CSS:BEGIN — auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
    SL Tools :: "Aurora Glass" shared theme + navigation  (v2)
@@ -36,7 +36,7 @@
      - deep indigo base with two slowly drifting blurred aurora blobs
      - frosted-glass panels (backdrop blur + 1px light edge + 18px radius)
      - animated pink→purple→cyan gradient headlines
-     - system font stack — no embedded webfonts, maximum readability
+     - system font stack - no embedded webfonts, maximum readability
      - full prefers-reduced-motion support
 
    The selector contract from v1 is preserved verbatim: every class,
@@ -109,7 +109,7 @@ body.slt-themed::after {
 }
 body.slt-themed ::selection { background: rgba(255, 60, 172, 0.4); }
 
-/* Legacy element from the v1 theme — kept as a no-op so old tool HTML
+/* Legacy element from the v1 theme - kept as a no-op so old tool HTML
    that still renders <div class="slt-scanlines"> stays harmless. */
 .slt-scanlines { display: none !important; }
 
@@ -360,7 +360,7 @@ html.slt-leaving body { animation: slt-page-out .18s ease-in forwards; }
 
 
 /* =====================================================================
-   Aurora UI — applied on every tool that opts in via
+   Aurora UI - applied on every tool that opts in via
    <body class="slt-themed">. !important keeps the cascade on our side
    regardless of tool-local source order or specificity.
    ===================================================================== */
@@ -1388,7 +1388,7 @@ body.slt-themed .mode-btn {
 
 
 /* =====================================================================
-   Motion accessibility — kill every animation/transition for users who
+   Motion accessibility - kill every animation/transition for users who
    ask for reduced motion. The aurora blobs freeze in place, the title
    gradient stops cycling, panels appear instantly.
    ===================================================================== */
@@ -1409,7 +1409,7 @@ body.slt-themed .mode-btn {
 <!-- SHARED-CSS:END -->
 <script>window.SLT_CURRENT = 'anim-priority';</script>
 <style>
-  /* Tool-local CSS — only the truly unique bits.
+  /* Tool-local CSS - only the truly unique bits.
      All shared theming + layout lives in ../_shared/sl-nav.css. */
   body { padding: 14px 24px 24px; }
 
@@ -1460,7 +1460,7 @@ body.slt-themed .mode-btn {
 </style>
 </head>
 <body class="slt-themed">
-<!-- SHARED-JS:BEGIN — auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-JS:BEGIN - auto-inlined from _shared/sl-nav.js by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <script>
 /* =====================================================================
    SL Tools :: Navigation bootstrapper
@@ -1472,7 +1472,7 @@ body.slt-themed .mode-btn {
    ---------------------------
    Each tool folder contains a tiny `_meta.js` that registers its own
    metadata into window.__SLT_AVAILABLE. This script tries to load that
-   file via <script> tags — file:// allows local <script> loads and
+   file via <script> tags - file:// allows local <script> loads and
    onerror fires reliably when the file is missing, so removing a tool
    folder makes it disappear from the nav of every other tool with no
    further configuration.
@@ -1486,7 +1486,7 @@ body.slt-themed .mode-btn {
       this script runs.
    4. Run `python "_shared/sync_inline.py"` to bake the latest shared
       CSS + JS + Three.js (if needed) into every tool so each HTML is
-      standalone — works without _shared/ or any network.
+      standalone - works without _shared/ or any network.
    ===================================================================== */
 (function () {
   'use strict';
@@ -1557,7 +1557,7 @@ body.slt-themed .mode-btn {
 
   // ---------------------------------------------------------------------
   // The body theme (aurora blobs, glass panels) is applied entirely via
-  // CSS on <body class="slt-themed"> — no flash of unstyled content.
+  // CSS on <body class="slt-themed"> - no flash of unstyled content.
   // This script renders the floating nav after probing for sibling
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
@@ -1659,7 +1659,7 @@ body.slt-themed .mode-btn {
     handle.innerHTML =
       '<span class="slt-nav-current">' + currentBadge + '</span>' +
       '<span class="slt-nav-chevron" aria-hidden="true">▾</span>';
-    handle.title = 'SL Tools — click to switch';
+    handle.title = 'SL Tools - click to switch';
     nav.appendChild(handle);
 
     // Collapsible panel (the actual menu)
@@ -1692,7 +1692,7 @@ body.slt-themed .mode-btn {
         // smooth fade-out before navigating
         a.addEventListener('click', smoothNavigate);
       }
-      a.title = tool.name + ' — ' + tool.subtitle;
+      a.title = tool.name + ' - ' + tool.subtitle;
       a.innerHTML =
         '<span class="slt-nav-badge">' + tool.badge + '</span>' +
         '<span class="slt-nav-name">' + tool.name +
@@ -1805,31 +1805,31 @@ body.slt-themed .mode-btn {
     </button>
 
     <h3 style="margin-top:14px">Source</h3>
-    <div class="info-row"><span>File</span><span id="i-file">—</span></div>
-    <div class="info-row"><span>Duration</span><span id="i-dur">—</span></div>
-    <div class="info-row"><span>Loop</span><span id="i-loop">—</span></div>
-    <div class="info-row"><span>Joints</span><span id="i-joints">—</span></div>
-    <div class="info-row"><span>Hand pose</span><span id="i-hand">—</span></div>
+    <div class="info-row"><span>File</span><span id="i-file">-</span></div>
+    <div class="info-row"><span>Duration</span><span id="i-dur">-</span></div>
+    <div class="info-row"><span>Loop</span><span id="i-loop">-</span></div>
+    <div class="info-row"><span>Joints</span><span id="i-joints">-</span></div>
+    <div class="info-row"><span>Hand pose</span><span id="i-hand">-</span></div>
 
     <h3 style="margin-top:14px">Priority</h3>
-    <div class="info-row"><span>Original</span><span id="i-pri-orig">—</span></div>
+    <div class="info-row"><span>Original</span><span id="i-pri-orig">-</span></div>
     <div class="info-row">
-      <span>Set to <span class="warn" data-tip="Animation priority controls which anim wins when multiple are running. Higher beats lower. SL uses 0–6 (0 = lowest, 6 = highest). 4 is a common &quot;active&quot; priority for body anims.">ℹ️</span></span>
+      <span>Set to <span class="warn" data-tip="Animation priority controls which anim wins when multiple are running. Higher beats lower. SL uses 0-6 (0 = lowest, 6 = highest). 4 is a common &quot;active&quot; priority for body anims.">ℹ️</span></span>
       <select id="priSel" class="aspect-sel">
-        <option value="0">0 — lowest</option>
+        <option value="0">0 - lowest</option>
         <option value="1">1</option>
         <option value="2">2</option>
         <option value="3">3</option>
-        <option value="4" selected>4 — common</option>
+        <option value="4" selected>4 - common</option>
         <option value="5">5</option>
-        <option value="6">6 — highest</option>
+        <option value="6">6 - highest</option>
       </select>
     </div>
     <div class="info-row"><span>Apply to all</span>
       <button id="priGlobal" type="button" class="apply-all">Apply</button>
     </div>
 
-    <div class="filename" id="i-name">—</div>
+    <div class="filename" id="i-name">-</div>
     <button id="export" disabled>Export current</button>
     <button id="exportAll" class="btn-secondary" disabled>Export all (0)</button>
   </div>
@@ -1849,7 +1849,7 @@ body.slt-themed .mode-btn {
   3D rendering by <a href="https://github.com/mrdoob/three.js" target="_blank" rel="noopener">Three.js</a> (mrdoob, MIT)
 </footer>
 
-<!-- SHARED-THREE:BEGIN — auto-inlined from _shared/three/ by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
+<!-- SHARED-THREE:BEGIN - auto-inlined from _shared/three/ by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <script>/* Three.js ES-module loader (base64-decoded into Blob URLs + importmap, no network needed). */
 /* Three.js inline-loader bundle.
    Decodes base64-embedded Three.js sources, creates Blob URLs, and
@@ -1878,14 +1878,14 @@ body.slt-themed .mode-btn {
   var coreText = b64ToText(B64_CORE);
   var coreUrl  = makeBlob(coreText);
 
-  // three.module.min.js imports the core via "./three.core.min.js" — rewrite
+  // three.module.min.js imports the core via "./three.core.min.js" - rewrite
   // both occurrences to the blob URL of the inlined core so the module file
   // resolves correctly when loaded as a blob.
   var modText = b64ToText(B64_MOD)
     .replace(/['"]\.\/three\.core\.min\.js['"]/g, JSON.stringify(coreUrl));
   var moduleUrl = makeBlob(modText);
 
-  // OrbitControls + RoomEnvironment use bare `from "three"` — these resolve
+  // OrbitControls + RoomEnvironment use bare `from "three"` - these resolve
   // via the importmap below.
   var orbitUrl = makeBlob(b64ToText(B64_ORBIT));
   var roomUrl  = makeBlob(b64ToText(B64_ROOM));
@@ -1914,11 +1914,11 @@ body.slt-themed .mode-btn {
 </script>
 <!-- SHARED-THREE:END -->
 <script>
-/* Ya's Anim Priority Changer — main app */
+/* Ya's Anim Priority Changer - main app */
 
 // expose for any nested handlers / dev console use
 /* Ya's Anim Priority Changer · © 2026 Ya · All rights reserved.
-   Personal use only — see HTML header for license. */
+   Personal use only - see HTML header for license. */
 'use strict';
 
 // =====================================================================
@@ -2017,7 +2017,7 @@ function parseAnim(buf) {
     }
     a.joints.push({ name, priority, priorityOffset, rotKeys, posKeys });
   }
-  // Constraints follow (passed through on write — we just keep the raw tail bytes)
+  // Constraints follow (passed through on write - we just keep the raw tail bytes)
   a.constraintsTailOffset = r.off;
   return a;
 }
@@ -2035,7 +2035,7 @@ function writeAnimWithPriority(originalBuf, anim, newPriority) {
 }
 
 // =====================================================================
-// 3D preview — Three.js scene with a simplified humanoid skeleton
+// 3D preview - Three.js scene with a simplified humanoid skeleton
 // Bones cover the most common SL joints (incl. simplified Bento fingers).
 // Joints not present in the file are left in T-pose.
 // =====================================================================
@@ -2114,7 +2114,7 @@ let scene, camera, renderer, threeReady = false;
 const bones = {};        // name → THREE.Group
 const visuals = [];      // visual segments to keep updated
 
-// Orbit camera state — module-scoped so it persists across animation reloads.
+// Orbit camera state - module-scoped so it persists across animation reloads.
 // yaw=0 starts the camera in front of the avatar (looking from +X toward origin).
 let orbitYaw = 0;
 let orbitPitch = 0.05;             // tiny tilt down so head/body both visible
@@ -2144,7 +2144,7 @@ function initThree() {
   renderer.setSize(cnv.width, cnv.height, false);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
 
-  // Mouse-drag orbit (yaw + pitch) and wheel zoom — angles persist across reloads.
+  // Mouse-drag orbit (yaw + pitch) and wheel zoom - angles persist across reloads.
   let dragging = false, lastX = 0, lastY = 0;
   cnv.style.cursor = 'grab';
   cnv.addEventListener('pointerdown', e => {
@@ -2179,7 +2179,7 @@ function initThree() {
     updateCameraFromOrbit();
   }, { passive: false });
 
-  // Lighting — slightly stronger than the stick-figure version since we now
+  // Lighting - slightly stronger than the stick-figure version since we now
   // have a full SkinnedMesh that needs proper shading.
   scene.add(new THREE.HemisphereLight(0xffe1ee, 0x331823, 0.9));
   const key = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -2214,7 +2214,7 @@ function initThree() {
     const isFinger = name.startsWith('mHand') && parent && parent.startsWith('mHand') === false ? true : name.startsWith('mHand');
     const isSpine  = name.startsWith('mSpine');
     const isCore   = ['mPelvis','mTorso','mChest','mNeck','mHead'].includes(name);
-    // Spine bones are internal — render as tiny invisible markers (still need the
+    // Spine bones are internal - render as tiny invisible markers (still need the
     // groups so the parent chain works). Face bones get small dots so they
     // don't drown the head. Fingers stay small. Core gets the bright pink.
     let sphereR;
@@ -2465,7 +2465,7 @@ function updateInfo() {
   const p = a.parsed;
   document.getElementById('i-file').textContent  = a.name.length > 28 ? a.name.slice(0,25)+'…' : a.name;
   document.getElementById('i-dur').textContent   = p.duration.toFixed(2) + 's';
-  document.getElementById('i-loop').textContent  = p.loop ? `yes (${p.loopIn.toFixed(2)}–${p.loopOut.toFixed(2)}s)` : 'no';
+  document.getElementById('i-loop').textContent  = p.loop ? `yes (${p.loopIn.toFixed(2)}-${p.loopOut.toFixed(2)}s)` : 'no';
   document.getElementById('i-joints').textContent= p.joints.length;
   document.getElementById('i-hand').textContent  = '#' + p.handPose;
   document.getElementById('i-pri-orig').textContent = String(p.basePriority);
@@ -2549,8 +2549,8 @@ function wipeWorkspace() {
   exportAllBtn.textContent = 'Export all (0)';
   prevBtn.disabled = true; nextBtn.disabled = true;
   ['i-file','i-dur','i-loop','i-joints','i-hand','i-pri-orig'].forEach(id =>
-    document.getElementById(id).textContent = '—');
-  document.getElementById('i-name').textContent = '—';
+    document.getElementById(id).textContent = '-');
+  document.getElementById('i-name').textContent = '-';
   if (typeof markedSet !== 'undefined' && markedSet) {
     markedSet.clear();
     refreshAllMarks && refreshAllMarks();
