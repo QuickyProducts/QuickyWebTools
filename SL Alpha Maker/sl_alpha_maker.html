@@ -1819,41 +1819,6 @@ body.slt-themed .mode-btn {
   .status.ok  { color: var(--slt-good); text-shadow: none; }
   .status.err { color: var(--slt-bad); text-shadow: none; }
 
-  /* ------ Help block ------ */
-  details.advanced {
-    margin-top: 28px;
-    padding: 14px 18px !important;
-    color: var(--slt-dim);
-    font-size: 14px;
-  }
-  details.advanced summary {
-    cursor: pointer;
-    font-family: var(--slt-font);
-    font-weight: 700;
-    color: var(--slt-cyan);
-    letter-spacing: 1.5px;
-    list-style: none;
-    text-shadow: 0 0 8px var(--slt-cyan);
-    text-transform: uppercase;
-    font-size: 13px;
-  }
-  details.advanced summary::-webkit-details-marker { display: none; }
-  details.advanced summary::before { content: "▸ "; }
-  details.advanced[open] summary::before { content: "▾ "; }
-  details.advanced[open] { padding-bottom: 16px !important; }
-  details.advanced p { margin: 12px 0; line-height: 1.6; }
-  details.advanced kbd {
-    display: inline-block;
-    padding: 1px 6px;
-    background: rgba(255,60,172,0.1);
-    border: 1px solid rgba(255,60,172,0.35);
-    border-radius: 6px;
-    color: var(--slt-magenta);
-    font-family: var(--slt-mono);
-    font-size: 12px;
-    text-shadow: 0 0 4px var(--slt-magenta);
-  }
-
 </style>
 </head>
 <body class="slt-themed">
@@ -2283,17 +2248,6 @@ body.slt-themed .mode-btn {
     <button id="dlBoth" class="both" type="button">⬇ Both (.zip)</button>
   </div>
   <div class="status" id="status"></div>
-
-  <details class="advanced">
-    <summary>How to use this in Second Life</summary>
-    <p><b>1. (Optional) Load your own template</b> - Click <kbd>Upper…</kbd> / <kbd>Lower…</kbd> next to Load, or drop an image straight onto the canvas. The built-in templates (Linden Lab's official Fashion Design Templates) fit any mesh body that uses the classic SL body layout - most do. If your body comes with its own template image (Reborn, Legacy, Maitreya and others), load that instead so the picture matches your body exactly.</p>
-    <p><b>2. Pick a tool</b> - <kbd>BRUSH</kbd> paints free-hand. <kbd>RECT</kbd> / <kbd>ELLIPSE</kbd> draw a box or oval that stays on screen after you let go: drag it to move it, pull the round handles to resize it, and you can still switch between Rect and Ellipse to change its shape. Click the green <kbd>✓</kbd> (or press <kbd>Enter</kbd>) to apply it - or the red <kbd>✗</kbd> (or <kbd>Esc</kbd>) to throw it away.</p>
-    <p><b>3. Erase / Restore</b> - <kbd>ERASE</kbd> makes the painted area see-through - the checker pattern shows where your body will be invisible. Switch to <kbd>RESTORE</kbd> (or hold <kbd>Alt</kbd>) to paint it back.</p>
-    <p><b>4. Undo</b> - <kbd>↺ Undo</kbd> (or <kbd>Ctrl+Z</kbd>) takes back your last action. It remembers up to 30 steps.</p>
-    <p><b>5. Download</b> - <kbd>Upper</kbd> / <kbd>Lower</kbd> save one PNG each. <kbd>Both</kbd> puts the two files into a single <code>alpha_mask.zip</code>. The saved files hold only your mask, not the template picture.</p>
-    <p><b>6. Upload to SL</b> - In the SL viewer choose <code>Build → Upload → Image…</code>, then apply the mask through your body's HUD as a custom alpha layer. The see-through parts of the PNG become invisible body parts.</p>
-    <p style="opacity:0.8;font-size:13px;">Your own template images stay on your computer - nothing is uploaded anywhere.</p>
-  </details>
 
   <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a><br>Templates: Second Life™ Fashion Design Templates © 2003 Linden Research, Inc., <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a> (flattened, upscaled to 1024×1024)</footer>
 </div>
