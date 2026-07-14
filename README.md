@@ -47,6 +47,10 @@ open a tool's folder and double-click the `sl_....html` file.
 - The Music Slicer names its sound clips for gapless in-world
   playback — the naming scheme is explained in
   [its README](./SL%20Music%20Slicer/README.md).
+- **Music rights:** the Music Slicer is a tool, not a music source.
+  Only slice and upload audio you have the rights to use (your own
+  work, licensed tracks, royalty-free music). Uploading copyrighted
+  music to SL without permission violates the SL Terms of Service.
 
 ## Licence — in plain words
 
@@ -68,3 +72,6 @@ full credits in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 
 *Tinkering with the code? Developer notes live in
 [`_shared/DEVELOP.md`](./_shared/DEVELOP.md).*
+
+*Second Life® and SL™ are trademarks of Linden Research, Inc. This
+project is not affiliated with or sponsored by Linden Research.*

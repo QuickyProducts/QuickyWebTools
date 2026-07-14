@@ -2,6 +2,12 @@
 
 Song-length music playback in Second Life despite the 30-second sound-clip limit: this browser tool slices songs into perfectly named ≤30s WAV clips. A companion in-world LSD-backed player script (not part of this repository) streams them back gaplessly — the clip naming spec below is the contract between the two.
 
+> **Music rights:** this is a tool, not a music source. Only slice and
+> upload audio you have the rights to use (your own work, licensed
+> tracks, royalty-free music). Uploading copyrighted music to Second
+> Life without permission violates the SL Terms of Service and the
+> rights holder's copyright.
+
 ## Files
 
 - **sl_music_slicer.html** (single standalone file) — local browser tool (open it directly). No dependencies, works offline.

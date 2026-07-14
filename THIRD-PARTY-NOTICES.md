@@ -4,11 +4,15 @@ The SL Tools bundle several open-source libraries, fonts, and image
 assets directly inside each tool's HTML (as base64 / inlined `<script>`
 blocks) so the tools can run offline as standalone files.
 
-Every item listed below is included **unmodified** under its original
-licence. None of the bundled material was authored by Ya. The licence
-texts are reproduced in full so each standalone tool HTML satisfies
-the attribution + permission-notice requirements of MIT, ISC, and
-SIL OFL.
+Every item is included under its original licence (modifications, where
+made, are identified below). None of the bundled material was authored
+by Ya. This file reproduces the full licence texts for the repository
+distribution; in addition, each standalone tool HTML carries the
+required attribution and permission notices in its own header comment
+(MIT / ISC texts for the tools that bundle such code, embedded OFL
+name-table notices inside every font, and Three.js's own `@license`
+banner inside its bundle), so a single tool file re-shared on its own
+still satisfies MIT, ISC, SIL OFL, and CC BY notice requirements.
 
 The tools' own application code (UI, file parsers, builders, styles
 written by Ya) is licensed separately under the **PolyForm
@@ -147,25 +151,27 @@ SOFTWARE.
 ## 2. Fonts — SIL Open Font License v1.1
 
 *(The tool UI itself uses the operating system's native font stack —
-no UI webfonts are embedded. Retired copies of the former UI fonts
-(Audiowide, Orbitron, Share Tech Mono, VT323 — all SIL OFL 1.1) may
-still sit unused in `_shared/fonts/ui/`.)*
+no UI webfonts are embedded.)*
 
 ### 3D-Text-Creator picker fonts
 
-Embedded as base64 TTF entries inside the page's `FONT_DATA` object
-(merged in by `fonts_inline.js`).
+Pacifico (Bold cut) is embedded directly in
+`SL 3D Text Creator/sl_3d_text_creator.html` as the `FONT_DATA` seed
+entry; the other seven are base64 TTF entries merged in from
+`_shared/fonts/fonts_inline.js`. Every font file retains its own
+embedded copyright + OFL notice in its name table. Copyright lines as
+embedded in the shipped builds:
 
-| Font            | Copyright                              | Reserved Font Name |
-| --------------- | -------------------------------------- | ------------------ |
-| Pacifico        | © 2011 Vernon Adams                    | Pacifico           |
-| Audiowide       | © 2011 Astigmatic (AOETI)              | Audiowide          |
-| Anton           | © 2011 Vernon Adams                    | Anton              |
-| Bebas Neue      | © Dharma Type                          | Bebas Neue         |
-| Black Ops One   | © 2011 JM Solé                         | Black Ops One      |
-| Press Start 2P  | © 2012 CodeMan38                       | Press Start 2P     |
-| Righteous       | © 2011 Astigmatic (AOETI)              | Righteous          |
-| Russo One       | © 2011 Jovanny Lemonad                 | Russo One          |
+| Font            | Embedded copyright line |
+| --------------- | ----------------------- |
+| Pacifico (Bold) | Copyright 2018 The Pacifico Project Authors (github.com/googlefonts/Pacifico) |
+| Audiowide       | Copyright © 2012 Brian J. Bonislawsky DBA Astigmatic (AOETI), Reserved Font Name "Audiowide" |
+| Anton           | Copyright 2020 The Anton Project Authors (github.com/googlefonts/AntonFont.git) |
+| Bebas Neue      | Copyright 2019 The Bebas Neue Project Authors (github.com/dharmatype/Bebas-Neue) |
+| Black Ops One   | Copyright 2022 The PinyonScript Project Authors (github.com/SorkinType/Black-Ops) *(upstream metadata quirk — this is the Black Ops One repo)* |
+| Press Start 2P  | Copyright 2012 The Press Start 2P Project Authors, Reserved Font Name "Press Start 2P" |
+| Righteous       | Copyright © 2011 Brian J. Bonislawsky DBA Astigmatic (AOETI), Reserved Font Name "Righteous" |
+| Russo One       | Copyright © 2011-2012 Jovanny Lemonad (jovanny.ru), Reserved Font Name "Russo" |
 
 ### Full SIL OFL v1.1 text
 
@@ -268,19 +274,28 @@ SOFTWARE OR FROM OTHER DEALINGS IN THE FONT SOFTWARE.
 
 ## 3. Image assets
 
-### Robin Wood UV templates
+### Second Life™ Fashion Design Templates (Linden Lab) — CC BY 3.0
 
 **Used in:** `SL Alpha Maker`
-**Files:** `SL Alpha Maker/Robin Wood/SL-Avatar-Top-1024.jpg`,
-            `SL Alpha Maker/Robin Wood/SL-Avatar-Bottom-1024.jpg`
-**Source:** Robin Wood, 2005 — original SL avatar UV templates released
-            free for community use.
+**Files:** `SL Alpha Maker/LL Templates/SL-Upper-1024.jpg`,
+            `SL Alpha Maker/LL Templates/SL-Lower-1024.jpg`
+            (also embedded in `sl_alpha_maker.html` as base64 data URLs)
+**Copyright:** © 2003 Linden Research, Inc.
+**Licence:** Creative Commons Attribution 3.0 Unported (CC BY 3.0),
+             http://creativecommons.org/licenses/by/3.0/
+**Source:** Linden Lab "All Fashion Design Templates" download,
+            linked from https://wiki.secondlife.com/wiki/Clothing_Tutorials
 
-The Robin Wood templates are widely redistributed in the Second Life
-creator community under Robin Wood's explicit "free to use, modify,
-and redistribute, but you may not sell the templates themselves"
-terms. They are bundled here unmodified and credited inline in the
-tool's footer.
+Linden Lab's copyright and permission notice (from the download's
+LICENSE.txt) is reproduced in
+`SL Alpha Maker/LL Templates/LICENSE.txt`, together with the change
+notes CC BY 3.0 requires:
+
+**Changes made to the original works:** the Upper/Lower body template
+PSDs were flattened to single images, upscaled from 512×512 to
+1024×1024, converted to JPEG, and additionally embedded as base64
+data URLs inside `sl_alpha_maker.html` so the tool works offline.
+No other modifications were made.
 
 ---
 
@@ -292,7 +307,6 @@ tool's footer.
 | earcut | inlined into 3DText | ISC | yes |
 | opentype.js | inlined into 3DText | MIT | yes |
 | gifuct-js | inlined into Sprite Sheet Maker | MIT | yes |
-| Picker fonts (Pacifico + 7 others) | `_shared/fonts/`, base64 in fonts_inline.js | SIL OFL 1.1 | yes (bundled) |
-| Robin Wood UV templates | `SL Alpha Maker/Robin Wood/` | Author-granted (free use, no resale of the templates themselves) | yes |
-| Retired UI fonts (unused since the Aurora redesign) | `_shared/fonts/ui/` | SIL OFL 1.1 | yes |
+| Picker fonts: Pacifico seed in 3DText HTML; 7 others via `_shared/fonts/fonts_inline.js` | 3DText + `_shared/fonts/` | SIL OFL 1.1 | yes (bundled) |
+| Linden Lab Fashion Design Templates (Upper/Lower) | `SL Alpha Maker/LL Templates/` + baked into the tool | CC BY 3.0 (© 2003 Linden Research, Inc.) | yes, with attribution + change notes (included) |
 | Application code (UI, parsers, builders, styles; incl. Music Slicer) | each tool's HTML + `_shared/` | PolyForm Noncommercial 1.0.0 — see `LICENSE` | for noncommercial use |

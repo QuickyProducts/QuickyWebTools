@@ -34,12 +34,13 @@ import sys
 ROOT = Path(__file__).resolve().parent
 HTML = ROOT / "sl_alpha_maker.html"
 
-# Robin Wood's classic SL avatar templates (2005) — one Upper, one
-# Lower. Most mesh bodies (Legacy, Reborn, Maitreya, …) use this same
-# UV layout, so one alpha mask is enough for all of them.
+# Linden Lab's official Fashion Design Templates (CC BY 3.0 — see
+# LL Templates/LICENSE.txt) — one Upper, one Lower. Most mesh bodies
+# (Legacy, Reborn, Maitreya, …) use this same classic UV layout, so
+# one alpha mask is enough for all of them.
 SOURCES = {
-    "upper": ROOT / "Robin Wood" / "SL-Avatar-Top-1024.jpg",
-    "lower": ROOT / "Robin Wood" / "SL-Avatar-Bottom-1024.jpg",
+    "upper": ROOT / "LL Templates" / "SL-Upper-1024.jpg",
+    "lower": ROOT / "LL Templates" / "SL-Lower-1024.jpg",
 }
 
 BEGIN = "/* TEMPLATES:BEGIN */"
