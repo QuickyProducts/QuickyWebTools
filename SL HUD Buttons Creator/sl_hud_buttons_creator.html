@@ -346,6 +346,28 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   border: 1px solid rgba(255, 184, 77, 0.4);
 }
 
+/* Divider row that separates finished tools from WIP entries
+   at the bottom of the dropdown list. */
+.slt-nav-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 2px 2px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--slt-warn);
+  opacity: 0.85;
+}
+.slt-nav-divider::before,
+.slt-nav-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 184, 77, 0.3);
+}
+
 /* Amber WIP chip variant for tool titlebars (sits next to the
    regular .slt-subtitle tagline chip). */
 body.slt-themed .slt-subtitle.slt-wip {
@@ -1052,6 +1074,26 @@ body.slt-themed .credit a {
 }
 body.slt-themed .credit a:hover { text-decoration: underline; }
 
+/* ---- Unified tool footer ----------------------------------------------------
+   Every tool renders the same one-line footer:
+     <footer class="slt-footer">Quicky Web Tools · © 2026 Ya ·
+       noncommercial use · <a href=...>GitHub</a></footer>          */
+body.slt-themed .slt-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 38px auto 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+  color: var(--slt-dim);
+  font-family: var(--slt-font);
+}
+body.slt-themed .slt-footer a {
+  color: var(--slt-pink);
+  text-decoration: none;
+}
+body.slt-themed .slt-footer a:hover { text-decoration: underline; }
+
 /* ---- Scrollbars (WebKit + Firefox) ------------------------------------------ */
 body.slt-themed ::-webkit-scrollbar { width: 10px; height: 10px; }
 body.slt-themed ::-webkit-scrollbar-track { background: transparent; }
@@ -1716,10 +1758,22 @@ body.slt-themed .mode-btn {
     const list = document.createElement('ul');
     list.className = 'slt-nav-list';
 
-    // Alphabetical menu order (detection order stays as-registered).
-    const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+    // Menu order: finished tools first (alphabetical), then WIP tools
+    // (alphabetical) below a small divider row.
+    const sorted = tools.slice().sort((a, b) =>
+      (!a.wip === !b.wip) ? a.name.localeCompare(b.name) : (a.wip ? 1 : -1)
+    );
 
+    let wipDividerAdded = false;
     for (const tool of sorted) {
+      if (tool.wip && !wipDividerAdded) {
+        wipDividerAdded = true;
+        const div = document.createElement('li');
+        div.className = 'slt-nav-divider';
+        div.setAttribute('aria-hidden', 'true');
+        div.textContent = 'Work in progress';
+        list.appendChild(div);
+      }
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.className = 'slt-nav-btn';
@@ -1810,9 +1864,9 @@ body.slt-themed .mode-btn {
 <!-- SHARED-JS:END -->
 
 <header class="slt-titlebar">
-  <div class="slt-subtitle">HUD button grids to mesh</div><div class="slt-subtitle slt-wip">🚧 Work in progress</div>
+  <div class="slt-subtitle">HUD buttons as one 3D model</div><div class="slt-subtitle slt-wip">🚧 Work in progress</div>
   <h1 class="slt-title">SL HUD Buttons Creator</h1>
-  <p class="slt-lede">Lay out HUD buttons in any grid, choose a shape, export an optimised mesh - minimal triangles, configurable face slots.</p>
+  <p class="slt-lede">Design your HUD buttons, pick a shape, and download them as one low-cost 3D model ready for SL.</p>
 </header>
 
 <div class="container">
@@ -1845,7 +1899,7 @@ body.slt-themed .mode-btn {
         <input type="number" id="gridCols" value="2" min="1" max="20" style="width:60px;">
       </div>
       <div class="info-box">
-        <b>Tip:</b> Set spacing to <code>0</code> for tightly stacked buttons (like AMG rating bars).
+        <b>Tip:</b> Set spacing to <code>0</code> for tightly stacked buttons (like rating bars).
       </div>
     </div>
 
@@ -1904,12 +1958,12 @@ body.slt-themed .mode-btn {
         <input type="number" id="spacing" value="4" min="0" step="0.5">
       </div>
       <div class="row">
-        <label>Curve segments:</label>
+        <label>Curve smoothness:</label>
         <input type="number" id="segs" value="12" min="3" max="64">
       </div>
       <div class="help">
-        Lower segments = fewer triangles = lower upload cost. Default 12 = smooth curves.
-        Polygon shapes (hex/oct/etc) have fixed sides.
+        Lower numbers make simpler shapes that cost less to upload. The default 12 looks smooth.
+        Shapes with straight sides (hexagon, octagon, triangles) ignore this.
       </div>
     </div>
 
@@ -1917,24 +1971,24 @@ body.slt-themed .mode-btn {
     <div class="panel">
       <h2>Appearance</h2>
 
-      <h3>Edge Outline</h3>
+      <h3>Neon Outline</h3>
       <div class="row">
-        <label><input type="checkbox" id="hasEdge" checked> Add neon edge as separate face</label>
+        <label><input type="checkbox" id="hasEdge" checked> Add a neon outline around each button</label>
       </div>
       <div class="row" id="edgeWRow">
-        <label>Edge thickness (mm):</label>
+        <label>Outline thickness (mm):</label>
         <input type="number" id="edgeWidth" value="0.7" min="0.1" step="0.1">
       </div>
 
       <h3>Face Mode</h3>
       <div class="face-mode-grid">
-        <div class="mode-btn active" data-mode="per-button" title="Each button is its own face. Simplest scripting (face index = button index). Max 4 buttons w/edge or 8 w/o edge.">
-          Per Button<small>each btn = own face</small>
+        <div class="mode-btn active" data-mode="per-button" title="Every button gets its own face. Easiest for scripts. Fits up to 4 buttons with outlines, or 8 without.">
+          Per Button<small>one face per button</small>
         </div>
-        <div class="mode-btn" data-mode="shared-edge" title="Each fill is its own face but ALL edges share one face. Saves face slots when using neon edges.">
-          Shared Edge<small>1 face per fill +1 edge</small>
+        <div class="mode-btn" data-mode="shared-edge" title="Every button keeps its own face, but all outlines share one face. Lets you fit more buttons.">
+          Shared Edge<small>own faces, outlines share one</small>
         </div>
-        <div class="mode-btn" data-mode="shared-all" title="All fills share 1 face, all edges share 1 face. Allows unlimited buttons but they all share material/texture.">
+        <div class="mode-btn" data-mode="shared-all" title="All buttons share one face and all outlines share another. No button limit, but they all get the same color and texture.">
           All Shared<small>2 faces total</small>
         </div>
       </div>
@@ -1942,7 +1996,7 @@ body.slt-themed .mode-btn {
 
       <h3>Colors</h3>
       <div class="row">
-        <label>Material prefix:</label>
+        <label>Name prefix:</label>
         <input type="text" id="matPrefix" value="btn" style="width: 130px;">
       </div>
       <div class="row">
@@ -1950,7 +2004,7 @@ body.slt-themed .mode-btn {
         <input type="color" id="fillColor" value="#24101a">
       </div>
       <div class="row">
-        <label>Edge color:</label>
+        <label>Outline color:</label>
         <input type="color" id="edgeColor" value="#ff1493">
       </div>
     </div>
@@ -2012,28 +2066,29 @@ body.slt-themed .mode-btn {
       <h3>Individual Buttons</h3>
       <div class="btn-list" id="btnList"></div>
       <div class="help" style="margin-top: 8px;">
-        Labels are saved in the material name (e.g. <code>mat_btn_play_fill</code>) so you can identify them in your SL build.
+        Labels become part of each face's name (e.g. <code>mat_btn_play_fill</code>) so you can tell your buttons apart in SL.
       </div>
     </details>
 
     <!-- UV / TEXTURE PANEL -->
     <details class="advanced">
-      <summary>🖼️ UV Mapping & Texture Templates</summary>
+      <summary>🖼️ Texture Templates</summary>
 
       <div class="row">
-        <label>UV layout mode:</label>
+        <label>Texture layout:</label>
         <select id="uvMode" class="wide">
-          <option value="per-face" selected>Per-face (each button = 0-1 UV)</option>
-          <option value="atlas">Atlas (shared UV space)</option>
+          <option value="per-face" selected>Per button (image fills each button)</option>
+          <option value="atlas">Atlas (all buttons share one image)</option>
         </select>
       </div>
       <div class="info-box">
-        <b>Per-face:</b> Each button face uses its own 0-1 UV. Apply any texture to a face and it fills that button perfectly. Best for individual button textures.<br><br>
-        <b>Atlas:</b> All faces share one UV layout. Useful when you want one big texture covering all buttons (good for shared face mode).
+        This is the "UV layout" - the map that tells SL how a flat image wraps onto the model.<br><br>
+        <b>Per button:</b> Each button uses the full image on its own. Drop any square texture on a face and it fills that button perfectly. Best for individual button textures.<br><br>
+        <b>Atlas:</b> All buttons share one image, each using its own part of it. Useful when you want one big texture covering all buttons (good with the shared face modes).
       </div>
 
-      <h3>UV Template Export</h3>
-      <button class="secondary" onclick="downloadUVTemplate()">⬇ Download UV Template (PNG)</button>
+      <h3>Paint Template</h3>
+      <button class="secondary" onclick="downloadUVTemplate()">⬇ Download Paint Template (PNG)</button>
       <div class="help">
         Open in Photoshop/GIMP. Paint inside the outlines to make textures that fit your buttons exactly.
       </div>
@@ -2041,26 +2096,27 @@ body.slt-themed .mode-btn {
 
     <!-- SL OPTIMIZATION / LOD PANEL -->
     <details class="advanced">
-      <summary>⚡ SL Optimization & LOD</summary>
+      <summary>⚡ Upload Cost & Detail Levels</summary>
 
       <div class="info-box">
-        <b>For HUDs:</b> LODs not critical (HUDs always render close). Just keep segments low.<br>
-        <b>For in-world objects:</b> Custom LODs drastically reduce Land Impact &amp; let it look great from far away.
+        "LOD" (level of detail) means SL swaps in simpler versions of a model as you move away from it.<br>
+        <b>For HUDs:</b> not important - a HUD always sits right on your screen. Just keep curve smoothness low.<br>
+        <b>For objects you rez in-world:</b> extra detail levels cut Land Impact a lot and keep the shape looking good from far away.
       </div>
 
       <div class="row">
-        <label><input type="checkbox" id="genLODs"> Generate optimized LODs</label>
+        <label><input type="checkbox" id="genLODs"> Create extra detail levels (LODs)</label>
       </div>
       <div class="help" id="lodHelp">
-        When enabled, "Download" exports 4 separate DAE files (LOWEST/LOW/MED/HIGH) you upload as Lowest/Low/Medium/High in SL's mesh importer. Each LOD has progressively fewer curve segments - drastically reducing Land Impact for in-world objects.
+        When on, "Download" gives you 4 files (LOWEST/LOW/MED/HIGH). In SL's upload window, load each one into its matching Level of Detail slot. The simpler versions greatly lower the Land Impact of in-world objects.
       </div>
 
       <div class="info-box" style="margin-top:12px;">
         <b>SL HUD performance tips:</b><br>
-        • Keep <i>curve segments</i> low (8 is enough for HUD circles).<br>
-        • Use <i>Shared Edge</i> face mode if you need edges on 5+ buttons.<br>
-        • <i>Per-face UV</i> means one 1024² texture works for any button shape.<br>
-        • Skip neon edge → max 8 buttons in one mesh in <i>per-button</i> mode.
+        • Keep <i>curve smoothness</i> low - 8 is plenty for circles on a HUD.<br>
+        • Need outlines on 5 or more buttons? Use the <i>Shared Edge</i> face mode.<br>
+        • With the <i>per button</i> texture layout, one square texture fits any button shape.<br>
+        • Skip the neon outline and <i>Per Button</i> mode fits up to 8 buttons in one model.
       </div>
     </details>
 
@@ -2068,12 +2124,12 @@ body.slt-themed .mode-btn {
     <div class="panel">
       <h2>Export</h2>
       <div class="row">
-        <label>Mesh name:</label>
+        <label>Model name:</label>
         <input type="text" id="meshName" value="my_buttons" style="width:130px;">
       </div>
-      <button onclick="downloadDAE()">⬇ Download .dae</button>
+      <button onclick="downloadDAE()">⬇ Download 3D model (.dae)</button>
       <div class="help">
-        Each face becomes a separately texturable surface in SL. Material names (visible after upload): <code>mat_{prefix}_{label-or-idx}_{fill|edge}</code>.
+        Each face is a surface you can texture on its own in SL. After upload, faces show names like <code>mat_btn_play_fill</code> so you can tell them apart.
       </div>
     </div>
   </div>
@@ -2092,16 +2148,18 @@ body.slt-themed .mode-btn {
 
     <details>
       <summary>📖 SL Tips & Workflow</summary>
-      <p><b>Face limit:</b> SL allows max 8 faces per uploaded mesh. Counter goes red if over. Switch Face Mode to Shared Edge or All Shared to fit more buttons.</p>
-      <p><b>Materials:</b> Each face gets a name like <code>mat_btn_1_fill</code> or <code>mat_btn_play_edge</code>. Label your buttons (Per-Button section) for identifiable face names in SL.</p>
+      <p><b>Face limit:</b> SL allows max 8 faces per uploaded model. The counter goes red if you are over. Switch Face Mode to Shared Edge or All Shared to fit more buttons.</p>
+      <p><b>Face names:</b> Each face gets a name like <code>mat_btn_1_fill</code> or <code>mat_btn_play_edge</code>. Label your buttons (Per-Button section) so the names tell you which button is which.</p>
       <p><b>Glow setup in SL:</b> Build → Features → Select Face → Glow 0.15-0.3, Full Bright ON.</p>
-      <p><b>HUD vs in-world:</b> HUDs ignore LODs (always close). For rezzed objects, enable LOD generation for low Land Impact.</p>
-      <p><b>Per-face UV:</b> Each face uses 0-1 UV. Apply any 1024×1024 button texture &amp; it fills perfectly. Set UV mode to per-face (default).</p>
-      <p><b>Click detection in LSL:</b> Use <code>llDetectedTouchFace()</code> - per-button face mode lets you detect which button was clicked directly from the face index.</p>
+      <p><b>HUD vs in-world:</b> A HUD never switches detail levels (it is always close). For objects you rez in-world, turn on the extra detail levels for low Land Impact.</p>
+      <p><b>Textures:</b> With the default texture layout, any square texture dropped on a face fills that button perfectly.</p>
+      <p><b>Click detection in LSL:</b> Use <code>llDetectedTouchFace()</code> - in Per Button mode the face number tells you directly which button was clicked.</p>
       <p><b>Drag preview:</b> Drag inside the preview to live-resize buttons.</p>
     </details>
   </div>
 </div>
+
+<footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
 
 <script>
 'use strict';
@@ -2152,7 +2210,7 @@ function updateModeInfo() {
   else faces = (hasEdge ? 2 : 1);
 
   const status = faces > 8 ? `<span style="color:#ff5555">⚠ ${faces} faces (over SL limit of 8!)</span>` : `<span style="color:#06d6a0">✓ ${faces} face${faces>1?'s':''}, fits SL limit</span>`;
-  box.innerHTML = `<b>Current:</b> ${N} button${N>1?'s':''}, ${faceMode}. → ${status}`;
+  box.innerHTML = `A "face" is a surface of the model you can color, texture and script on its own. SL allows at most 8 faces per object.<br><b>Current:</b> ${N} button${N>1?'s':''}, ${faceMode}. → ${status}`;
 }
 
 //============================================================

@@ -26,7 +26,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Ya's Anim Priority Changer</title>
+<title>SL Animation Priority Changer</title>
 <!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
@@ -352,6 +352,28 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   color: var(--slt-warn);
   background: rgba(255, 184, 77, 0.12);
   border: 1px solid rgba(255, 184, 77, 0.4);
+}
+
+/* Divider row that separates finished tools from WIP entries
+   at the bottom of the dropdown list. */
+.slt-nav-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 2px 2px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--slt-warn);
+  opacity: 0.85;
+}
+.slt-nav-divider::before,
+.slt-nav-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 184, 77, 0.3);
 }
 
 /* Amber WIP chip variant for tool titlebars (sits next to the
@@ -1060,6 +1082,26 @@ body.slt-themed .credit a {
 }
 body.slt-themed .credit a:hover { text-decoration: underline; }
 
+/* ---- Unified tool footer ----------------------------------------------------
+   Every tool renders the same one-line footer:
+     <footer class="slt-footer">Quicky Web Tools · © 2026 Ya ·
+       noncommercial use · <a href=...>GitHub</a></footer>          */
+body.slt-themed .slt-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 38px auto 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+  color: var(--slt-dim);
+  font-family: var(--slt-font);
+}
+body.slt-themed .slt-footer a {
+  color: var(--slt-pink);
+  text-decoration: none;
+}
+body.slt-themed .slt-footer a:hover { text-decoration: underline; }
+
 /* ---- Scrollbars (WebKit + Firefox) ------------------------------------------ */
 body.slt-themed ::-webkit-scrollbar { width: 10px; height: 10px; }
 body.slt-themed ::-webkit-scrollbar-track { background: transparent; }
@@ -1705,10 +1747,22 @@ body.slt-themed .mode-btn {
     const list = document.createElement('ul');
     list.className = 'slt-nav-list';
 
-    // Alphabetical menu order (detection order stays as-registered).
-    const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+    // Menu order: finished tools first (alphabetical), then WIP tools
+    // (alphabetical) below a small divider row.
+    const sorted = tools.slice().sort((a, b) =>
+      (!a.wip === !b.wip) ? a.name.localeCompare(b.name) : (a.wip ? 1 : -1)
+    );
 
+    let wipDividerAdded = false;
     for (const tool of sorted) {
+      if (tool.wip && !wipDividerAdded) {
+        wipDividerAdded = true;
+        const div = document.createElement('li');
+        div.className = 'slt-nav-divider';
+        div.setAttribute('aria-hidden', 'true');
+        div.textContent = 'Work in progress';
+        list.appendChild(div);
+      }
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.className = 'slt-nav-btn';
@@ -1801,7 +1855,7 @@ body.slt-themed .mode-btn {
 <header class="slt-titlebar">
   <div class="slt-subtitle">Priority editing for .anim files</div>
   <h1 class="slt-title">SL Animation Priority Changer</h1>
-  <p class="slt-lede">Set the priority value on one or many <code>.anim</code> files. Higher priority wins when multiple animations fight over the same joints.</p>
+  <p class="slt-lede">Change the priority number of one or many <code>.anim</code> files. When two animations play at the same time, the one with the higher number wins.</p>
 </header>
 
 <input type="file" id="file" accept=".anim,.animatn" multiple style="display:none">
@@ -1816,7 +1870,7 @@ body.slt-themed .mode-btn {
         <div id="placeholder" class="ph">
           <div class="ph-icon">🕺</div>
           <div class="ph-title">No animations loaded yet</div>
-          <div class="ph-sub">Click "Load Anims" to start ✨</div>
+          <div class="ph-sub">Click "Load Anims" to start</div>
         </div>
       </div>
       <button id="next" class="navbtn" disabled><span class="arrow">→</span><span>Next</span></button>
@@ -1827,9 +1881,9 @@ body.slt-themed .mode-btn {
       <div class="timetext" id="timetext">0.00 / 0.00s</div>
     </div>
     <div class="hint" style="text-align:center; margin-top:8px;">
-      Drag to rotate, scroll to zoom. Body, arms, legs and head animate from the
-      .anim; fingers and face are not represented in this rig. The exported .anim is
-      bit-perfect.
+      Drag to rotate, scroll to zoom. The preview shows body, arms, legs and head;
+      fingers and face are not shown. The exported file stays identical to the
+      original - only the priority number changes.
     </div>
   </div>
   <div class="panel">
@@ -1841,13 +1895,13 @@ body.slt-themed .mode-btn {
     <div class="info-row"><span>File</span><span id="i-file">-</span></div>
     <div class="info-row"><span>Duration</span><span id="i-dur">-</span></div>
     <div class="info-row"><span>Loop</span><span id="i-loop">-</span></div>
-    <div class="info-row"><span>Joints</span><span id="i-joints">-</span></div>
+    <div class="info-row"><span>Body parts</span><span id="i-joints">-</span></div>
     <div class="info-row"><span>Hand pose</span><span id="i-hand">-</span></div>
 
     <h3 style="margin-top:14px">Priority</h3>
     <div class="info-row"><span>Original</span><span id="i-pri-orig">-</span></div>
     <div class="info-row">
-      <span>Set to <span class="warn" data-tip="Animation priority controls which anim wins when multiple are running. Higher beats lower. SL uses 0-6 (0 = lowest, 6 = highest). 4 is a common &quot;active&quot; priority for body anims.">ℹ️</span></span>
+      <span>Set to <span class="warn" data-tip="When two animations play at the same time, the one with the higher number wins. Second Life uses 0 (lowest) to 6 (highest). 4 is a common choice for body animations.">ℹ️</span></span>
       <select id="priSel" class="aspect-sel">
         <option value="0">0 - lowest</option>
         <option value="1">1</option>
@@ -1870,17 +1924,14 @@ body.slt-themed .mode-btn {
  <div id="thumbs" class="thumbs"></div>
  <button id="clearAllBtn" type="button" class="clear-bar" style="display:none"
          title="Selection shortcuts:
-• Drag left-mouse across thumbs → draw selection rectangle
-• Ctrl+drag → add to existing marks
-• Shift+drag → remove from marks
-• Ctrl/Cmd + click → toggle a single mark
-• Shift + click → mark range">🗑 Clear ALL (0)</button>
+• Drag across the thumbnails → draw a selection box
+• Ctrl+drag → add to the selection
+• Shift+drag → remove from the selection
+• Ctrl/Cmd + click → select or unselect one
+• Shift + click → select a range">🗑 Clear ALL (0)</button>
 </div>
 
-<footer class="credit">
-  Made with 💕 by <b>Ya</b> · © 2026 · All rights reserved<br>
-  3D rendering by <a href="https://github.com/mrdoob/three.js" target="_blank" rel="noopener">Three.js</a> (mrdoob, MIT)
-</footer>
+<footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
 
 <!-- SHARED-THREE:BEGIN - auto-inlined from _shared/three/ by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <script>/* Three.js ES-module loader (base64-decoded into Blob URLs + importmap, no network needed). */
@@ -2613,7 +2664,7 @@ function updateThumbsFooter() {
     clearAllBtn.textContent = `🗑 Clear ALL (${anims.length})`;
   } else {
     clearAllBtn.style.display = '';
-    clearAllBtn.textContent = `🗑 Remove ${n} marked`;
+    clearAllBtn.textContent = `🗑 Remove ${n} selected`;
   }
   clearAllBtn.classList.remove('confirm');
 }

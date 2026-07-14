@@ -347,6 +347,28 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   border: 1px solid rgba(255, 184, 77, 0.4);
 }
 
+/* Divider row that separates finished tools from WIP entries
+   at the bottom of the dropdown list. */
+.slt-nav-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 2px 2px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--slt-warn);
+  opacity: 0.85;
+}
+.slt-nav-divider::before,
+.slt-nav-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 184, 77, 0.3);
+}
+
 /* Amber WIP chip variant for tool titlebars (sits next to the
    regular .slt-subtitle tagline chip). */
 body.slt-themed .slt-subtitle.slt-wip {
@@ -1053,6 +1075,26 @@ body.slt-themed .credit a {
 }
 body.slt-themed .credit a:hover { text-decoration: underline; }
 
+/* ---- Unified tool footer ----------------------------------------------------
+   Every tool renders the same one-line footer:
+     <footer class="slt-footer">Quicky Web Tools · © 2026 Ya ·
+       noncommercial use · <a href=...>GitHub</a></footer>          */
+body.slt-themed .slt-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 38px auto 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+  color: var(--slt-dim);
+  font-family: var(--slt-font);
+}
+body.slt-themed .slt-footer a {
+  color: var(--slt-pink);
+  text-decoration: none;
+}
+body.slt-themed .slt-footer a:hover { text-decoration: underline; }
+
 /* ---- Scrollbars (WebKit + Firefox) ------------------------------------------ */
 body.slt-themed ::-webkit-scrollbar { width: 10px; height: 10px; }
 body.slt-themed ::-webkit-scrollbar-track { background: transparent; }
@@ -1611,19 +1653,6 @@ body.slt-themed .mode-btn {
   details.help p { margin: 12px 0; }
   details.help b { color: var(--slt-gold); }
   .hint { font-size: 12px; }
-
-  .footer-bar {
-    margin-top: 28px;
-    display: flex; justify-content: space-between;
-    font-size: 12px;
-    letter-spacing: 1px;
-    color: var(--slt-dim);
-    border-top: 1px solid var(--slt-edge);
-    padding-top: 12px;
-    font-family: var(--slt-mono);
-  }
-  .footer-bar .blink { animation: slt-blink 1s steps(2) infinite; }
-  @keyframes slt-blink { 50% { opacity: 0; } }
 </style>
 </head>
 <body class="slt-themed">
@@ -1847,10 +1876,22 @@ body.slt-themed .mode-btn {
     const list = document.createElement('ul');
     list.className = 'slt-nav-list';
 
-    // Alphabetical menu order (detection order stays as-registered).
-    const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+    // Menu order: finished tools first (alphabetical), then WIP tools
+    // (alphabetical) below a small divider row.
+    const sorted = tools.slice().sort((a, b) =>
+      (!a.wip === !b.wip) ? a.name.localeCompare(b.name) : (a.wip ? 1 : -1)
+    );
 
+    let wipDividerAdded = false;
     for (const tool of sorted) {
+      if (tool.wip && !wipDividerAdded) {
+        wipDividerAdded = true;
+        const div = document.createElement('li');
+        div.className = 'slt-nav-divider';
+        div.setAttribute('aria-hidden', 'true');
+        div.textContent = 'Work in progress';
+        list.appendChild(div);
+      }
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.className = 'slt-nav-btn';
@@ -1944,17 +1985,17 @@ body.slt-themed .mode-btn {
   <header class="slt-titlebar">
     <div class="slt-subtitle">Merge two animations into one</div>
     <h1 class="slt-title">SL Animation Combiner</h1>
-    <p class="slt-lede">Drop two <code>.anim</code> files - in <b>any order</b> - and hit Combine. For every bone the file with the higher priority wins automatically, useless "pinned" bones are dropped, and the result loops cleanly. Everything happens locally in your browser, nothing is uploaded.</p>
+    <p class="slt-lede">Drop two animations in, click Combine, download the merged result. If both files move the same body part, the tool picks the right one for you. Everything stays on your computer - nothing is uploaded.</p>
   </header>
 
   <div class="row">
     <div class="card">
       <div class="card-head">
         <div class="badge">A</div>
-        <div class="role">Animation A<small>drop either file - order doesn't matter</small></div>
+        <div class="role">Animation A<small>e.g. a dance, walk, or pose</small></div>
       </div>
       <label class="drop" id="dropA">
-        <strong>&gt;&gt; CHOOSE FILE OR DROP IT HERE &lt;&lt;</strong>
+        <strong>Choose a file or drop it here</strong>
         <small>.anim file</small>
         <input type="file" id="fileA" accept=".anim,application/octet-stream">
       </label>
@@ -1964,10 +2005,10 @@ body.slt-themed .mode-btn {
     <div class="card">
       <div class="card-head">
         <div class="badge">B</div>
-        <div class="role">Animation B<small>higher priority wins each bone - ties go to B</small></div>
+        <div class="role">Animation B<small>e.g. a hand pose or head movement</small></div>
       </div>
       <label class="drop" id="dropB">
-        <strong>&gt;&gt; CHOOSE FILE OR DROP IT HERE &lt;&lt;</strong>
+        <strong>Choose a file or drop it here</strong>
         <small>.anim file</small>
         <input type="file" id="fileB" accept=".anim,application/octet-stream">
       </label>
@@ -1978,7 +2019,7 @@ body.slt-themed .mode-btn {
   <div class="meta" id="summary"></div>
 
   <details class="options" id="jointsCard" style="display:none">
-    <summary>Joint Control - fine-tune who wins (optional)</summary>
+    <summary>Fine-tune (optional): pick which animation controls each body part</summary>
     <div class="joint-toolbar">
       <span class="tb-label">Quick set:</span>
       <button class="mini" data-allset="auto">AUTO</button>
@@ -2001,11 +2042,11 @@ body.slt-themed .mode-btn {
         </select>
       </label>
       <label class="field">
-        <div class="field-label">Cycle timing (bones from the other file)</div>
+        <div class="field-label">Motion timing (for the shorter file)</div>
         <select id="optTiming">
-          <option value="tile" selected>Tile - repeat cycle at original speed (recommended)</option>
-          <option value="stretch">Stretch - fit whole file into the loop window</option>
-          <option value="raw">Raw - keep key times untouched</option>
+          <option value="tile" selected>Tile - repeat at normal speed (recommended)</option>
+          <option value="stretch">Stretch - slow down to play exactly once</option>
+          <option value="raw">Raw - keep timings untouched (expert)</option>
         </select>
       </label>
       <label class="field">
@@ -2025,18 +2066,14 @@ body.slt-themed .mode-btn {
   </div>
 
   <details class="help">
-    <summary>What does this tool actually do?</summary>
-    <p>An SL animation is a list of "joints" (skeleton bones) with keyframes per joint. This tool merges two files into one. The AUTO rules do what SL itself would do if you played both at once: for every bone that exists in both files, <b>the one with the higher joint priority wins</b> (tie → B). Duration and loop come from the longer file, the other file's motion cycle is tiled into it at original speed.</p>
-    <p><b>Pinned bones are dropped automatically:</b> many animations carry static, do-nothing joints - e.g. an <code>mPelvis</code> frozen at zero that would kill your AO's stand sway. AUTO detects those (static <i>and</i> at rest pose) and sets them OFF. Open Joint Control to bring one back or to override any pick by hand: <b>A</b>, <b>B</b>, or <b>OFF</b> per bone or per group.</p>
-    <p><b>Cycle timing:</b> bones taken from the file that does <i>not</i> drive the duration must be re-timed to fit the new length. <b>Tile</b> repeats that file's loop cycle at (almost) original speed until it fills the output loop - best for cyclic motion like typing or rubbing. <b>Stretch</b> squeezes the whole file once into the loop window - best for slow poses, but it slows the motion down. <b>Raw</b> copies key times 1:1 - only correct if both files have the same duration.</p>
-    <p class="hint">Joint priorities are kept per joint from their source file, so in-world layering keeps working the way it did with the two originals.</p>
+    <summary>How does it work?</summary>
+    <p>Every animation moves a set of body parts. When you combine two files, some parts may be moved by both. The tool then keeps the stronger one (the one with the higher priority) - exactly what SL would do if you played both animations at the same time. If both are equally strong, Animation B wins.</p>
+    <p><b>Frozen parts are removed for you.</b> Many animations lock body parts in place without really using them - for example a hip that is frozen still, which would stop your AO from swaying. The tool spots those and leaves them out. Want one back? Open the fine-tune panel and set it to A or B by hand.</p>
+    <p><b>Different lengths?</b> No problem. The combined animation takes its length from the longer file. The shorter file's motion simply repeats at its normal speed until the end ("Tile", the default). In Advanced Options you can instead slow it down so it plays exactly once ("Stretch"), or copy it unchanged ("Raw" - only useful when both files are equally long).</p>
+    <p class="hint">Each body part keeps its original priority, so your animations layer in-world just like before.</p>
   </details>
 
-  <div class="footer-bar">
-    <span>SYS.READY</span>
-    <span class="blink">█</span>
-    <span>v2.1</span>
-  </div>
+  <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
 </div>
 
 <script>

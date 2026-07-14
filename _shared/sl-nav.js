@@ -216,10 +216,22 @@
     const list = document.createElement('ul');
     list.className = 'slt-nav-list';
 
-    // Alphabetical menu order (detection order stays as-registered).
-    const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+    // Menu order: finished tools first (alphabetical), then WIP tools
+    // (alphabetical) below a small divider row.
+    const sorted = tools.slice().sort((a, b) =>
+      (!a.wip === !b.wip) ? a.name.localeCompare(b.name) : (a.wip ? 1 : -1)
+    );
 
+    let wipDividerAdded = false;
     for (const tool of sorted) {
+      if (tool.wip && !wipDividerAdded) {
+        wipDividerAdded = true;
+        const div = document.createElement('li');
+        div.className = 'slt-nav-divider';
+        div.setAttribute('aria-hidden', 'true');
+        div.textContent = 'Work in progress';
+        list.appendChild(div);
+      }
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.className = 'slt-nav-btn';

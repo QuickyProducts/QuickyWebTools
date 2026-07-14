@@ -45,7 +45,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>Ya's GIF→SL Sprite Sheet Maker 💕 (Milo Edition)</title>
+<title>SL Sprite Sheet Maker</title>
 <!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
@@ -371,6 +371,28 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   color: var(--slt-warn);
   background: rgba(255, 184, 77, 0.12);
   border: 1px solid rgba(255, 184, 77, 0.4);
+}
+
+/* Divider row that separates finished tools from WIP entries
+   at the bottom of the dropdown list. */
+.slt-nav-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 2px 2px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--slt-warn);
+  opacity: 0.85;
+}
+.slt-nav-divider::before,
+.slt-nav-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 184, 77, 0.3);
 }
 
 /* Amber WIP chip variant for tool titlebars (sits next to the
@@ -1079,6 +1101,26 @@ body.slt-themed .credit a {
 }
 body.slt-themed .credit a:hover { text-decoration: underline; }
 
+/* ---- Unified tool footer ----------------------------------------------------
+   Every tool renders the same one-line footer:
+     <footer class="slt-footer">Quicky Web Tools · © 2026 Ya ·
+       noncommercial use · <a href=...>GitHub</a></footer>          */
+body.slt-themed .slt-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 38px auto 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+  color: var(--slt-dim);
+  font-family: var(--slt-font);
+}
+body.slt-themed .slt-footer a {
+  color: var(--slt-pink);
+  text-decoration: none;
+}
+body.slt-themed .slt-footer a:hover { text-decoration: underline; }
+
 /* ---- Scrollbars (WebKit + Firefox) ------------------------------------------ */
 body.slt-themed ::-webkit-scrollbar { width: 10px; height: 10px; }
 body.slt-themed ::-webkit-scrollbar-track { background: transparent; }
@@ -1542,9 +1584,6 @@ body.slt-themed .mode-btn {
     background-position: 0 0, 6px 6px;
   }
 
-  /* Subtitle line over the credit footer (theme handles colours) */
-  #subtitle { text-align: center; margin: 0 0 26px; font-size: 14px;
-    font-weight: 600; letter-spacing: 1px; }
 </style>
 </head>
 <body class="slt-themed">
@@ -1768,10 +1807,22 @@ body.slt-themed .mode-btn {
     const list = document.createElement('ul');
     list.className = 'slt-nav-list';
 
-    // Alphabetical menu order (detection order stays as-registered).
-    const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+    // Menu order: finished tools first (alphabetical), then WIP tools
+    // (alphabetical) below a small divider row.
+    const sorted = tools.slice().sort((a, b) =>
+      (!a.wip === !b.wip) ? a.name.localeCompare(b.name) : (a.wip ? 1 : -1)
+    );
 
+    let wipDividerAdded = false;
     for (const tool of sorted) {
+      if (tool.wip && !wipDividerAdded) {
+        wipDividerAdded = true;
+        const div = document.createElement('li');
+        div.className = 'slt-nav-divider';
+        div.setAttribute('aria-hidden', 'true');
+        div.textContent = 'Work in progress';
+        list.appendChild(div);
+      }
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.className = 'slt-nav-btn';
@@ -1862,9 +1913,9 @@ body.slt-themed .mode-btn {
 <!-- SHARED-JS:END -->
 
 <header class="slt-titlebar">
-  <div class="slt-subtitle">GIF to sprite sheet pipeline</div>
+  <div class="slt-subtitle">GIF to sprite sheet</div>
   <h1 class="slt-title">SL Sprite Sheet Maker</h1>
-  <p class="slt-lede">Drop GIFs in, get a single PNG sprite sheet out - sized for SL textures with smart cropping and palette optimisation.</p>
+  <p class="slt-lede">Turn GIFs and short videos into one PNG sprite sheet, ready to upload as a Second Life texture. Crop, resize and shrink the file, all in your browser.</p>
 </header>
 
 <label class="drop" id="drop" style="display:none">
@@ -1874,7 +1925,7 @@ body.slt-themed .mode-btn {
     <polyline points="17 8 12 3 7 8"></polyline>
     <line x1="12" y1="3" x2="12" y2="15"></line>
   </svg>
-  <span id="dropText">💕 Click to load GIFs or videos (up to 100) - or drop them here ✨</span>
+  <span id="dropText">Click to load GIFs or videos (up to 100), or drop them here</span>
 </label>
 
 <div id="workspace">
@@ -1885,9 +1936,9 @@ body.slt-themed .mode-btn {
       <div class="canvas-stack">
         <canvas id="cnv"></canvas>
         <div id="placeholder" class="ph">
-          <div class="ph-heart">💖</div>
+          <div class="ph-heart">🎞️</div>
           <div class="ph-title">No files loaded yet</div>
-          <div class="ph-sub">Click "Load files" to start ✨</div>
+          <div class="ph-sub">Click "Load files" to start</div>
         </div>
       </div>
       <button id="next" class="navbtn" disabled><span class="arrow">→</span><span>Next</span></button>
@@ -1914,9 +1965,9 @@ body.slt-themed .mode-btn {
     <div class="info-row"><span>Apply to all files</span>
       <button id="aspectGlobal" type="button" class="apply-all">Apply</button>
     </div>
-    <div class="info-row"><span>Box</span><span id="i-crop">drag on canvas…</span></div>
+    <div class="info-row"><span>Box</span><span id="i-crop">drag on the preview…</span></div>
     <div class="info-row">
-      <span>Use frames <span class="warn" data-tip="Skip frames evenly to reduce file size on heavy GIFs. e.g. 'every 2nd' uses half the frames at half the playback rate (same duration). Useful when a GIF has more frames than visually needed.">ℹ️</span></span>
+      <span>Use frames <span class="warn" data-tip="Skips frames evenly to make the file smaller. Example: 'every 2nd' keeps half the frames and plays them at half speed, so the animation takes the same time. Handy when a GIF has more frames than it really needs.">ℹ️</span></span>
       <select id="stepSel" class="aspect-sel">
         <option value="1">all</option>
         <option value="2">every 2nd (½)</option>
@@ -1928,7 +1979,7 @@ body.slt-themed .mode-btn {
 
     <h3 style="margin-top:14px">Output</h3>
     <div class="info-row">
-      <span>Size <span class="warn" data-tip="Always 1024×1024 for avatar wearables and small in-world screens (HUDs, attachments, picture frames, signs). You'll regret 2048 here! Viewers drop textures under memory pressure, so 2048 reloads blurry every time someone zooms out and back.&#10;&#10;Use 2048×2048 only for large rezzed objects (big screens, billboards).">⚠️</span></span>
+      <span>Size <span class="warn" data-tip="Pick 1024×1024 for anything worn on the avatar and for small screens (HUDs, attachments, picture frames, signs). Bigger is not better here: SL unloads large textures to save memory, so a 2048 texture keeps turning blurry and reloading when people look around.&#10;&#10;Pick 2048×2048 only for big objects placed in the world, like large screens or billboards.">⚠️</span></span>
       <select id="baseSel" class="aspect-sel">
         <option value="1024">1024 (standard)</option>
         <option value="2048">2048 (2K)</option>
@@ -1945,14 +1996,14 @@ body.slt-themed .mode-btn {
       <button id="bgGlobal" type="button" class="apply-all">Apply</button>
     </div>
     <div class="info-row">
-      <span>Trim to fit <span class="warn" data-tip="Drops a few frames so the grid becomes more square AND has no empty cells. e.g. 21 frames: default → 3×7 (very wide), with trim → 4×5 (cuts 1 frame, more balanced). Off = keep all frames, accept rectangular layouts or 1-2 empty cells.">ℹ️</span></span>
+      <span>Trim to fit <span class="warn" data-tip="Drops a few frames so the grid comes out more square, with no empty cells. Example: 21 frames would give a very wide 3×7 grid; trimming one frame gives a more balanced 4×5. Turn it off to keep every frame, even if the layout gets wide or has 1-2 empty cells.">ℹ️</span></span>
       <input type="checkbox" id="trimToFit" style="cursor:pointer; accent-color:#ff1493; width:16px; height:16px;">
     </div>
     <div class="info-row"><span>Apply to all files</span>
       <button id="trimGlobal" type="button" class="apply-all">Apply</button>
     </div>
     <div class="info-row">
-      <span>Optimize size <span class="warn" data-tip="Exports the PNG with a 256-color indexed palette (like GIFs use). Reduces file size by ~50-70%. Since GIFs are already 256-color and SL re-encodes textures internally, quality stays identical.">ℹ️</span></span>
+      <span>Optimize size <span class="warn" data-tip="Saves the PNG with at most 256 colors, the same trick GIFs use. Fewer colors = a much smaller file (roughly half to a third of the size). GIFs already use 256 colors, so the image looks exactly the same.">ℹ️</span></span>
       <span style="display:flex; align-items:center; gap:8px;">
         <small style="color:#d896b3;">256 colors</small>
         <input type="checkbox" id="opt256" checked style="cursor:pointer; accent-color:#ff1493; width:16px; height:16px;">
@@ -1971,17 +2022,14 @@ body.slt-themed .mode-btn {
  <div id="thumbs" class="thumbs"></div>
  <button id="clearAllBtn" type="button" class="clear-bar" style="display:none"
          title="Selection shortcuts:
-• Drag left-mouse across thumbs → draw selection rectangle
-• Ctrl+drag → add to existing marks
-• Shift+drag → remove from marks
-• Ctrl/Cmd + click → toggle a single mark
-• Shift + click → mark every thumb between the last clicked one and this one (range)">🗑 Clear ALL (0)</button>
+• Drag across the thumbnails to draw a selection box
+• Ctrl+drag adds to the selection
+• Shift+drag removes from the selection
+• Ctrl/Cmd + click selects or unselects one thumbnail
+• Shift + click selects everything between the last clicked thumbnail and this one">🗑 Clear ALL (0)</button>
 </div>
 <div id="bgPopup" class="bg-popup"></div>
-<footer class="credit">
-  Made with 💕 by <b>Ya</b> · © 2026 · All rights reserved<br>
-  GIF parsing by <a href="https://github.com/matt-way/gifuct-js" target="_blank" rel="noopener">gifuct-js</a> (Matt Way, MIT)
-</footer>
+<footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
 
 <script>
 /* ============================================================

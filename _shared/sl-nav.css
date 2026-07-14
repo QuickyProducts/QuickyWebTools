@@ -323,6 +323,28 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   border: 1px solid rgba(255, 184, 77, 0.4);
 }
 
+/* Divider row that separates finished tools from WIP entries
+   at the bottom of the dropdown list. */
+.slt-nav-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 2px 2px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--slt-warn);
+  opacity: 0.85;
+}
+.slt-nav-divider::before,
+.slt-nav-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 184, 77, 0.3);
+}
+
 /* Amber WIP chip variant for tool titlebars (sits next to the
    regular .slt-subtitle tagline chip). */
 body.slt-themed .slt-subtitle.slt-wip {
@@ -1028,6 +1050,26 @@ body.slt-themed .credit a {
   text-decoration: none;
 }
 body.slt-themed .credit a:hover { text-decoration: underline; }
+
+/* ---- Unified tool footer ----------------------------------------------------
+   Every tool renders the same one-line footer:
+     <footer class="slt-footer">Quicky Web Tools · © 2026 Ya ·
+       noncommercial use · <a href=...>GitHub</a></footer>          */
+body.slt-themed .slt-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 38px auto 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+  color: var(--slt-dim);
+  font-family: var(--slt-font);
+}
+body.slt-themed .slt-footer a {
+  color: var(--slt-pink);
+  text-decoration: none;
+}
+body.slt-themed .slt-footer a:hover { text-decoration: underline; }
 
 /* ---- Scrollbars (WebKit + Firefox) ------------------------------------------ */
 body.slt-themed ::-webkit-scrollbar { width: 10px; height: 10px; }

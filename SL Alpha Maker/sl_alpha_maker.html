@@ -358,6 +358,28 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   border: 1px solid rgba(255, 184, 77, 0.4);
 }
 
+/* Divider row that separates finished tools from WIP entries
+   at the bottom of the dropdown list. */
+.slt-nav-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 2px 2px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--slt-warn);
+  opacity: 0.85;
+}
+.slt-nav-divider::before,
+.slt-nav-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 184, 77, 0.3);
+}
+
 /* Amber WIP chip variant for tool titlebars (sits next to the
    regular .slt-subtitle tagline chip). */
 body.slt-themed .slt-subtitle.slt-wip {
@@ -1063,6 +1085,26 @@ body.slt-themed .credit a {
   text-decoration: none;
 }
 body.slt-themed .credit a:hover { text-decoration: underline; }
+
+/* ---- Unified tool footer ----------------------------------------------------
+   Every tool renders the same one-line footer:
+     <footer class="slt-footer">Quicky Web Tools · © 2026 Ya ·
+       noncommercial use · <a href=...>GitHub</a></footer>          */
+body.slt-themed .slt-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 38px auto 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+  color: var(--slt-dim);
+  font-family: var(--slt-font);
+}
+body.slt-themed .slt-footer a {
+  color: var(--slt-pink);
+  text-decoration: none;
+}
+body.slt-themed .slt-footer a:hover { text-decoration: underline; }
 
 /* ---- Scrollbars (WebKit + Firefox) ------------------------------------------ */
 body.slt-themed ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -1802,18 +1844,6 @@ body.slt-themed .mode-btn {
     text-shadow: 0 0 4px var(--slt-magenta);
   }
 
-  .footer-bar {
-    margin-top: 30px;
-    display: flex; justify-content: space-between;
-    font-family: var(--slt-mono);
-    font-size: 16px;
-    letter-spacing: 2px;
-    color: rgba(43,210,255,0.5);
-    border-top: 1px solid rgba(43,210,255,0.2);
-    padding-top: 12px;
-  }
-  .footer-bar .blink { animation: blink 1s steps(2) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
 </style>
 </head>
 <body class="slt-themed">
@@ -2038,10 +2068,22 @@ body.slt-themed .mode-btn {
     const list = document.createElement('ul');
     list.className = 'slt-nav-list';
 
-    // Alphabetical menu order (detection order stays as-registered).
-    const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+    // Menu order: finished tools first (alphabetical), then WIP tools
+    // (alphabetical) below a small divider row.
+    const sorted = tools.slice().sort((a, b) =>
+      (!a.wip === !b.wip) ? a.name.localeCompare(b.name) : (a.wip ? 1 : -1)
+    );
 
+    let wipDividerAdded = false;
     for (const tool of sorted) {
+      if (tool.wip && !wipDividerAdded) {
+        wipDividerAdded = true;
+        const div = document.createElement('li');
+        div.className = 'slt-nav-divider';
+        div.setAttribute('aria-hidden', 'true');
+        div.textContent = 'Work in progress';
+        list.appendChild(div);
+      }
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.className = 'slt-nav-btn';
@@ -2135,7 +2177,7 @@ body.slt-themed .mode-btn {
   <header class="slt-titlebar">
     <div class="slt-subtitle">Body alpha mask painter</div>
     <h1 class="slt-title">SL Alpha Maker</h1>
-    <p class="slt-lede">Drag over the parts you want to hide on the Upper or Lower template, then download the alpha mask <code>.png</code> for Second Life.</p>
+    <p class="slt-lede">Paint over the body parts you want to hide, then download the finished alpha mask as a <code>.png</code> for Second Life.</p>
   </header>
 
   <!-- ===== Toolbar ===== -->
@@ -2234,20 +2276,16 @@ body.slt-themed .mode-btn {
 
   <details class="advanced">
     <summary>How to use this in Second Life</summary>
-    <p><b>1. (Optional) Load your own template</b> - Click <kbd>Load Upper…</kbd> / <kbd>Load Lower…</kbd>, or drag&drop an image straight onto the canvas. The default templates (Linden Lab's official Fashion Design Templates) work for any mesh body that shares the classic SL UV layout. If your body ships its own template (Reborn, Legacy, Maitreya…) load it here so the wireframe matches exactly.</p>
-    <p><b>2. Pick a tool</b> - <kbd>BRUSH</kbd> for free-hand. <kbd>RECT</kbd> / <kbd>ELLIPSE</kbd> drop a marquee that stays put after you release the mouse: drag inside it to reposition, switch between Rect and Ellipse to morph the shape, then hit the green <kbd>✓</kbd> (or <kbd>Enter</kbd>) to commit the cut - or the red <kbd>✗</kbd> (or <kbd>Esc</kbd>) to discard.</p>
-    <p><b>3. Erase / Restore</b> - Drag with <kbd>ERASE</kbd> to make pixels transparent (checker pattern reveals where the body will be invisible). Switch to <kbd>RESTORE</kbd> (or hold <kbd>Alt</kbd>) to bring them back.</p>
-    <p><b>4. Undo</b> - <kbd>↺ Undo</kbd> (or <kbd>Ctrl+Z</kbd>) reverts the last action. Holds up to 30 steps in memory.</p>
-    <p><b>5. Download</b> - <kbd>Upper</kbd> / <kbd>Lower</kbd> save individual PNGs. <kbd>Both</kbd> bundles them into a single <code>alpha_mask.zip</code> - one save dialog, two files inside. You get clean white-on-transparent PNGs with no decorative template artwork - just the alpha mask.</p>
-    <p><b>6. Upload to SL</b> - <code>Build → Upload → Image…</code>, then apply via your body's HUD as a custom alpha layer. The transparent areas of the PNG become invisible body parts.</p>
-    <p style="opacity:0.8;font-size:13px;">Default templates: Second Life™ Fashion Design Templates © 2003 Linden Research, Inc., <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a> (flattened, upscaled to 1024×1024). Custom templates can be any image; they stay on your machine - nothing is uploaded.</p>
+    <p><b>1. (Optional) Load your own template</b> - Click <kbd>Upper…</kbd> / <kbd>Lower…</kbd> next to Load, or drop an image straight onto the canvas. The built-in templates (Linden Lab's official Fashion Design Templates) fit any mesh body that uses the classic SL body layout - most do. If your body comes with its own template image (Reborn, Legacy, Maitreya and others), load that instead so the picture matches your body exactly.</p>
+    <p><b>2. Pick a tool</b> - <kbd>BRUSH</kbd> paints free-hand. <kbd>RECT</kbd> / <kbd>ELLIPSE</kbd> draw a box or oval that stays on screen after you let go: drag it to move it, pull the round handles to resize it, and you can still switch between Rect and Ellipse to change its shape. Click the green <kbd>✓</kbd> (or press <kbd>Enter</kbd>) to apply it - or the red <kbd>✗</kbd> (or <kbd>Esc</kbd>) to throw it away.</p>
+    <p><b>3. Erase / Restore</b> - <kbd>ERASE</kbd> makes the painted area see-through - the checker pattern shows where your body will be invisible. Switch to <kbd>RESTORE</kbd> (or hold <kbd>Alt</kbd>) to paint it back.</p>
+    <p><b>4. Undo</b> - <kbd>↺ Undo</kbd> (or <kbd>Ctrl+Z</kbd>) takes back your last action. It remembers up to 30 steps.</p>
+    <p><b>5. Download</b> - <kbd>Upper</kbd> / <kbd>Lower</kbd> save one PNG each. <kbd>Both</kbd> puts the two files into a single <code>alpha_mask.zip</code>. The saved files hold only your mask, not the template picture.</p>
+    <p><b>6. Upload to SL</b> - In the SL viewer choose <code>Build → Upload → Image…</code>, then apply the mask through your body's HUD as a custom alpha layer. The see-through parts of the PNG become invisible body parts.</p>
+    <p style="opacity:0.8;font-size:13px;">Your own template images stay on your computer - nothing is uploaded anywhere.</p>
   </details>
 
-  <div class="footer-bar">
-    <span>SYS.READY</span>
-    <span class="blink">█</span>
-    <span>v1.0</span>
-  </div>
+  <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a><br>Templates: Second Life™ Fashion Design Templates © 2003 Linden Research, Inc., <a href="http://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a> (flattened, upscaled to 1024×1024)</footer>
 </div>
 
 <script>

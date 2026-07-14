@@ -405,6 +405,28 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   border: 1px solid rgba(255, 184, 77, 0.4);
 }
 
+/* Divider row that separates finished tools from WIP entries
+   at the bottom of the dropdown list. */
+.slt-nav-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 7px 2px 2px;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--slt-warn);
+  opacity: 0.85;
+}
+.slt-nav-divider::before,
+.slt-nav-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 184, 77, 0.3);
+}
+
 /* Amber WIP chip variant for tool titlebars (sits next to the
    regular .slt-subtitle tagline chip). */
 body.slt-themed .slt-subtitle.slt-wip {
@@ -1110,6 +1132,26 @@ body.slt-themed .credit a {
   text-decoration: none;
 }
 body.slt-themed .credit a:hover { text-decoration: underline; }
+
+/* ---- Unified tool footer ----------------------------------------------------
+   Every tool renders the same one-line footer:
+     <footer class="slt-footer">Quicky Web Tools · © 2026 Ya ·
+       noncommercial use · <a href=...>GitHub</a></footer>          */
+body.slt-themed .slt-footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  margin: 38px auto 14px;
+  font-size: 11.5px;
+  letter-spacing: 0.3px;
+  color: var(--slt-dim);
+  font-family: var(--slt-font);
+}
+body.slt-themed .slt-footer a {
+  color: var(--slt-pink);
+  text-decoration: none;
+}
+body.slt-themed .slt-footer a:hover { text-decoration: underline; }
 
 /* ---- Scrollbars (WebKit + Firefox) ------------------------------------------ */
 body.slt-themed ::-webkit-scrollbar { width: 10px; height: 10px; }
@@ -1853,10 +1895,22 @@ body.slt-themed .mode-btn {
     const list = document.createElement('ul');
     list.className = 'slt-nav-list';
 
-    // Alphabetical menu order (detection order stays as-registered).
-    const sorted = tools.slice().sort((a, b) => a.name.localeCompare(b.name));
+    // Menu order: finished tools first (alphabetical), then WIP tools
+    // (alphabetical) below a small divider row.
+    const sorted = tools.slice().sort((a, b) =>
+      (!a.wip === !b.wip) ? a.name.localeCompare(b.name) : (a.wip ? 1 : -1)
+    );
 
+    let wipDividerAdded = false;
     for (const tool of sorted) {
+      if (tool.wip && !wipDividerAdded) {
+        wipDividerAdded = true;
+        const div = document.createElement('li');
+        div.className = 'slt-nav-divider';
+        div.setAttribute('aria-hidden', 'true');
+        div.textContent = 'Work in progress';
+        list.appendChild(div);
+      }
       const li = document.createElement('li');
       const a = document.createElement('a');
       a.className = 'slt-nav-btn';
@@ -1949,7 +2003,7 @@ body.slt-themed .mode-btn {
 <header class="slt-titlebar">
   <div class="slt-subtitle">Text to 3D mesh</div><div class="slt-subtitle slt-wip">🚧 Work in progress</div>
   <h1 class="slt-title">SL 3D Text Creator</h1>
-  <p class="slt-lede">Type a word, pick a font, get a Collada <code>.dae</code> mesh with built-in 3D depth - ready to upload to Second Life.</p>
+  <p class="slt-lede">Type your text, pick a font, and download a 3D model (<code>.dae</code> file) ready to upload to Second Life.</p>
 </header>
 
 <div class="container">
@@ -1979,10 +2033,10 @@ body.slt-themed .mode-btn {
         <optgroup label="Higher Land Impact (curvy)">
           <option value="Pacifico-Bold">Pacifico (cute script)</option>
         </optgroup>
-        <option value="custom">Custom (upload TTF)...</option>
+        <option value="custom">Upload your own font (.ttf / .otf)...</option>
       </select>
     </div>
-    <div class="help">For lowest LI: pick a block / geometric font from the top group. Cursive fonts like Pacifico look beautiful but cost more tris because of their curve detail.</div>
+    <div class="help">For the lowest Land Impact (LI), pick a font from the top group. Script fonts like Pacifico look lovely, but their curves need more triangles (less = cheaper upload).</div>
     <input type="file" id="fontUpload" accept=".ttf,.otf" style="display:none;">
     <div id="fontUploadStatus" class="help"></div>
 
@@ -1995,7 +2049,7 @@ body.slt-themed .mode-btn {
       <label>Depth (mm):</label>
       <input type="number" id="thicknessMm" value="20" min="0.5" max="200" step="1">
     </div>
-    <div class="help">Real Z-depth. The mesh is a fully-closed solid (front + back + side walls). Default 30cm × 2cm is a good size for a wall sign - at this scale typical Land Impact is 1-3 LI when uploaded with the bundled LODs.</div>
+    <div class="help">Depth is how thick the letters are. The model is a solid shape with a front, a back and sides. The default 30cm × 2cm works well for a wall sign - usually 1-3 LI when uploaded with the included LOD files (LODs are simpler versions of the mesh that SL shows at a distance).</div>
 
     <h2 class="section-divider">Decorations</h2>
     <div class="deco-grid">
@@ -2051,7 +2105,7 @@ body.slt-themed .mode-btn {
         <label>Behind text:</label>
         <input type="number" id="bpRecess" value="2" min="0" max="20" step="0.5" style="width:80px;">
       </div>
-      <div class="help">Margin = padding around text bbox. Recess = how far the backplate sits behind the front face of the text. Backplate gets its own material slot (<code>mat_backplate</code>).</div>
+      <div class="help">Margin is the extra space around the text. "Behind text" is how far the plate sits back from the letter fronts. The plate is a separate face, so you can give it its own color or texture in SL.</div>
     </div>
 
     <h2 class="section-divider">Material (PBR)</h2>
@@ -2078,7 +2132,7 @@ body.slt-themed .mode-btn {
       <label>Emission:</label>
       <input type="color" id="emissionColor" value="#000000">
     </div>
-    <div class="help">Pick a metal preset for instant gold/silver/etc. Bundle export includes a <code>.gltf</code> material you can import in SL as a Material asset.</div>
+    <div class="help">Pick a preset for an instant gold, silver or other finish. The bundle download also includes a <code>.gltf</code> material file you can import in SL as a Material asset.</div>
 
     <h2 class="section-divider">Output</h2>
     <div class="row">
@@ -2086,13 +2140,13 @@ body.slt-themed .mode-btn {
       <input type="text" id="meshName" value="my_text">
     </div>
     <div class="toggle-row">
-      <label><input type="checkbox" id="genLODs" checked> Generate 4 LODs + Physics in bundle</label>
+      <label><input type="checkbox" id="genLODs" checked> Include 4 LOD files + a physics shape in the bundle</label>
     </div>
     <div class="lod-list">
-      LOD3 high · LOD2 med · LOD1 low · LOD0 lowest · PHYS box hull
+      LOD3 full detail · LOD2 medium · LOD1 low · LOD0 tiny · PHYS simple box
     </div>
     <button id="bundleBtn" disabled>⬇ SL Bundle .zip (recommended)</button>
-    <div class="help" style="margin-top: 4px;">Bundle includes 4 LODs + physics + glTF material + README. <b>Trick:</b> the LOD0 file is a 1-tri "phantom" - SL weights the lowest LOD ×64 in streaming cost, so making it near-zero cuts LI massively. For physics, just pick "Cube" in the SL upload dropdown - no need to load the PHYS file unless you want a tighter fit.</div>
+    <div class="help" style="margin-top: 4px;">The zip holds 4 LOD files, a physics shape, a glTF material and a short README. <b>Tip:</b> the LOD0 file is almost empty on purpose - SL counts the lowest LOD very heavily in Land Impact, so a near-empty one keeps LI low. For physics, just pick "Cube" in the SL uploader - the PHYS file is only needed if you want a tighter fit.</div>
     <div class="btn-row" style="margin-top: 8px;">
       <button id="downloadBtn" class="secondary" disabled>⬇ Single .dae (test only)</button>
       <button class="secondary" id="refreshBtn">↻ Refresh</button>
@@ -2101,30 +2155,32 @@ body.slt-themed .mode-btn {
 
   <div class="preview-area">
     <h2 style="color: var(--slt-magenta); font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Live Preview</h2>
-    <div id="status">⏳ Initializing...</div>
+    <div id="status">Loading...</div>
     <canvas id="preview3d"></canvas>
-    <div class="help">Click &amp; drag to orbit · scroll to zoom · right-click to pan</div>
+    <div class="help">Drag to turn · scroll to zoom · right-click drag to move</div>
     <div class="face-legend">
-      <span><span class="swatch" id="lgFill" style="background:#ff1493"></span>fill (front+back)</span>
-      <span><span class="swatch" id="lgSides" style="background:#cc0a6e"></span>sides (extruded edge)</span>
+      <span><span class="swatch" id="lgFill" style="background:#ff1493"></span>fill (front + back)</span>
+      <span><span class="swatch" id="lgSides" style="background:#cc0a6e"></span>sides (edges)</span>
       <span><span class="swatch" id="lgAccent" style="background:#fff"></span>accent</span>
     </div>
     <div class="stats">
-      <div class="stat"><div class="label">Tris</div><div class="value" id="stTris">0</div></div>
-      <div class="stat"><div class="label">Verts</div><div class="value" id="stVerts">0</div></div>
+      <div class="stat"><div class="label">Triangles</div><div class="value" id="stTris">0</div></div>
+      <div class="stat"><div class="label">Vertices</div><div class="value" id="stVerts">0</div></div>
       <div class="stat"><div class="label">Size</div><div class="value" id="stSize" style="font-size: 13px;">-</div></div>
       <div class="stat"><div class="label">Est. LI</div><div class="value" id="stLI" style="font-size: 14px;">-</div></div>
     </div>
     <details>
-      <summary>📖 SL Upload Guide</summary>
-      <p><b>Single .dae:</b> Quick test upload. SL will auto-decimate LODs (often poor for text).</p>
-      <p><b>SL Bundle .zip:</b> Extract and use the bundled LOD .dae files in the SL mesh uploader's per-LOD slots. Result: text reads great from far away with low Land Impact.</p>
-      <p><b>Per-face slots:</b> The mesh has 3 face IDs - <code>fill</code> (letter front+back), <code>sides</code> (extruded edge), <code>accent</code> (flower pollen etc.). After upload, edit the object → Texture tab → select face → apply different materials.</p>
-      <p><b>PBR:</b> Either copy <code>baseColor / metallic / roughness</code> values from the active preset into SL's material editor, or import the bundled <code>material_<i>preset</i>.gltf</code> as a Material asset and apply it.</p>
-      <p><b>Land Impact estimate:</b> Rough heuristic based on tri count + LOD count. Real LI depends on the SL upload &amp; sim - always check there.</p>
+      <summary>SL Upload Guide</summary>
+      <p><b>Single .dae:</b> Good for a quick test. SL builds the far-away versions itself, and for text they often look bad.</p>
+      <p><b>SL Bundle .zip:</b> Unzip it, then load each LOD .dae file into its matching slot in the SL mesh uploader. Your text stays easy to read from far away and keeps Land Impact low.</p>
+      <p><b>Faces:</b> The mesh has 3 faces you can texture separately: <code>fill</code> (letter fronts and backs), <code>sides</code> (letter edges), <code>accent</code> (small extras like flower centers). After upload: edit the object → Texture tab → Select Face → apply a different color or texture.</p>
+      <p><b>PBR materials:</b> Copy the base color, metallic and roughness values from your preset into SL's material editor, or import the bundled <code>material_<i>preset</i>.gltf</code> file as a Material asset and apply it.</p>
+      <p><b>Land Impact estimate:</b> A rough guess based on the triangle count. The real number comes from the SL uploader - always check there before you pay.</p>
     </details>
   </div>
 </div>
+
+<footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
 
 <!-- earcut (UMD) -->
 <script>!function(e){"object"==typeof exports&&"undefined"!=typeof module?module.exports=e():"function"==typeof define&&define.amd?define([],e):("undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self?self:this).earcut=e()}(function(){return function r(x,i,u){function f(n,e){if(!i[n]){if(!x[n]){var t="function"==typeof require&&require;if(!e&&t)return t(n,!0);if(o)return o(n,!0);throw(e=new Error("Cannot find module '"+n+"'")).code="MODULE_NOT_FOUND",e}t=i[n]={exports:{}},x[n][0].call(t.exports,function(e){return f(x[n][1][e]||e)},t,t.exports,r,x,i,u)}return i[n].exports}for(var o="function"==typeof require&&require,e=0;e<u.length;e++)f(u[e]);return f}({1:[function(e,n,t){"use strict";function r(e,n,t){t=t||2;var r,x,i,u,f,o=n&&n.length,v=o?n[0]*t:e.length,p=s(e,0,v,t,!0),y=[];if(p&&p.next!==p.prev){if(o&&(p=function(e,n,t,r){var x,i,u,f,o=[];for(x=0,i=n.length;x<i;x++)f=n[x]*r,u=x<i-1?n[x+1]*r:e.length,(f=s(e,f,u,r,!1))===f.next&&(f.steiner=!0),o.push(function(e){var n=e,t=e;for(;(n.x<t.x||n.x===t.x&&n.y<t.y)&&(t=n),n=n.next,n!==e;);return t}(f));for(o.sort(c),x=0;x<o.length;x++)t=function(e,n){var t=function(e,n){var t,r=n,x=e.x,i=e.y,u=-1/0;do{if(i<=r.y&&i>=r.next.y&&r.next.y!==r.y){var f=r.x+(i-r.y)*(r.next.x-r.x)/(r.next.y-r.y);if(f<=x&&u<f&&(u=f,t=r.x<r.next.x?r:r.next,f===x))return t}}while(r=r.next,r!==n);if(!t)return null;var o,v=t,p=t.x,y=t.y,a=1/0;r=t;for(;x>=r.x&&r.x>=p&&x!==r.x&&D(i<y?x:u,i,p,y,i<y?u:x,i,r.x,r.y)&&(o=Math.abs(i-r.y)/(x-r.x),_(r,e)&&(o<a||o===a&&(r.x>t.x||r.x===t.x&&function(e,n){return E(e.prev,e,n.prev)<0&&E(n.next,e,e.next)<0}(t,r)))&&(t=r,a=o)),r=r.next,r!==v;);return t}(e,n);if(!t)return n;n=j(t,e);return q(n,n.next),q(t,t.next)}(o[x],t);return t}(e,n,p,t)),e.length>80*t){for(var a=r=e[0],l=x=e[1],h=t;h<v;h+=t)(i=e[h])<a&&(a=i),(u=e[h+1])<l&&(l=u),r<i&&(r=i),x<u&&(x=u);f=0!==(f=Math.max(r-a,x-l))?32767/f:0}O(p,y,t,a,l,f,0)}return y}function s(e,n,t,r,x){var i,u;if(x===0<d(e,n,t,r))for(i=n;i<t;i+=r)u=f(i,e[i],e[i+1],u);else for(i=t-r;n<=i;i-=r)u=f(i,e[i],e[i+1],u);return u&&N(u,u.next)&&(C(u),u=u.next),u}function q(e,n){if(!e)return e;n=n||e;var t,r=e;do{if(t=!1,r.steiner||!N(r,r.next)&&0!==E(r.prev,r,r.next))r=r.next;else{if(C(r),(r=n=r.prev)===r.next)break;t=!0}}while(t||r!==n);return n}function O(e,n,t,r,x,i,u){if(e){if(!u&&i){for(var f=e,o=r,v=x,p=i,y=f;0===y.z&&(y.z=k(y.x,y.y,o,v,p)),y.prevZ=y.prev,y.nextZ=y.next,(y=y.next)!==f;);y.prevZ.nextZ=null,y.prevZ=null;var a,l,h,s,c,d,Z,g,w=y,M=1;do{for(l=w,c=w=null,d=0;l;){for(d++,h=l,a=Z=0;a<M&&(Z++,h=h.nextZ);a++);for(g=M;0<Z||0<g&&h;)0!==Z&&(0===g||!h||l.z<=h.z)?(l=(s=l).nextZ,Z--):(h=(s=h).nextZ,g--),c?c.nextZ=s:w=s,s.prevZ=c,c=s;l=h}}while(c.nextZ=null,M*=2,1<d)}for(var b,m,z=e;e.prev!==e.next;)if(b=e.prev,m=e.next,i?function(e,n,t,r){var x=e.prev,i=e,u=e.next;if(0<=E(x,i,u))return;var f=x.x,o=i.x,v=u.x,p=x.y,y=i.y,a=u.y,l=f<o?f<v?f:v:o<v?o:v,h=p<y?p<a?p:a:y<a?y:a,s=o<f?v<f?f:v:v<o?o:v,c=y<p?a<p?p:a:a<y?y:a,d=k(l,h,n,t,r),Z=k(s,c,n,t,r),g=e.prevZ,w=e.nextZ;for(;g&&g.z>=d&&w&&w.z<=Z;){if(g.x>=l&&g.x<=s&&g.y>=h&&g.y<=c&&g!==x&&g!==u&&D(f,p,o,y,v,a,g.x,g.y)&&0<=E(g.prev,g,g.next))return;if(g=g.prevZ,w.x>=l&&w.x<=s&&w.y>=h&&w.y<=c&&w!==x&&w!==u&&D(f,p,o,y,v,a,w.x,w.y)&&0<=E(w.prev,w,w.next))return;w=w.nextZ}for(;g&&g.z>=d;){if(g.x>=l&&g.x<=s&&g.y>=h&&g.y<=c&&g!==x&&g!==u&&D(f,p,o,y,v,a,g.x,g.y)&&0<=E(g.prev,g,g.next))return;g=g.prevZ}for(;w&&w.z<=Z;){if(w.x>=l&&w.x<=s&&w.y>=h&&w.y<=c&&w!==x&&w!==u&&D(f,p,o,y,v,a,w.x,w.y)&&0<=E(w.prev,w,w.next))return;w=w.nextZ}return 1}(e,r,x,i):function(e){var n=e.prev,t=e,e=e.next;if(0<=E(n,t,e))return;var r=n.x,x=t.x,i=e.x,u=n.y,f=t.y,o=e.y,v=r<x?r<i?r:i:x<i?x:i,p=u<f?u<o?u:o:f<o?f:o,y=x<r?i<r?r:i:i<x?x:i,a=f<u?o<u?u:o:o<f?f:o,l=e.next;for(;l!==n;){if(l.x>=v&&l.x<=y&&l.y>=p&&l.y<=a&&D(r,u,x,f,i,o,l.x,l.y)&&0<=E(l.prev,l,l.next))return;l=l.next}return 1}(e))n.push(b.i/t|0),n.push(e.i/t|0),n.push(m.i/t|0),C(e),e=m.next,z=m.next;else if((e=m)===z){u?1===u?O(e=function(e,n,t){var r=e;do{var x=r.prev,i=r.next.next}while(!N(x,i)&&U(x,r,r.next,i)&&_(x,i)&&_(i,x)&&(n.push(x.i/t|0),n.push(r.i/t|0),n.push(i.i/t|0),C(r),C(r.next),r=e=i),r=r.next,r!==e);return q(r)}(q(e),n,t),n,t,r,x,i,2):2===u&&function(e,n,t,r,x,i){var u=e;do{for(var f,o=u.next.next;o!==u.prev;){if(u.i!==o.i&&function(e,n){return e.next.i!==n.i&&e.prev.i!==n.i&&!function(e,n){var t=e;do{if(t.i!==e.i&&t.next.i!==e.i&&t.i!==n.i&&t.next.i!==n.i&&U(t,t.next,e,n))return 1}while(t=t.next,t!==e);return}(e,n)&&(_(e,n)&&_(n,e)&&function(e,n){var t=e,r=!1,x=(e.x+n.x)/2,i=(e.y+n.y)/2;for(;t.y>i!=t.next.y>i&&t.next.y!==t.y&&x<(t.next.x-t.x)*(i-t.y)/(t.next.y-t.y)+t.x&&(r=!r),t=t.next,t!==e;);return r}(e,n)&&(E(e.prev,e,n.prev)||E(e,n.prev,n))||N(e,n)&&0<E(e.prev,e,e.next)&&0<E(n.prev,n,n.next))}(u,o))return f=j(u,o),u=q(u,u.next),f=q(f,f.next),O(u,n,t,r,x,i,0),O(f,n,t,r,x,i,0);o=o.next}}while(u=u.next,u!==e)}(e,n,t,r,x,i):O(q(e),n,t,r,x,i,1);break}}}function c(e,n){return e.x-n.x}function k(e,n,t,r,x){return(e=1431655765&((e=858993459&((e=252645135&((e=16711935&((e=(e-t)*x|0)|e<<8))|e<<4))|e<<2))|e<<1))|(n=1431655765&((n=858993459&((n=252645135&((n=16711935&((n=(n-r)*x|0)|n<<8))|n<<4))|n<<2))|n<<1))<<1}function D(e,n,t,r,x,i,u,f){return(e-u)*(i-f)<=(x-u)*(n-f)&&(t-u)*(n-f)<=(e-u)*(r-f)&&(x-u)*(r-f)<=(t-u)*(i-f)}function E(e,n,t){return(n.y-e.y)*(t.x-n.x)-(n.x-e.x)*(t.y-n.y)}function N(e,n){return e.x===n.x&&e.y===n.y}function U(e,n,t,r){var x=v(E(e,n,t)),i=v(E(e,n,r)),u=v(E(t,r,e)),f=v(E(t,r,n));return x!==i&&u!==f||(0===x&&o(e,t,n)||(0===i&&o(e,r,n)||(0===u&&o(t,e,r)||!(0!==f||!o(t,n,r)))))}function o(e,n,t){return n.x<=Math.max(e.x,t.x)&&n.x>=Math.min(e.x,t.x)&&n.y<=Math.max(e.y,t.y)&&n.y>=Math.min(e.y,t.y)}function v(e){return 0<e?1:e<0?-1:0}function _(e,n){return E(e.prev,e,e.next)<0?0<=E(e,n,e.next)&&0<=E(e,e.prev,n):E(e,n,e.prev)<0||E(e,e.next,n)<0}function j(e,n){var t=new u(e.i,e.x,e.y),r=new u(n.i,n.x,n.y),x=e.next,i=n.prev;return(e.next=n).prev=e,(t.next=x).prev=t,(r.next=t).prev=r,(i.next=r).prev=i,r}function f(e,n,t,r){e=new u(e,n,t);return r?(e.next=r.next,(e.prev=r).next.prev=e,r.next=e):(e.prev=e).next=e,e}function C(e){e.next.prev=e.prev,e.prev.next=e.next,e.prevZ&&(e.prevZ.nextZ=e.nextZ),e.nextZ&&(e.nextZ.prevZ=e.prevZ)}function u(e,n,t){this.i=e,this.x=n,this.y=t,this.prev=null,this.next=null,this.z=0,this.prevZ=null,this.nextZ=null,this.steiner=!1}function d(e,n,t,r){for(var x=0,i=n,u=t-r;i<t;i+=r)x+=(e[u]-e[i])*(e[i+1]+e[u+1]),u=i;return x}n.exports=r,(n.exports.default=r).deviation=function(e,n,t,r){var x=n&&n.length,i=x?n[0]*t:e.length,u=Math.abs(d(e,0,i,t));if(x)for(var f=0,o=n.length;f<o;f++){var v=n[f]*t,p=f<o-1?n[f+1]*t:e.length;u-=Math.abs(d(e,v,p,t))}for(var y=0,f=0;f<r.length;f+=3){var a=r[f]*t,l=r[f+1]*t,h=r[f+2]*t;y+=Math.abs((e[a]-e[h])*(e[1+l]-e[1+a])-(e[a]-e[l])*(e[1+h]-e[1+a]))}return 0===u&&0===y?0:Math.abs((y-u)/u)},r.flatten=function(e){for(var n=e[0][0].length,t={vertices:[],holes:[],dimensions:n},r=0,x=0;x<e.length;x++){for(var i=0;i<e[x].length;i++)for(var u=0;u<n;u++)t.vertices.push(e[x][i][u]);0<x&&(r+=e[x-1].length,t.holes.push(r))}return t}},{}]},{},[1])(1)});</script>
@@ -3587,7 +3643,7 @@ function updatePreview() {
   const parts = [`fill ${mesh.fillTris.length}`, `sides ${mesh.sideTris.length}`];
   if (mesh.accentTris.length) parts.push(`accent ${mesh.accentTris.length}`);
   if (bpCnt) parts.push(`backplate ${bpCnt}`);
-  setStatus(`✓ ${totalTris} tris   (${parts.join(' · ')})`, 'ok');
+  setStatus(`✓ ${totalTris} triangles   (${parts.join(' · ')})`, 'ok');
 
   $('stTris').textContent = totalTris;
   $('stVerts').textContent = mesh.vertices.length;
@@ -3706,7 +3762,7 @@ wireUI();
 if (typeof opentype !== 'undefined') loadAllFonts();
 $('downloadBtn').disabled = false;
 $('bundleBtn').disabled = false;
-setStatus('✓ Ready. Pipeline: opentype → earcut → 3D extrude.', 'ok');
+setStatus('✓ Ready. Type your text and watch the preview.', 'ok');
 updatePreview();
 </script>
 

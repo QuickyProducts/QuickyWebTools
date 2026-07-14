@@ -157,6 +157,25 @@ p.tool-desc { color: var(--dim); font-size: 13px; flex: 1; }
 /* Work-in-progress cards: amber chip + tinted border */
 a.tool.wip { border-color: rgba(255, 184, 77, 0.3); }
 a.tool.wip:hover { border-color: rgba(255, 184, 77, 0.55); }
+.wip-divider {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 14px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #ffb84d;
+  opacity: .85;
+}
+.wip-divider::before, .wip-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 184, 77, 0.3);
+}
 .wip-chip {
   margin-left: auto;
   flex-shrink: 0;
@@ -247,39 +266,6 @@ footer a:hover { text-decoration: underline; }
       <div class="tool-cta">Launch</div>
     </a>
 
-    <a class="tool wip" href="./SL%203D%20Text%20Creator/sl_3d_text_creator.html">
-      <div class="tool-head">
-        <span class="badge">TX</span>
-        <div>
-          <h2 class="tool-name">3D Text Creator</h2>
-          <p class="tool-sub">text → 3D mesh</p>
-        </div>
-        <span class="wip-chip" title="work in progress">WIP</span>
-      </div>
-      <p class="tool-desc">
-        Type a word, pick a font and depth, export a clean Collada .dae mesh
-        with live 3D preview, triangle count and bundled LODs.
-      </p>
-      <div class="tool-cta">Launch</div>
-    </a>
-
-    <a class="tool wip" href="./SL%20HUD%20Buttons%20Creator/sl_hud_buttons_creator.html">
-      <div class="tool-head">
-        <span class="badge">HD</span>
-        <div>
-          <h2 class="tool-name">HUD Buttons Creator</h2>
-          <p class="tool-sub">buttons grid → mesh</p>
-        </div>
-        <span class="wip-chip" title="work in progress">WIP</span>
-      </div>
-      <p class="tool-desc">
-        Lay out a grid of HUD buttons, pick shapes and colours, export an
-        optimised low-poly mesh whose face indices stay aligned with the
-        button order.
-      </p>
-      <div class="tool-cta">Launch</div>
-    </a>
-
     <a class="tool" href="./SL%20Alpha%20Maker/sl_alpha_maker.html">
       <div class="tool-head">
         <span class="badge">AM</span>
@@ -312,17 +298,53 @@ footer a:hover { text-decoration: underline; }
       <div class="tool-cta">Launch</div>
     </a>
 
+    <div class="wip-divider" aria-hidden="true">Work in progress</div>
+
+    <a class="tool wip" href="./SL%203D%20Text%20Creator/sl_3d_text_creator.html">
+      <div class="tool-head">
+        <span class="badge">TX</span>
+        <div>
+          <h2 class="tool-name">3D Text Creator</h2>
+          <p class="tool-sub">text → 3D mesh</p>
+        </div>
+        <span class="wip-chip" title="work in progress">WIP</span>
+      </div>
+      <p class="tool-desc">
+        Type a word, pick a font and depth, download it as a 3D model
+        ready to upload to SL - with live preview.
+      </p>
+      <div class="tool-cta">Launch</div>
+    </a>
+
+    <a class="tool wip" href="./SL%20HUD%20Buttons%20Creator/sl_hud_buttons_creator.html">
+      <div class="tool-head">
+        <span class="badge">HD</span>
+        <div>
+          <h2 class="tool-name">HUD Buttons Creator</h2>
+          <p class="tool-sub">buttons grid → mesh</p>
+        </div>
+        <span class="wip-chip" title="work in progress">WIP</span>
+      </div>
+      <p class="tool-desc">
+        Design a grid of HUD buttons, pick shapes and colours, download
+        it as one low-cost 3D model ready for SL.
+      </p>
+      <div class="tool-cta">Launch</div>
+    </a>
+
   </section>
 
   <footer>
     <p>
       Made with 💜 by <b>Ya</b> · noncommercial use · source &amp; licence on
       <a href="https://github.com/QuickyProducts/QuickyWebTools">GitHub</a>
-      &nbsp;·&nbsp;
-      Sister projects:
-      <a href="https://github.com/QuickyProducts/QuickyHUD">QuickyHUD</a>
+    </p>
+    <p style="margin-top:8px;">
+      More from Quicky:
+      <b>QuickyHUD</b> - pose your seated avatar with ease
       &nbsp;·&nbsp;
       <a href="https://github.com/QuickyProducts/QuickySitter">QuickySitter</a>
+      - the easy way to put sits and poses in your furniture
     </p>
     <p style="margin-top:8px; font-size:11px; opacity:.75;">
       Second Life® and SL™ are trademarks of Linden Research, Inc.
