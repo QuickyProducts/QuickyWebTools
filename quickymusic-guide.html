@@ -1,0 +1,142 @@
+<!doctype html>
+<!--
+  ====================================================================
+  QuickyMusic - Owner Guide (GitHub Pages)
+  Required Notice: Copyright © 2026 Ya.
+  Licensed under the PolyForm Noncommercial License 1.0.0 - see the
+  LICENSE file at the repo root for terms.
+  Terms: https://polyformproject.org/licenses/noncommercial/1.0.0
+  ====================================================================
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>QuickyMusic - Owner Guide</title>
+<meta name="description" content="How to load music onto your QuickyMusic player in Second Life and what every button does. Full-length songs, played gapless." />
+<style>
+:root{
+  --bg:#0a0714; --txt:#f2eeff; --dim:#9d95b8;
+  --magenta:#ff3cac; --pink:#ff6ec7; --purple:#7c2bff; --cyan:#2bd2ff;
+  --gold:#ffcf5e; --good:#00e5a0;
+  --glass:rgba(255,255,255,.05); --edge:rgba(255,255,255,.10);
+  --grad:linear-gradient(90deg,var(--pink),var(--purple),var(--cyan));
+  --font:"Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --mono:Consolas,"SF Mono","Cascadia Mono",Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100vh}
+body{background:var(--bg);color:var(--txt);font:16px/1.6 var(--font);overflow-x:hidden;color-scheme:dark}
+body::before,body::after{content:"";position:fixed;z-index:0;border-radius:50%;filter:blur(110px);opacity:.45;pointer-events:none}
+body::before{width:55vw;height:55vw;background:radial-gradient(circle,#5b2ba8,transparent 65%);top:-18vw;left:-14vw;animation:drift 26s ease-in-out infinite alternate}
+body::after{width:48vw;height:48vw;background:radial-gradient(circle,#b41f7e,transparent 65%);bottom:-16vw;right:-12vw;animation:drift 30s -15s ease-in-out infinite alternate-reverse}
+@keyframes drift{to{transform:translate(6vw,4vh) scale(1.18)}}
+main{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:64px 22px 90px}
+.hero{text-align:center;margin-bottom:14px}
+.wm{font-weight:800;font-size:clamp(52px,12vw,104px);line-height:.98;letter-spacing:-1px;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 6px 30px rgba(124,43,255,.45))}
+.wm2{font-weight:700;font-size:clamp(20px,5vw,40px);letter-spacing:.5em;text-indent:.5em;margin-top:2px;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tag{color:var(--dim);margin-top:16px;font-size:clamp(14px,3.4vw,18px);letter-spacing:.02em}
+.tag b{color:var(--txt);font-weight:600}
+.eq{display:flex;gap:4px;justify-content:center;align-items:flex-end;height:38px;margin:26px 0 4px}
+.eq i{width:5px;border-radius:3px;background:linear-gradient(180deg,var(--cyan),var(--magenta));transform-origin:bottom;animation:bounce 1.3s ease-in-out infinite}
+.eq i:nth-child(1){height:40%;animation-delay:-.2s}.eq i:nth-child(2){height:75%;animation-delay:-.7s}
+.eq i:nth-child(3){height:100%;animation-delay:-.4s}.eq i:nth-child(4){height:60%;animation-delay:-.9s}
+.eq i:nth-child(5){height:85%;animation-delay:-.5s}.eq i:nth-child(6){height:45%;animation-delay:-.1s}
+.eq i:nth-child(7){height:70%;animation-delay:-.8s}
+@keyframes bounce{0%,100%{transform:scaleY(.35)}50%{transform:scaleY(1)}}
+h2{font-size:13px;font-weight:800;letter-spacing:.22em;text-transform:uppercase;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;margin:0 0 16px}
+section{background:var(--glass);border:1px solid var(--edge);border-radius:20px;padding:26px 28px;margin-top:20px;
+  backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);
+  box-shadow:0 12px 40px rgba(0,0,0,.32)}
+ol.steps{list-style:none;counter-reset:s;display:flex;flex-direction:column;gap:16px}
+ol.steps li{counter-increment:s;position:relative;padding-left:52px;min-height:36px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:-2px;width:36px;height:36px;border-radius:50%;
+  display:grid;place-items:center;font-weight:800;color:#0a0714;background:linear-gradient(135deg,var(--pink),var(--cyan));
+  box-shadow:0 4px 16px rgba(255,60,172,.4)}
+ol.steps b{color:var(--txt)}
+.note{color:var(--dim);font-size:14.5px;margin-top:14px;padding-left:16px;border-left:2px solid var(--edge)}
+.rows{display:flex;flex-direction:column;gap:12px}
+.row{display:flex;gap:14px;align-items:baseline}
+.btn{flex:0 0 auto;min-width:96px;text-align:center;font-weight:700;font-size:14px;padding:7px 14px;border-radius:999px;
+  border:1px solid var(--edge);background:rgba(255,255,255,.05)}
+.btn.play{border-color:transparent;background:linear-gradient(135deg,var(--magenta),var(--purple));color:#fff}
+.btn.gold{border-color:rgba(255,207,94,.4);color:var(--gold)}
+.row span{color:var(--dim);font-size:15px}
+.row span b{color:var(--txt);font-weight:600}
+.cmd{font-family:var(--mono);font-size:14.5px;background:rgba(0,0,0,.35);border:1px solid var(--edge);border-radius:14px;
+  padding:16px 18px;overflow-x:auto;white-space:pre;color:#dfe3ea}
+.cmd b{color:var(--cyan);font-weight:600}
+.pill{display:inline-block;font-family:var(--mono);font-size:13px;background:rgba(0,0,0,.3);border:1px solid var(--edge);
+  border-radius:8px;padding:1px 8px;color:var(--gold)}
+p{color:var(--dim)}p b{color:var(--txt);font-weight:600}
+.foot{text-align:center;color:var(--dim);font-size:14px;margin-top:34px;line-height:1.9}
+.foot a{color:var(--cyan);text-decoration:none;border-bottom:1px solid rgba(43,210,255,.35)}
+.foot a:hover{color:var(--pink);border-color:rgba(255,110,199,.5)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important}}
+</style>
+</head>
+<body>
+<main>
+  <div class="hero">
+    <div class="wm">Quicky</div>
+    <div class="wm2">MUSIC</div>
+    <div class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <p class="tag"><b>Full-length songs in Second Life</b>, played gapless from short clips.<br>Only you, the owner, can control it.</p>
+  </div>
+
+  <section>
+    <h2>Put music on it</h2>
+    <ol class="steps">
+      <li>Cut your songs into clips with the <b>Music Slicer</b> tool (opens in any browser, no install). Drop in a song, trim off any junk, hit Export.</li>
+      <li>Unzip the download. Each song is its own folder of <span class="pill">.wav</span> clips, already named correctly.</li>
+      <li>In Second Life, <b>bulk-upload</b> the .wav files of a song (Build, Upload, Bulk, or drag them into the uploader).</li>
+      <li>Drag all the uploaded clips into the player's <b>Contents</b>. It registers them by itself, tidies up, and the song appears in the list. Repeat for more songs.</li>
+    </ol>
+    <div class="note">Clips are stored inside the player, so you can delete the uploaded files from your inventory afterwards. Long songs use more clips, and there is room for hundreds of songs.</div>
+  </section>
+
+  <section>
+    <h2>The menu (touch it)</h2>
+    <div class="rows">
+      <div class="row"><span class="btn play">Play</span><span><b>Start random play.</b> Every song plays once before any repeat, even across restarts.</span></div>
+      <div class="row"><span class="btn">Stop</span><span>Same button while playing. Stops the music.</span></div>
+      <div class="row"><span class="btn">Skip</span><span>Jump to the next song.</span></div>
+      <div class="row"><span class="btn">List</span><span>Show all songs in chat. Click a title to play it, click the <b>✘</b> next to it to delete it (asks first).</span></div>
+      <div class="row"><span class="btn">Vol -</span><span>Volume down 10%.</span></div>
+      <div class="row"><span class="btn">Vol +</span><span>Volume up 10%.</span></div>
+      <div class="row"><span class="btn gold">Anims</span><span>Optional animations (see below).</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Animations (optional)</h2>
+    <p>Drop any animations into the player's Contents, then touch and open <b>Anims</b>:</p>
+    <div class="rows" style="margin-top:16px">
+      <div class="row"><span class="btn gold">Set Hold</span><span>Plays the whole time you wear the player (a hold pose).</span></div>
+      <div class="row"><span class="btn gold">Set Play</span><span>Plays only while music is playing (a performance).</span></div>
+      <div class="row"><span class="btn">Clear</span><span>Removes that animation.</span></div>
+    </div>
+    <div class="note">Both are optional. Leave them empty and nothing happens.</div>
+  </section>
+
+  <section>
+    <h2>Prefer typing?</h2>
+    <p>Say any of these in local chat, for example <span class="pill">/7373 play 3</span></p>
+    <div class="cmd" style="margin-top:16px"><b>play</b> &lt;number or part of the title&gt;
+<b>skip</b> · <b>stop</b> · <b>auto</b> · <b>list</b> · <b>status</b>
+<b>vol</b> &lt;10-100&gt;      set an exact volume
+<b>remove</b> &lt;nr/text&gt;   delete a song
+<b>help</b>              show the command list</div>
+  </section>
+
+  <div class="foot">
+    Made with the <a href="SL%20Music%20Slicer/sl_music_slicer.html">SL Music Slicer</a>, part of the <a href="index.html">Quicky Web Tools</a>.<br>
+    Enjoy the music. ♪
+  </div>
+</main>
+</body>
+</html>
