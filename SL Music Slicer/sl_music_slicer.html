@@ -1512,9 +1512,20 @@ body.playing #play{animation:playpulse 1.5s ease-in-out infinite}
 @keyframes playpulse{50%{box-shadow:0 0 30px rgba(255,60,172,.8)}}
 #waveWrap{transition:box-shadow .4s,border-color .4s}
 body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43,210,255,.1);border-color:rgba(255,60,172,.35)}
-#flatZipRow{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim);cursor:pointer;user-select:none;padding:0 2px}
-#flatZipRow input{accent-color:var(--acc1);width:14px;height:14px;cursor:pointer;margin:0}
-#flatZipRow:hover{color:var(--txt)}
+/* "No folders in ZIP" toggle - glass row matching the .song rows,
+   with a sliding switch instead of a bare checkbox. */
+#flatZipRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);cursor:pointer;user-select:none;transition:border-color .15s,box-shadow .15s}
+#flatZipRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
+#flatZipRow .fz-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
+#flatZipRow .fz-txt b{font-size:12.5px;font-weight:600;color:var(--txt)}
+#flatZipRow .fz-txt small{font-size:10.5px;color:var(--dim)}
+#flatZipRow input{position:absolute;opacity:0;pointer-events:none}
+#flatZipRow .sw{position:relative;flex-shrink:0;width:36px;height:20px;border-radius:999px;background:rgba(0,0,0,.42);border:1px solid var(--edge);transition:background .18s,border-color .18s,box-shadow .18s}
+#flatZipRow .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--dim);transition:transform .18s,background .18s}
+#flatZipRow input:checked ~ .sw{background:linear-gradient(135deg,var(--acc1),var(--acc2));border-color:transparent;box-shadow:0 0 12px rgba(255,60,172,.4)}
+#flatZipRow input:checked ~ .sw::after{transform:translateX(16px);background:#fff}
+#flatZipRow input:focus-visible ~ .sw{outline:2px solid var(--acc3);outline-offset:2px}
+#flatZipRow:has(input:checked){border-color:rgba(255,60,172,.35)}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
 body{animation:slt-page-in .28s ease-out both}
 @keyframes slt-page-in{from{opacity:0}to{opacity:1}}
@@ -1842,7 +1853,9 @@ body{animation:slt-page-in .28s ease-out both}
     <div id="songList"></div>
     <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
     <label id="flatZipRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level - handy for bulk-uploading everything in one go.">
-      <input type="checkbox" id="flatZip"> No folders in ZIP (all clips top-level)
+      <span class="fz-txt"><b>No folders in ZIP</b><small>all clips top-level</small></span>
+      <input type="checkbox" id="flatZip">
+      <i class="sw" aria-hidden="true"></i>
     </label>
   </div>
   <div id="editor" class="hidden">
