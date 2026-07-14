@@ -930,6 +930,13 @@ body.slt-themed .drop b {
 body.slt-themed .drop small { color: var(--slt-dim) !important; }
 
 /* ---- Thumbnails strip ------------------------------------------------- */
+/* Cap the full-bleed workspace (Anim Priority + Sprite Sheet) so those
+   two tools sit centered at the same width as the rest of the family. */
+body.slt-themed #workspace {
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
 body.slt-themed .thumbs {
   background: rgba(17, 10, 34, 0.55) !important;
   border: 1px solid var(--slt-edge) !important;
@@ -937,6 +944,9 @@ body.slt-themed .thumbs {
   border-radius: 18px 18px 0 0 !important;
   box-shadow: none !important;
 }
+/* Before any files are loaded the strip is empty - without content it
+   renders as a stray glass bar above the footer, so hide it. */
+body.slt-themed .thumbs:empty { display: none !important; }
 body.slt-themed .thumb {
   background: var(--slt-glass) !important;
   border: 1px solid transparent !important;
