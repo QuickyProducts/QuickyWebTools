@@ -1513,6 +1513,7 @@ main{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:18px 24px 40p
 main:has(#editor.hidden){grid-template-columns:1fr;max-width:520px}
 main:has(#editor.hidden) #queuePanel{position:static}
 /* Start state: no songs loaded yet, so exporting makes no sense */
+main:has(#editor.hidden) #exportOne,
 main:has(#editor.hidden) #exportAll,
 main:has(#editor.hidden) #flatZipRow{display:none}
 @media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static}}
@@ -1956,7 +1957,9 @@ body{animation:slt-page-in .28s ease-out both}
     <div id="drop"><b>Drop audio files here</b>or click to browse<br><span style="font-size:11px">mp3 · wav · flac · ogg · m4a</span></div>
     <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus" multiple hidden>
     <div id="songList"></div>
+    <button id="exportOne" class="go">⬇ Export selected song (ZIP)</button>
     <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
+    <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
     <label id="flatZipRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level - handy for bulk-uploading everything in one go.">
       <span class="fz-txt"><b>No folders in ZIP</b><small>all clips top-level</small></span>
       <input type="checkbox" id="flatZip">
@@ -1976,12 +1979,6 @@ body{animation:slt-page-in .28s ease-out both}
         <button id="cut" title="click the wave to place the playhead, then cut">✂ Cut</button>
         <button id="cutF" class="gone">🗑 ← delete front part</button>
         <button id="cutB" class="gone">delete back part → 🗑</button>
-      </div>
-    </div>
-    <div class="panel">
-      <div class="row">
-        <button id="exportOne" class="go">⬇ Export this song (ZIP)</button>
-        <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
       </div>
     </div>
     <div class="panel"><div id="log"></div></div>
