@@ -1612,7 +1612,8 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 .slt-footer{position:relative;z-index:1;text-align:center;margin:38px auto 14px;font-size:11.5px;letter-spacing:.3px;color:var(--dim)}
 .slt-footer a{color:var(--acc1);text-decoration:none}
 .slt-footer a:hover{text-decoration:underline}
-@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+/* reduced-motion override removed 2026-07-16: the animations are gentle by
+   design (no flashing) and are part of the tool's identity - always on. */
 body{animation:slt-page-in .28s ease-out both}
 @keyframes slt-page-in{from{opacity:0}to{opacity:1}}
 </style>
@@ -2864,7 +2865,7 @@ new ResizeObserver(() => { if (cur >= 0) draw(); }).observe(document.querySelect
 // ---------- fx ----------
 const fxC = $('fx'), fxG = fxC.getContext('2d');
 const popC = $('pop'), popG = popC.getContext('2d');
-const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const REDUCED = false;
 const fxParts = [], fxFreq = new Uint8Array(128), confetti = [];
 let popDirty = false, eqLive = false;
 const eqEls = [...document.querySelectorAll('.eq i')];
