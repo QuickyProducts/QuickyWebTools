@@ -2232,7 +2232,7 @@ function addFiles(list) {
     if (!/\.(mp3|wav|flac|ogg|oga|m4a|aac|opus|webm)$/i.test(f.name) && !(f.type || '').startsWith('audio')) { log('skipped (not audio): ' + f.name, true); continue; }
     const sng = {
       id: ++seq, file: f, title: titleFromFile(f.name), buffer: null, peaks: null,
-      dur: 0, trimS: 0, trimE: 0, maxLen: 30, declick: 0,
+      dur: 0, trimS: 0, trimE: 0, maxLen: 29.9, declick: 0,
       fadeIn: 0, fadeOut: 0, status: 'new'
     };
     sng._auto = sng.title;
