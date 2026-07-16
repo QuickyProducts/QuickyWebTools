@@ -2233,8 +2233,7 @@ function addFiles(list) {
     if (!/\.(mp3|wav|flac|ogg|oga|m4a|aac|opus|webm)$/i.test(f.name) && !(f.type || '').startsWith('audio')) { log('skipped (not audio): ' + f.name, true); continue; }
     const sng = {
       id: ++seq, file: f, title: titleFromFile(f.name), buffer: null, peaks: null,
-      dur: 0, trimS: 0, trimE: 0, maxLen: 29.9, declick: 0,
-      fadeIn: 0, fadeOut: 0, status: 'new'
+      dur: 0, trimS: 0, trimE: 0, maxLen: 29.9, status: 'new'
     };
     sng._auto = sng.title;
     songs.push(sng);
@@ -2676,17 +2675,6 @@ window.addEventListener('keydown', e => {
 });
 
 // ---------- export ----------
-function applyFade(chans, start, len, fadeIn) {
-  if (len <= 0) return;
-  for (const c of chans) {
-    for (let i = 0; i < len; i++) {
-      const idx = start + i;
-      if (idx < 0 || idx >= c.length) continue;
-      const k = i / len;
-      c[idx] *= fadeIn ? k : 1 - k;
-    }
-  }
-}
 function encodeWav(parts, gain) {
   const ch = parts.length, n = parts[0].length, out = new ArrayBuffer(44 + n * ch * 2), v = new DataView(out);
   const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
@@ -2760,8 +2748,6 @@ async function renderSong(s, onprog) {
   src.buffer = buf; src.connect(oc.destination); src.start(0, s.trimS, T);
   const r = await oc.startRendering();
   const x = r.getChannelData(0);
-  applyFade([x], 0, Math.round(s.fadeIn * SR), true);
-  applyFade([x], outLen - Math.round(s.fadeOut * SR), Math.round(s.fadeOut * SR), false);
   let peak = 0;
   for (let i = 0; i < x.length; i++) { const a = Math.abs(x[i]); if (a > peak) peak = a; }
   const W = Math.round(0.4 * SR), Hp = Math.round(0.2 * SR);
@@ -2782,12 +2768,10 @@ async function renderSong(s, onprog) {
   const minG = limitInPlace(x, G, CEIL);
   const lens = sliceLens(outLen, Math.round(s.maxLen * SR));
   if (!lens) throw 'more than 99 clips - trim more';
-  const dk = Math.round(s.declick * SR / 1000);
   const files = []; let offs = 0;
   for (let i = 0; i < lens.length; i++) {
     const Ln = lens[i];
     const part = [new Float32Array(x.subarray(offs, offs + Ln))];
-    if (dk > 0 && Ln > dk * 3) { applyFade(part, 0, dk, true); applyFade(part, Ln - dk, dk, false); }
     files.push({ name: s.title + '~' + p2(i + 1) + '-' + p2(lens.length) + '~' + durStr(Ln) + '.wav', data: encodeWav(part, 1) });
     offs += Ln;
     if (onprog) { onprog((i + 1) / lens.length); await new Promise(r2 => setTimeout(r2)); }
