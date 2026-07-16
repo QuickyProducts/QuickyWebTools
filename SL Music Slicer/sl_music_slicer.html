@@ -2675,6 +2675,18 @@ window.addEventListener('keydown', e => {
 });
 
 // ---------- export ----------
+/* 3ms edge fade on every clip: SL re-encodes each clip separately (Vorbis) and
+   the codec edge at a loud splice point is audible as a tiny tick. Fading the
+   splice to zero hides it - the working Audacity reference gets away without
+   fades only because its joints happen to sit in quiet passages; our loudness
+   normalization makes every joint loud, so we always fade. */
+const EDGE = Math.round(SR * 0.003);
+function edgeFade(c, start, len, up) {
+  for (let i = 0; i < len; i++) {
+    const idx = start + i;
+    if (idx >= 0 && idx < c.length) c[idx] *= up ? i / len : 1 - i / len;
+  }
+}
 function encodeWav(parts, gain) {
   const ch = parts.length, n = parts[0].length, out = new ArrayBuffer(44 + n * ch * 2), v = new DataView(out);
   const ws = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
@@ -2772,6 +2784,7 @@ async function renderSong(s, onprog) {
   for (let i = 0; i < lens.length; i++) {
     const Ln = lens[i];
     const part = [new Float32Array(x.subarray(offs, offs + Ln))];
+    if (Ln > EDGE * 3) { edgeFade(part[0], 0, EDGE, true); edgeFade(part[0], Ln - EDGE, EDGE, false); }
     files.push({ name: s.title + '~' + p2(i + 1) + '-' + p2(lens.length) + '~' + durStr(Ln) + '.wav', data: encodeWav(part, 1) });
     offs += Ln;
     if (onprog) { onprog((i + 1) / lens.length); await new Promise(r2 => setTimeout(r2)); }
