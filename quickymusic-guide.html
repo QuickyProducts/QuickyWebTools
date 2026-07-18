@@ -104,35 +104,26 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
   <section>
     <h2>The menu (touch it)</h2>
     <div class="rows">
-      <div class="row"><span class="btn play">Play</span><span><b>Start random play.</b> Every song plays once before any repeat, even across restarts.</span></div>
-      <div class="row"><span class="btn">Stop</span><span>Same button while playing. Stops the music.</span></div>
-      <div class="row"><span class="btn">Skip</span><span>Jump to the next song.</span></div>
-      <div class="row"><span class="btn">List</span><span>Show all songs in chat. Click a title to play it, click the <b>✘</b> next to it to delete it (asks first).</span></div>
-      <div class="row"><span class="btn">Vol -</span><span>Volume down 10%.</span></div>
-      <div class="row"><span class="btn">Vol +</span><span>Volume up 10%.</span></div>
-      <div class="row"><span class="btn gold">Anims</span><span>Optional animations (see below).</span></div>
+      <div class="row"><span class="btn play">► Play</span><span><b>Start random play.</b> Every song plays once before any repeat, even across restarts. While music is playing the same button shows <b>■ Stop</b>.</span></div>
+      <div class="row"><span class="btn">» Skip</span><span>Jump to the next song.</span></div>
+      <div class="row"><span class="btn">≡ List</span><span>Show all songs in chat. Click a title to play it. Each line also has <b>✚</b> (queue it as the next song), <b>✘</b> (delete it, asks first) and <b>⇪</b> (export just that song).</span></div>
+      <div class="row"><span class="btn">▼ Vol-</span><span>Volume down 10%.</span></div>
+      <div class="row"><span class="btn">▲ Vol+</span><span>Volume up 10%.</span></div>
+      <div class="row"><span class="btn">⌕ Search</span><span>Type part of a title, the match plays right away. Several matches come back as a clickable list.</span></div>
+      <div class="row"><span class="btn gold">⚡ Extras</span><span>Opens the extras menu: <b>Export ALL</b> posts every song as a clip list you can copy, <b>Anims</b> is below, <b>Back</b> returns.</span></div>
     </div>
+    <div class="note">The menu stays open for a minute, so you can tap Vol a few times in a row without reopening it.</div>
   </section>
 
   <section>
     <h2>Animations (optional)</h2>
-    <p>Drop any animations into the player's Contents, then touch and open <b>Anims</b>:</p>
+    <p>Drop any animations into the player's Contents, then touch and open <b>⚡ Extras</b>, <b>Anims</b>:</p>
     <div class="rows" style="margin-top:16px">
       <div class="row"><span class="btn gold">Set Hold</span><span>Plays the whole time you wear the player (a hold pose).</span></div>
       <div class="row"><span class="btn gold">Set Play</span><span>Plays only while music is playing (a performance).</span></div>
       <div class="row"><span class="btn">Clear</span><span>Removes that animation.</span></div>
     </div>
     <div class="note">Both are optional. Leave them empty and nothing happens.</div>
-  </section>
-
-  <section>
-    <h2>Prefer typing?</h2>
-    <p>Say any of these in local chat, for example <span class="pill">/7373 play 3</span></p>
-    <div class="cmd" style="margin-top:16px"><b>play</b> &lt;number or part of the title&gt;
-<b>skip</b> · <b>stop</b> · <b>auto</b> · <b>list</b> · <b>status</b>
-<b>vol</b> &lt;10-100&gt;      set an exact volume
-<b>remove</b> &lt;nr/text&gt;   delete a song
-<b>help</b>              show the command list</div>
   </section>
 
   <div class="foot">
