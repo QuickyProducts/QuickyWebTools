@@ -2380,7 +2380,7 @@ function limitInPlace(x, G, C) {
 
 function sliceLens(totalSamp, maxSamp) {
   const N = Math.ceil(totalSamp / maxSamp);
-  if (N > 999) return null;
+  if (N > 99) return null;
   const a = []; let left = totalSamp;
   while (left > 0) { const l = Math.min(maxSamp, left); a.push(l); left -= l; }
   return a;
@@ -2422,7 +2422,7 @@ function updateInfo() {
   const T = Math.max(0, s.trimE - s.trimS);
   const total = Math.round(T * SR), lens = total > 0 ? sliceLens(total, Math.round(s.maxLen * SR)) : [];
   const wi = $('waveInfo');
-  if (!lens) { wi.textContent = fmtMS(T) + ' · too long (>999 clips)'; wi.className = 'bad'; }
+  if (!lens) { wi.textContent = fmtMS(T) + ' · too long (>99 clips)'; wi.className = 'bad'; }
   else if (!lens.length) { wi.textContent = ''; wi.className = ''; }
   else {
     const last = lens[lens.length - 1] / SR;
@@ -2779,15 +2779,13 @@ async function renderSong(s, onprog) {
   if (L > -60 && peak > 1e-6) G = clamp(Math.pow(10, (LOUD_DB - L) / 20), 0.1, Math.min(16, 2 * CEIL / peak));
   const minG = limitInPlace(x, G, CEIL);
   const lens = sliceLens(outLen, Math.round(s.maxLen * SR));
-  if (!lens) throw 'more than 999 clips - trim more';
-  const expT = lens.length > 99 ? clampBytes(s.title, TITLE_MAX - 2) : s.title;
+  if (!lens) throw 'more than 99 clips - trim more';
   const files = []; let offs = 0;
   for (let i = 0; i < lens.length; i++) {
     const Ln = lens[i];
     const part = [new Float32Array(x.subarray(offs, offs + Ln))];
     if (Ln > EDGE * 3) { edgeFade(part[0], 0, EDGE, true); edgeFade(part[0], Ln - EDGE, EDGE, false); }
-    const pN = lens.length > 99 ? (n => String(n).padStart(3, '0')) : p2;
-    files.push({ name: expT + '~' + pN(i + 1) + '-' + pN(lens.length) + '~' + durStr(Ln) + '.wav', data: encodeWav(part, 1) });
+    files.push({ name: s.title + '~' + p2(i + 1) + '-' + p2(lens.length) + '~' + durStr(Ln) + '.wav', data: encodeWav(part, 1) });
     offs += Ln;
     if (onprog) { onprog((i + 1) / lens.length); await new Promise(r2 => setTimeout(r2)); }
   }
