@@ -103,15 +103,35 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
 
   <section>
     <h2>The menu (touch it)</h2>
-    <div class="rows">
-      <div class="row"><span class="btn play">► Play</span><span><b>Start random play.</b> Every song plays once before any repeat, even across restarts. While music is playing the same button shows <b>■ Stop</b>.</span></div>
+    <p>The dialog shows what just played, what plays now (with the song length) and what comes next - an <b>∞</b> in front of a title means repeat is active. The footer line shows volume, song count and free storage.</p>
+    <div class="rows" style="margin-top:16px">
+      <div class="row"><span class="btn play">► Play</span><span><b>Start shuffle play.</b> Every song plays once, then the player stops - unless repeat is on. While music is playing the same button shows <b>■ Stop</b>.</span></div>
       <div class="row"><span class="btn">» Skip</span><span>Jump to the next song.</span></div>
+      <div class="row"><span class="btn">✘ Close</span><span>Close your menu session so the next person can use the player right away.</span></div>
+      <div class="row"><span class="btn">♪ Volume</span><span>Opens the volume menu: <b>Vol-</b> / <b>Vol+</b> in 10% steps.</span></div>
+      <div class="row"><span class="btn">∞ Repeat</span><span>Cycles the repeat mode: <b>current song</b> → <b>all songs</b> → <b>off</b>. The ∞ marks in the menu show which one is active.</span></div>
       <div class="row"><span class="btn">≡ List</span><span>Show all songs in chat. Click a title to play it. Each line also has <b>✚</b> (queue it as the next song), <b>✘</b> (delete it, asks first) and <b>⇪</b> (export just that song).</span></div>
-      <div class="row"><span class="btn">▼ Vol-</span><span>Volume down 10%.</span></div>
-      <div class="row"><span class="btn">▲ Vol+</span><span>Volume up 10%.</span></div>
-      <div class="row"><span class="btn">⌕ Search</span><span>Type part of a title, the match plays right away. Several matches come back as a clickable list.</span></div>
-      <div class="row"><span class="btn gold">⚡ Extras</span><span>Opens the extras menu: <b>Anims</b> is below, <b>FX</b> toggles a soft particle shimmer around the speaker while music plays, <b>Back</b> returns.</span></div>
-    </div>  </section>
+      <div class="row"><span class="btn">⌕ Search</span><span>Type part of a title - one match plays right away, several come back as a clickable list, none and the search box reopens.</span></div>
+      <div class="row"><span class="btn gold">⚡ Extras</span><span>Owner only. Holds the module buttons: <b>Anims</b> (chapter below), <b>FX</b> - glowing notes drifting off the speaker while music plays (<b>Pink</b>, <b>Blue</b> or <b>Mix</b>), <b>Export</b> (chapter below), and <b>Swing</b> on the dangling speaker. Only installed modules show up.</span></div>
+      <div class="row"><span class="btn gold">⌂ Access</span><span>Owner only. Who may use the menu: <b>Owner</b>, <b>Group</b> or <b>Public</b>.</span></div>
+    </div>
+    <div class="note">With Group or Public access, whoever touches the player gets the menu for 60 seconds (every click extends it). Others see who is using it; only the owner can take over early. Guests get the playback controls but cannot delete, export or open Extras.</div>
+  </section>
+
+  <section>
+    <h2>Long songs</h2>
+    <p>Songs up to about <b>8 hours</b> are supported. The slicer switches to 3-digit part numbers past 99 clips - nothing else changes for you. Storage cost is roughly 4.6 kB per hour of song. Long songs need <b>full-perm clips</b>; without full perm, use the notecard import instead (drop an exported notecard into the player and it registers by itself).</p>
+  </section>
+
+  <section>
+    <h2>Export (Extras)</h2>
+    <p>The <b>⇪</b> on a list line exports that song. In <b>Extras → Export</b> you choose how:</p>
+    <div class="rows" style="margin-top:16px">
+      <div class="row"><span class="btn gold">Link</span><span>Chat shows the song title plus links to a temporary web page with the notecard name and content - copy from there.</span></div>
+      <div class="row"><span class="btn gold">Chat</span><span>The full notecard content arrives as chat blocks (25 clips each) - paste them in order into one notecard.</span></div>
+    </div>
+    <div class="note">The result is a Mewsic/Nyanko-style notecard: first line like <span class="pill">30:21</span>, then one clip UUID per line. Any QuickyMusic player imports it automatically when you drop the notecard in.</div>
+  </section>
 
   <section>
     <h2>Animations (optional)</h2>
@@ -120,7 +140,7 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
       <div class="row"><span class="btn gold">Hold</span><span>Plays the whole time you wear the player (a hold pose). Opens a picker with the animations inside - pick one, or <b>Clear</b> to remove it.</span></div>
       <div class="row"><span class="btn gold">Play</span><span>Plays only while music is playing (a performance). Same picker.</span></div>
     </div>
-    <div class="note">Both are optional. Leave them empty and nothing happens. If sitting down, standing up or a teleport interrupts an animation, it restarts by itself. Tip: upload poses with priority 4 or higher so furniture and AOs don't override them.</div>
+    <div class="note">With exactly one animation inside, it plays automatically - no setup at all (the Anims button then offers <b>⚠ Activate</b> to unlock the two-slot mode for experienced users). If sitting down, standing up, a teleport or revoked permissions interrupt an animation, it restarts by itself. Tip: upload poses with priority 4 or higher so furniture and AOs don't override them.</div>
   </section>
 
   <div class="foot">
