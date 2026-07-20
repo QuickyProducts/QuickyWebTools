@@ -75,6 +75,9 @@ ol.steps b{color:var(--txt)}
 p{color:var(--dim)}p b{color:var(--txt);font-weight:600}
 section a{color:var(--cyan);font-weight:600;text-decoration:none;border-bottom:1px solid rgba(43,210,255,.4)}
 section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
+.faq p{margin-top:14px}
+.faq p:first-of-type{margin-top:0}
+.faq b{display:block;color:var(--txt);margin-bottom:2px}
 .foot{text-align:center;color:var(--dim);font-size:14px;margin-top:34px;line-height:1.9}
 .foot a{color:var(--cyan);text-decoration:none;border-bottom:1px solid rgba(43,210,255,.35)}
 .foot a:hover{color:var(--pink);border-color:rgba(255,110,199,.5)}
@@ -141,6 +144,26 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
       <div class="row"><span class="btn gold">Play</span><span>Plays only while music is playing (a performance). Same picker.</span></div>
     </div>
     <div class="note">With exactly one animation inside, it plays automatically - no setup at all (the Anims button then offers <b>⚠ Activate</b> to unlock the two-slot mode for experienced users). If sitting down, standing up, a teleport or revoked permissions interrupt an animation, it restarts by itself. Tip: upload poses with priority 4 or higher so furniture and AOs don't override them.</div>
+  </section>
+
+  <section class="faq">
+    <h2>FAQ</h2>
+    <p><b>The player says "parts 1-42/100 - waiting"?</b>
+    Some clips have not arrived yet. The viewer only moves about 42 items per drag, so drag the rest in. Still stuck? Open the player's Contents and check the part numbers - every part from 01 to the total must be there. Re-drag whatever is missing and the song registers on its own.</p>
+    <p><b>I dropped clips and nothing happened?</b>
+    Give it a few seconds - the player waits shortly so a whole batch can arrive before it scans. If still nothing: the clips must keep their exact slicer names and must be full perm.</p>
+    <p><b>It says "needs full-perm clips - use notecard import instead"?</b>
+    Clips you received without full permissions cannot be registered directly. Ask the sender for an exported notecard instead - dropped into the player, it imports without needing any clips.</p>
+    <p><b>I hear a tiny jump at every cut?</b>
+    Those clips were sliced with an old version. Re-slice the song with the current Music Slicer and upload again - the player replaces the song automatically.</p>
+    <p><b>Others cannot use the menu?</b>
+    That is the Access setting (owner menu, ⌂ Access): Owner, Group or Public. And while one person uses the menu, it is reserved for them for 60 seconds - ✘ Close releases it early.</p>
+    <p><b>My menu stopped reacting?</b>
+    Your 60-second session ended. Just touch the player again for a fresh menu.</p>
+    <p><b>How much music fits in one player?</b>
+    The storage readout in the menu shows it (127 kB total). A three-minute song costs well under 1 kB, a full hour about 4.6 kB - so hundreds of normal songs.</p>
+    <p><b>How do I move my songs to another player?</b>
+    Export each song (⇪ in the List, or Extras → Export), paste it into a notecard named like the title, and drop that notecard into the other player.</p>
   </section>
 
   <div class="foot">
