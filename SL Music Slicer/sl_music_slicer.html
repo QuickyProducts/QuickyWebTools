@@ -2032,7 +2032,10 @@ function ctx() {
     analyser.smoothingTimeConstant = 0.82;
     analyser.connect(actx.destination);
     gComp = actx.createDynamicsCompressor();
-    gComp.threshold.value = -6;
+    // Safety net against overs, nothing more. At -6 it was compressing normal
+    // material, which made the preview play about 2.7 dB louder than the exported
+    // files - the one thing a preview must not do.
+    gComp.threshold.value = -1;
     gComp.knee.value = 4;
     gComp.ratio.value = 20;
     gComp.attack.value = 0.002;
