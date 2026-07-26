@@ -1974,7 +1974,7 @@ body{animation:slt-page-in .28s ease-out both}
       <i class="sw" aria-hidden="true"></i>
     </label>
     <label id="bassRow" title="Lifts everything below about 100 Hz before the loudness stage, so the clips end up with more weight at the same volume. Applies to preview and export alike.">
-      <span class="fz-txt"><b>Bass boost</b><small id="bassVal">off</small></span>
+      <span class="fz-txt"><b>Bass boost (Global)</b><small id="bassVal">off</small></span>
       <input type="range" id="bass" min="0" max="9" step="1" value="0">
     </label>
   </div>
@@ -1993,7 +1993,7 @@ body{animation:slt-page-in .28s ease-out both}
         <button id="cutB" class="gone">delete back part → 🗑</button>
       </div>
       <div class="row" id="sbassRow" style="margin-top:12px;align-items:center;gap:10px">
-        <span id="sbassTxt" style="font-size:12px;color:var(--dim);min-width:210px">Bass for this song: following the global setting</span>
+        <span id="sbassTxt" style="font-size:12px;color:var(--dim);min-width:210px">Bass for this song: off (following the global setting)</span>
         <input type="range" id="sbass" min="0" max="9" step="1" value="0" style="flex:0 0 140px;width:140px;accent-color:var(--acc2)">
         <button id="sbassRst" title="use the global setting again" style="padding:4px 10px">↺</button>
       </div>
@@ -2458,9 +2458,8 @@ function paintSongBass() {
   const d = songBass(s);
   $('sbass').value = d;
   $('sbassRst').disabled = !own;
-  $('sbassTxt').textContent = own
-    ? 'Bass for this song: ' + (d ? '+' + d + ' dB' : 'off') + ' (own setting)'
-    : 'Bass for this song: ' + (d ? '+' + d + ' dB' : 'off') + ' (following the global setting)';
+  $('sbassTxt').textContent = 'Bass for this song: ' + (d ? '+' + d + ' dB' : 'off')
+    + (own ? '' : ' (following the global setting)');
 }
 function updateInfo() {
   const s = songs[cur]; if (!s) return;
