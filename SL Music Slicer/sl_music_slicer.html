@@ -1515,7 +1515,7 @@ main:has(#editor.hidden) #queuePanel{position:static}
 /* Start state: no songs loaded yet, so exporting makes no sense */
 main:has(#editor.hidden) #exportOne,
 main:has(#editor.hidden) #exportAll,
-main:has(#editor.hidden) #flatZipRow{display:none}
+main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #bassRow{display:none}
 @media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
 #queuePanel{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:16px}
@@ -1608,6 +1608,13 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 #flatZipRow input:checked ~ .sw::after{transform:translateX(16px);background:#fff}
 #flatZipRow input:focus-visible ~ .sw{outline:2px solid var(--acc3);outline-offset:2px}
 #flatZipRow:has(input:checked){border-color:rgba(255,60,172,.35)}
+#bassRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin-top:8px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);user-select:none;transition:border-color .15s,box-shadow .15s}
+#bassRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
+#bassRow.on{border-color:rgba(255,60,172,.35)}
+#bassRow .fz-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
+#bassRow .fz-txt b{font-size:12.5px;font-weight:600;color:var(--txt)}
+#bassRow .fz-txt small{font-size:10.5px;color:var(--dim)}
+#bassRow input[type=range]{flex:0 0 120px;width:120px;accent-color:var(--acc2)}
 /* Unified tool footer (local copy - this tool doesn't use slt-themed) */
 .slt-footer{position:relative;z-index:1;text-align:center;margin:38px auto 14px;font-size:11.5px;letter-spacing:.3px;color:var(--dim)}
 .slt-footer a{color:var(--acc1);text-decoration:none}
@@ -1966,6 +1973,10 @@ body{animation:slt-page-in .28s ease-out both}
       <input type="checkbox" id="flatZip">
       <i class="sw" aria-hidden="true"></i>
     </label>
+    <label id="bassRow" title="Lifts everything below about 100 Hz before the loudness stage, so the clips end up with more weight at the same volume. Applies to preview and export alike.">
+      <span class="fz-txt"><b>Bass boost</b><small id="bassVal">off</small></span>
+      <input type="range" id="bass" min="0" max="9" step="1" value="0">
+    </label>
   </div>
   <div id="editor" class="hidden">
     <div class="panel">
@@ -1981,6 +1992,11 @@ body{animation:slt-page-in .28s ease-out both}
         <button id="cutF" class="gone">🗑 ← delete front part</button>
         <button id="cutB" class="gone">delete back part → 🗑</button>
       </div>
+      <div class="row" id="sbassRow" style="margin-top:12px;align-items:center;gap:10px">
+        <span id="sbassTxt" style="font-size:12px;color:var(--dim);min-width:210px">Bass for this song: following the global setting</span>
+        <input type="range" id="sbass" min="0" max="9" step="1" value="0" style="flex:0 0 140px;width:140px;accent-color:var(--acc2)">
+        <button id="sbassRst" title="use the global setting again" style="padding:4px 10px">↺</button>
+      </div>
     </div>
     <div class="panel"><div id="log"></div></div>
   </div>
@@ -1990,6 +2006,23 @@ body{animation:slt-page-in .28s ease-out both}
 'use strict';
 const $ = id => document.getElementById(id);
 const SR = 44100, TITLE_MAX = 52, LOUD_DB = -10.5, CEIL = 0.97;
+// Low shelf below BASS_HZ, inserted BEFORE the loudness measurement so the extra
+// low end is part of what gets measured and limited. Boosting after that stage
+// would push the peaks straight through the ceiling.
+const BASS_HZ = 100;
+function bassDb() { const e = $('bass'); return e ? +e.value : 0; }
+// s.bass === null means "follow the global slider"; a number overrides it for that
+// one song. Export ALL therefore mixes both without any extra bookkeeping.
+function songBass(s) { return (s && s.bass !== null && s.bass !== undefined) ? s.bass : bassDb(); }
+function bassNode(ac, s) {
+  const d = songBass(s);
+  if (!d) return null;
+  const f = ac.createBiquadFilter();
+  f.type = 'lowshelf';
+  f.frequency.value = BASS_HZ;
+  f.gain.value = d;
+  return f;
+}
 let actx = null, analyser = null, gComp = null;
 function ctx() {
   if (!actx) {
@@ -2215,8 +2248,8 @@ function applyTags(s, tg) {
 }
 function fmtMS(t) { const s = Math.round(t); return Math.floor(s / 60) + ':' + p2(s % 60); }
 function durStr(samples) {
-  const r = Math.round(samples / SR * 10) / 10;
-  return Number.isInteger(r) ? String(r) : r.toFixed(1);
+  const r = Math.round(samples / SR * 100) / 100;
+  return Number.isInteger(r) ? String(r) : String(r);
 }
 
 function log(msg, err) {
@@ -2233,7 +2266,7 @@ function addFiles(list) {
     if (!/\.(mp3|wav|flac|ogg|oga|m4a|aac|opus|webm)$/i.test(f.name) && !(f.type || '').startsWith('audio')) { log('skipped (not audio): ' + f.name, true); continue; }
     const sng = {
       id: ++seq, file: f, title: titleFromFile(f.name), buffer: null, peaks: null,
-      dur: 0, trimS: 0, trimE: 0, maxLen: 29.9, status: 'new'
+      dur: 0, trimS: 0, trimE: 0, maxLen: 29.8, bass: null, status: 'new'
     };
     sng._auto = sng.title;
     songs.push(sng);
@@ -2415,7 +2448,19 @@ function fillFields() {
   const s = songs[cur];
   $('title').value = s.title;
   cutMode(false);
+  paintSongBass();
   updateInfo();
+}
+function paintSongBass() {
+  const s = songs[cur];
+  if (!s) return;
+  const own = s.bass !== null && s.bass !== undefined;
+  const d = songBass(s);
+  $('sbass').value = d;
+  $('sbassRst').disabled = !own;
+  $('sbassTxt').textContent = own
+    ? 'Bass for this song: ' + (d ? '+' + d + ' dB' : 'off') + ' (own setting)'
+    : 'Bass for this song: ' + (d ? '+' + d + ' dB' : 'off') + ' (following the global setting)';
 }
 function updateInfo() {
   const s = songs[cur]; if (!s) return;
@@ -2626,7 +2671,9 @@ function playFrom(pos, end) {
   const a = ctx(), src = a.createBufferSource(), gn = a.createGain();
   src.buffer = s.buffer;
   gn.gain.value = estGain(s);
-  src.connect(gn); gn.connect(gComp);
+  const pbq = bassNode(a, s);
+  src.connect(gn);
+  if (pbq) { gn.connect(pbq); pbq.connect(gComp); } else gn.connect(gComp);
   src.start(0, pos, end - pos);
   pb = { src, at0: a.currentTime, pos0: pos, end };
   src.onended = () => { if (pb && pb.src === src) { pb = null; ph = end; $('play').textContent = '▶ Play'; draw(); } };
@@ -2757,7 +2804,10 @@ async function renderSong(s, onprog) {
   const T = s.trimE - s.trimS, outLen = Math.round(T * SR);
   const oc = new OfflineAudioContext(1, outLen, SR);
   const src = oc.createBufferSource();
-  src.buffer = buf; src.connect(oc.destination); src.start(0, s.trimS, T);
+  src.buffer = buf;
+  const bq = bassNode(oc, s);
+  if (bq) { src.connect(bq); bq.connect(oc.destination); } else src.connect(oc.destination);
+  src.start(0, s.trimS, T);
   const r = await oc.startRendering();
   const x = r.getChannelData(0);
   let peak = 0;
@@ -2781,17 +2831,22 @@ async function renderSong(s, onprog) {
   const lens = sliceLens(outLen, Math.round(s.maxLen * SR));
   if (!lens) throw 'more than 999 clips - trim more';
   const expT = lens.length > 99 ? clampBytes(s.title, TITLE_MAX - 2) : s.title;
+  const PAD = Math.round(SR * 0.15);
   const files = []; let offs = 0;
   for (let i = 0; i < lens.length; i++) {
     const Ln = lens[i];
-    const part = [new Float32Array(x.subarray(offs, offs + Ln))];
-    if (Ln > EDGE * 3) { edgeFade(part[0], 0, EDGE, true); edgeFade(part[0], Ln - EDGE, EDGE, false); }
+    const isLast = i === lens.length - 1;
+    const padS = isLast ? 0 : Math.min(PAD, outLen - (offs + Ln));
+    const part = [new Float32Array(x.subarray(offs, offs + Ln + padS))];
+    if (i === 0 && Ln > EDGE * 3) edgeFade(part[0], 0, EDGE, true);
+    if (isLast) { if (Ln > EDGE * 3) edgeFade(part[0], Ln - EDGE, EDGE, false); }
+    else if (padS > 0) edgeFade(part[0], Ln, padS, false);
     const pN = lens.length > 99 ? (n => String(n).padStart(3, '0')) : p2;
     files.push({ name: expT + '~' + pN(i + 1) + '-' + pN(lens.length) + '~' + durStr(Ln) + '.wav', data: encodeWav(part, 1) });
     offs += Ln;
     if (onprog) { onprog((i + 1) / lens.length); await new Promise(r2 => setTimeout(r2)); }
   }
-  return { files, gdb: 20 * Math.log10(G), gr: 20 * Math.log10(minG) };
+  return { files, gdb: 20 * Math.log10(G), gr: 20 * Math.log10(minG), bass: songBass(s) };
 }
 function prog(on, pct, txt) {
   $('progress').className = on ? 'on' : '';
@@ -2808,6 +2863,7 @@ $('exportOne').onclick = async () => {
     download(makeZip(res.files.map(f => ({ name: s.title + '/' + f.name, data: f.data }))), s.title + '.zip');
     s.status = 'done'; renderList();
     let li = ' · loudness ' + (res.gdb >= 0 ? '+' : '') + res.gdb.toFixed(1) + ' dB';
+    if (res.bass) li += ', bass +' + res.bass + ' dB';
     if (res.gr < -0.5) li += ', peaks tamed ' + res.gr.toFixed(1) + ' dB';
     log('✔ ' + s.title + ' → ' + s.title + '.zip (' + res.files.length + ' clips' + li + ')');
     boom($('exportOne'));
@@ -2822,6 +2878,30 @@ $('exportOne').onclick = async () => {
 try { $('flatZip').checked = localStorage.getItem('ms-flat-zip') === '1'; } catch (e) {}
 $('flatZip').onchange = () => {
   try { localStorage.setItem('ms-flat-zip', $('flatZip').checked ? '1' : '0'); } catch (e) {}
+};
+
+// Bass boost applies to every song, preview and export alike. State persists.
+function paintBass() {
+  const d = bassDb();
+  $('bassVal').textContent = d ? '+' + d + ' dB under ' + BASS_HZ + ' Hz' : 'off';
+  $('bassRow').classList.toggle('on', d > 0);
+}
+try { const v = localStorage.getItem('ms-bass'); if (v !== null) $('bass').value = v; } catch (e) {}
+paintBass();
+$('bass').oninput = () => {
+  paintBass();
+  paintSongBass();
+  try { localStorage.setItem('ms-bass', $('bass').value); } catch (e) {}
+};
+$('sbass').oninput = () => {
+  const s = songs[cur]; if (!s) return;
+  s.bass = +$('sbass').value;
+  paintSongBass();
+};
+$('sbassRst').onclick = () => {
+  const s = songs[cur]; if (!s) return;
+  s.bass = null;
+  paintSongBass();
 };
 
 $('exportAll').onclick = async () => {
