@@ -1513,6 +1513,17 @@ body:has(#editor:not(.hidden)) header .tagline,body:has(#editor:not(.hidden)) he
 body:has(#editor:not(.hidden)) header h1{font-size:24px}
 body:has(#editor:not(.hidden)) header .title-row{margin-top:0}
 body:has(#editor:not(.hidden)) .eq{transform:scale(.55);height:18px}
+/* Work mode is a fixed app screen: header, content and footer share exactly
+   one viewport, the page itself never scrolls - the song list and the editor
+   column scroll internally instead. */
+@media(min-width:981px){
+body:has(#editor:not(.hidden)){height:100vh;overflow:hidden;display:flex;flex-direction:column}
+body:has(#editor:not(.hidden)) header{flex-shrink:0;width:100%}
+body:has(#editor:not(.hidden)) main{flex:1 1 auto;min-height:0;width:100%;grid-template-rows:minmax(0,1fr);padding:14px 24px 14px;overflow:hidden}
+body:has(#editor:not(.hidden)) #queuePanel{position:static;max-height:100%}
+body:has(#editor:not(.hidden)) #editor{overflow-y:auto;padding-right:2px}
+body:has(#editor:not(.hidden)) .slt-footer{flex-shrink:0}
+}
 @keyframes hue{to{background-position:300% 0}}
 main{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:18px 24px 40px;max-width:1200px;margin:0 auto}
 /* Start state (no song loaded yet): the editor is hidden, so collapse
@@ -2566,7 +2577,6 @@ function renderList() {
   const n = songs.length + (songs.length === 1 ? ' song' : ' songs');
   $('songCount').textContent = songs.length ? n + (done ? ' · ' + done + ' exported' : '') : '';
   $('exportAll').textContent = songs.length ? '⬇ Export ALL · ' + n + ' (ZIP)' : '⬇ Export ALL songs (ZIP)';
-  requestAnimationFrame(fitQueue);
 }
 function removeSong(i) {
   stopPB();
@@ -3098,19 +3108,6 @@ for (const ev of ['dragover', 'dragleave', 'drop']) {
   });
 }
 new ResizeObserver(() => { if (cur >= 0) draw(); }).observe(document.querySelector('main'));
-
-// The CSS cap of calc(100vh - 32px) assumes the panel starts at the viewport
-// top, but before any scrolling the header pushes it down and the export area
-// ends up below the fold. Measure the real remaining height instead, so the
-// whole column fits without scrolling at any scroll position.
-function fitQueue() {
-  const qp = $('queuePanel');
-  if ($('editor').classList.contains('hidden') || innerWidth <= 980) { qp.style.maxHeight = ''; return; }
-  const top = Math.max(16, qp.getBoundingClientRect().top);
-  qp.style.maxHeight = Math.max(200, innerHeight - top - 16) + 'px';
-}
-addEventListener('scroll', fitQueue, { passive: true });
-addEventListener('resize', fitQueue);
 
 // ---------- fx ----------
 const fxC = $('fx'), fxG = fxC.getContext('2d');
