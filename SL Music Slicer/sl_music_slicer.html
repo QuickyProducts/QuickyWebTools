@@ -1524,12 +1524,11 @@ body.work header .tagline,body.work header .lede{display:none}
    toolbar and the table head, so it can be big without pushing anything
    around. It never takes a click - that would block the rows underneath. */
 body.work header{
-  position:absolute;top:0;left:0;right:0;margin:0;padding:0 0 9px;max-width:none;
+  position:absolute;top:0;left:0;right:0;margin:0;padding:0 0 4px;max-width:none;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
   pointer-events:none;z-index:6;box-sizing:border-box;
 }
-/* line-height 1 would cut the descender of the y off against the table. */
-body.work header h1{font-size:clamp(18px,2.4vw,36px);line-height:1.2;white-space:nowrap}
+body.work header h1{font-size:clamp(20px,2.9vw,44px);line-height:1.08;white-space:nowrap}
 body.work header .title-row{margin-top:0;gap:16px}
 body.work .eq{height:26px}
 /* Work mode is a fixed app screen: toolbar, table, editor dock and action
