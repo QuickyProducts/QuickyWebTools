@@ -1637,8 +1637,7 @@ th.advCol,td.advCol{width:76px}
 .badge.done{background:rgba(0,229,160,.16);color:var(--good);box-shadow:0 0 12px rgba(0,229,160,.25)}
 .badge.edited{background:rgba(255,184,77,.16);color:var(--warn)}
 #clearAll.arm{color:var(--bad);border-color:var(--bad);background:rgba(255,84,112,.12)}
-#advBody{display:none}
-#advBox:has(#adv:checked) #advBody{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 14px}
+#advBody{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 14px}
 #drop.hidden{display:none}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 input[type=text]{background:rgba(0,0,0,.35);border:1px solid var(--edge);border-radius:11px;color:var(--txt);padding:9px 12px;font-size:14px;transition:border-color .15s,box-shadow .15s}
@@ -1723,8 +1722,7 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 #flatZipRow{border:none;background:transparent;padding:5px 4px;border-radius:8px}
 #flatZipRow:hover{box-shadow:none;background:rgba(255,255,255,.04)}
 #flatZipRow:has(input:checked){border-color:transparent}
-.chev{flex-shrink:0;width:8px;height:8px;margin-right:4px;border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);transform:rotate(-45deg);transition:transform .18s}
-#advBox:has(#adv:checked) .chev{transform:rotate(45deg)}
+#advBox #advRow{margin-top:8px;border-top:1px solid var(--edge);border-radius:0;padding:10px 4px 2px}
 #advRow:has(input:focus-visible){outline:2px solid var(--acc3);outline-offset:2px;border-radius:13px}
 #bassRow,#loudRow,#fadeRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin-top:8px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);user-select:none;transition:border-color .15s,box-shadow .15s}
 #bassRow:hover,#loudRow:hover,#fadeRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
@@ -2152,11 +2150,7 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div class="panel" id="advPop">
     <div id="advBox">
-      <label id="advRow" class="swRow" title="Shows the tuning controls most people never need. Everything set there keeps working even while this is collapsed.">
-        <span class="fz-txt"><b>Advanced settings</b><small id="advVal">all at defaults</small></span>
-        <input type="checkbox" id="adv" autocomplete="off">
-        <i class="chev" aria-hidden="true"></i>
-      </label>
+      <div class="secHead">Global settings<span class="cnt">apply to every song that has no value of its own</span></div>
       <div id="advBody">
         <label id="bassRow" title="Lifts everything below about 100 Hz before the loudness stage, so the clips end up with more weight at the same volume. Applies to preview and export alike.">
           <span class="fz-txt"><b>Bass boost (Global)</b><small id="bassVal">off</small></span>
@@ -2171,6 +2165,11 @@ body{animation:slt-page-in .28s ease-out both}
           <input type="range" autocomplete="off" id="declick" min="0" max="12" step="1" value="3">
         </label>
       </div>
+      <label id="advRow" class="swRow" title="Adds a Bass, Loud and Fade column to the queue so you can tune single songs straight in the list. Values you set there stay in effect even when the columns are hidden again.">
+        <span class="fz-txt"><b>Per-song columns</b><small id="advVal">all at defaults</small></span>
+        <input type="checkbox" id="adv" autocomplete="off">
+        <i class="sw" aria-hidden="true"></i>
+      </label>
     </div>
   </div>
   <div class="panel" id="logPop"><div id="log"></div></div>
@@ -2737,16 +2736,23 @@ function drawMini(c, s) {
 // never while something is playing or exporting.
 let warming = false;
 const warmQ = [];
+// What you are looking at is decoded first, then the rest of the queue keeps
+// going on its own - no scrolling needed to make the waveforms appear.
 function queueVisible() {
   const tw = document.querySelector('.tableWrap');
   const wr = tw.getBoundingClientRect();
+  const near = [], far = [];
   for (const tr of Array.from($('rows').children)) {
     if (tr.className.indexOf('det') !== -1) continue;
     const s = songs[+tr.dataset.i];
     if (!s || s.peaks) continue;
     const r = tr.getBoundingClientRect();
-    if (r.bottom >= wr.top - 220 && r.top <= wr.bottom + 220 && warmQ.indexOf(tr) === -1) warmQ.push(tr);
+    if (r.bottom >= wr.top - 220 && r.top <= wr.bottom + 220) near.push(tr);
+    else far.push(tr);
   }
+  warmQ.length = 0;
+  for (const tr of near) warmQ.push(tr);
+  for (const tr of far) warmQ.push(tr);
   pumpWarm();
 }
 let warmT = 0;
@@ -3028,6 +3034,11 @@ $('lastMsg').onclick = () => {
   $('advPop').classList.remove('on');
   $('logPop').classList.toggle('on');
 };
+// Clicking anywhere else puts a popover away again.
+document.addEventListener('click', e => {
+  if (!$('advPop').contains(e.target) && e.target !== $('advBtn') && !$('advBtn').contains(e.target)) $('advPop').classList.remove('on');
+  if (!$('logPop').contains(e.target) && e.target !== $('lastMsg')) $('logPop').classList.remove('on');
+});
 // Emptying the whole queue is one click away, so it asks once before it acts.
 // The armed state falls back on its own if the click was a slip.
 let clrT = 0;
@@ -3225,8 +3236,11 @@ $('wave').addEventListener('dblclick', () => { const s = songs[cur]; if (s) { vi
 
 // ---------- playback ----------
 function stopPB() {
+  const was = !!pb;
   if (pb) { const p = pb; pb = null; p.src.onended = null; try { p.src.stop(); } catch (e) { } }
   $('play').textContent = '▶ Play';
+  // Waveform decoding pauses while something plays, so pick it back up here.
+  if (was && typeof queueSoon === 'function') queueSoon();
 }
 function playFrom(pos, end) {
   const s = songs[cur]; if (!s) return;
@@ -3584,7 +3598,6 @@ function paintAdv() {
   const per = songs.filter(s => ownVal(s.bass) || ownVal(s.loud) || ownVal(s.fade) || s.maxLen < 29.75).length;
   if (per) act.push(per + (per === 1 ? ' song' : ' songs') + ' tuned by hand');
   $('advRow').classList.toggle('on', act.length > 0);
-  if (on && !act.length) { $('advVal').textContent = 'bass · loudness · de-click, per song and global'; return; }
   $('advVal').textContent = act.length ? 'active: ' + act.join(', ') : 'all at defaults';
 }
 try {
