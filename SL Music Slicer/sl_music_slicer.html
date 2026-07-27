@@ -135,9 +135,14 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   align-items: flex-end;
   gap: 8px;
   font-family: var(--slt-font);
+  /* The closed panel still takes up its full box, so the container reaches
+     far down the right edge. Without this it swallows every click on the
+     page underneath it - only the nav's own controls may be clickable. */
+  pointer-events: none;
 }
 
 .slt-nav-handle {
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -1515,11 +1520,9 @@ header h1{font-size:clamp(28px,4.6vw,44px);line-height:1.15;font-weight:800;lett
    collapses to a slim title bar and the workspace takes the screen. */
 body.work header{margin:10px auto 0}
 body.work header .tagline,body.work header .lede{display:none}
-body.work header{max-width:none;padding:0 20px}
-body.work header h1{font-size:22px;flex-shrink:0}
-body.work header .title-row{margin-top:0;gap:18px}
-body.work .eq{flex:1 1 auto;height:14px;gap:2px}
-body.work .eq i{display:block;flex:1 1 auto;width:auto;min-width:2px}
+body.work header h1{font-size:28px}
+body.work header .title-row{margin-top:0;gap:14px}
+body.work .eq{height:20px}
 /* Work mode is a fixed app screen: toolbar, table, editor dock and action
    bar share exactly one viewport. Only the table scrolls. */
 @media(min-width:981px){
@@ -2049,9 +2052,9 @@ body{animation:slt-page-in .28s ease-out both}
 <header>
   <span class="tagline">Songs to SL sound clips</span>
   <div class="title-row">
-    <div class="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="eq"><i></i><i></i><i></i><i></i><i></i></div>
     <h1>QuickyMusic Slicer</h1>
-    <div class="eq"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="eq"><i></i><i></i><i></i><i></i><i></i></div>
   </div>
   <p class="lede">Cut songs into ≤30s clips, boost loudness to one even level, and export upload-ready WAVs - everything runs locally in your browser.</p>
 </header>
