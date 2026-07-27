@@ -2152,7 +2152,7 @@ body{animation:slt-page-in .28s ease-out both}
       <button id="cutB" class="gone">delete back part → 🗑</button>
       <span class="grow"></span>
       <button id="exportOne">⬇ Export this song (ZIP)</button>
-      <button id="closeRow" title="Close the editor (Esc, or double-click the row)">✕ Close</button>
+      <button id="closeRow" title="Close the editor (Esc, or click the little wave again)">✕ Close</button>
     </div>
   </div>
   <input type="text" id="title" spellcheck="false" maxlength="52" placeholder="Song title">
@@ -2217,9 +2217,10 @@ body{animation:slt-page-in .28s ease-out both}
   <div class="panel" id="logPop"><div id="log"></div></div>
 
   <div class="panel" id="tips">
-    <div class="secHead">Three things and you know the tool</div>
+    <div class="secHead">Four things and you know the tool</div>
     <p><b>Click a song</b> to select it, click it again to let it go, or hold the button and drag across several.</p>
-    <p><b>Double-click a song</b> to open its editor and cut it. Land on its title and you are in the name field right away - that name is what your clips are called in Second Life. Esc closes the editor again.</p>
+    <p><b>Double-click a song</b> to rename it - that name is what your clips are called in Second Life.</p>
+    <p><b>Click the little wave</b> of a song to open its editor and cut it. Esc closes the editor again.</p>
     <p>Then <b>Export</b> at the bottom right: the songs you picked, or ALL of them in one go.</p>
     <div class="row"><span class="grow"></span><button id="tipsOk" class="primary">Got it</button></div>
   </div>
@@ -2733,8 +2734,6 @@ function open(i) {
   }).catch(e => log('decode failed: ' + s.file.name + ' - ' + e, true));
 }
 function fillFields() {
-  const s = songs[cur];
-  $('title').value = s.title;
   cutMode(false);
   updateInfo();
 }
@@ -3006,7 +3005,11 @@ function renderList() {
   // otherwise destroy it along with the rows.
   const home = document.querySelector('main');
   if ($('dock').parentElement !== home) home.appendChild($('dock'));
+  // A rename in progress must survive the rebuild, otherwise a tag that
+  // arrives in the background would throw the user out of the name field.
+  const wasNaming = $('title').parentElement !== home ? renameIdx : -1;
   if ($('title').parentElement !== home) home.appendChild($('title'));
+  renameIdx = -1;
   box.innerHTML = '';
   const seen = {};
   for (const s of songs) { const k = s.title.toLowerCase(); seen[k] = (seen[k] || 0) + 1; }
@@ -3033,7 +3036,6 @@ function renderList() {
     const t = tr.children[1];
     t.textContent = s.title || '(untitled)';
     t.title = (s.file ? s.file.name : s.title) + '  ·  double-click to rename';
-    t.ondblclick = e => { e.stopPropagation(); startRename(i); };
     // The wave opens the editor, everything else in the row selects.
     tr.children[6].onclick = e => {
       e.stopPropagation();
@@ -3043,11 +3045,11 @@ function renderList() {
     tr.onclick = e => { if (e.detail > 1) return; pickRow(s, i, e); };
     tr.onmousedown = e => dragStart(s, i, e);
     tr.onmouseover = () => dragOver(i);
-    // Double-click anywhere neutral in the row opens the editor and closes it
-    // again, so the little wave is not the only way in and out.
+    // Double-click anywhere neutral in the row renames it. The editor has its
+    // own way in, the little wave, so the two never fight over one gesture.
     tr.ondblclick = e => {
-      if (e.target.closest('button, input, select, td.t, td.set, td.wv')) return;
-      if (i === cur) closeRow(); else open(i);
+      if (e.target.closest('button, input, select, td.set, td.wv')) return;
+      startRename(i);
     };
     box.appendChild(tr);
     drawMini(tr.querySelector('canvas'), s);
@@ -3063,6 +3065,7 @@ function renderList() {
     }
   }
   paintSel();
+  if (wasNaming >= 0) startRename(wasNaming);
   queueSoon();
   placeLogo();
   maybeTips();
@@ -3089,17 +3092,17 @@ function closeRow() {
   cur = -1;
   renderList();
 }
-// Renaming happens in the row itself: the one #title input moves into the
-// title cell and back out again, so the editor never repeats the song name.
+// Renaming happens in the row itself and has nothing to do with the editor:
+// the one #title input moves into the title cell and back out again.
+let renameIdx = -1;
 function startRename(i) {
-  if (cur !== i) open(i);
-  // Always take the cell that is on screen RIGHT NOW: opening the row rebuilds
-  // the table, and the double-click itself is delivered to the node that was
-  // under the pointer before that rebuild, which is already detached.
-  const cell = $('rows').querySelector('tr.active td.t');
+  const cell = $('rows').querySelector('tr[data-i="' + i + '"] td.t');
   const inp = $('title');
-  if (!cell) return;
+  if (!cell || !songs[i]) return;
   if (!inp) { log('⚠ The rename field is missing, please reload the page', true); return; }
+  if (inp.parentElement === cell) return;
+  endRename();
+  renameIdx = i;
   cell.textContent = '';
   cell.appendChild(inp);
   inp.value = songs[i].title;
@@ -3112,11 +3115,12 @@ function startRename(i) {
 function endRename() {
   const inp = $('title');
   const home = document.querySelector('main');
-  if (!inp || inp.parentElement === home) return;
+  if (!inp || inp.parentElement === home) { renameIdx = -1; return; }
   const cell = inp.parentElement;
-  const s = songs[+((cell.closest('tr') || {}).dataset || {}).i];
+  const s = songs[renameIdx];
   home.appendChild(inp);
   cell.textContent = s ? (s.title || '(untitled)') : '';
+  renameIdx = -1;
   paintDups();
 }
 // Two songs with the same title collide on export, so they stay marked.
@@ -3131,7 +3135,7 @@ function paintDups() {
 }
 $('title').addEventListener('blur', endRename);
 $('title').addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); endRename(); }
+  if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); endRename(); }
 });
 $('q').oninput = () => { query = $('q').value.trim().toLowerCase(); renderList(); };
 document.querySelectorAll('thead th[data-s]').forEach(th => {
@@ -3496,14 +3500,12 @@ $('undo').onclick = () => {
 
 // ---------- fields ----------
 $('title').addEventListener('input', () => {
-  const s = songs[cur]; if (!s) return;
+  const s = songs[renameIdx]; if (!s) return;
   s.title = clampBytes(sanitizeTitle($('title').value), TITLE_MAX);
-  const tr = $('rows').querySelector('tr.active');
-  if (tr && !tr.contains($('title'))) tr.children[1].textContent = s.title || '(untitled)';
-  updateInfo();
+  if (renameIdx === cur) updateInfo();
 });
 // Same reason as endRename: no rebuild while the pointer is mid-click.
-$('title').addEventListener('change', () => { const s = songs[cur]; if (s) $('title').value = s.title; });
+$('title').addEventListener('change', () => { const s = songs[renameIdx]; if (s) $('title').value = s.title; });
 
 window.addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
