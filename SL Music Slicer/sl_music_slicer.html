@@ -1506,87 +1506,102 @@ header .lede{color:var(--dim);max-width:620px;margin:10px auto 0;font-size:14px;
 .eq i:nth-child(1){animation-delay:-.2s}.eq i:nth-child(2){animation-delay:-.6s}.eq i:nth-child(3){animation-delay:-.9s}.eq i:nth-child(4){animation-delay:-.4s}.eq i:nth-child(5){animation-delay:-.7s}
 @keyframes eq{0%,100%{transform:scaleY(.3)}50%{transform:scaleY(1)}}
 header h1{font-size:clamp(28px,4.6vw,44px);line-height:1.15;font-weight:800;letter-spacing:.5px;background:linear-gradient(90deg,var(--acc1),var(--acc2),var(--acc3),var(--acc1));background-size:300% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;animation:hue 9s linear infinite}
-/* With songs loaded the tool is a workspace, not a landing page: the header
-   collapses to a slim title bar so the whole queue column fits the screen. */
-body:has(#editor:not(.hidden)) header{margin:12px auto 0}
-body:has(#editor:not(.hidden)) header .tagline,body:has(#editor:not(.hidden)) header .lede{display:none}
-body:has(#editor:not(.hidden)) header h1{font-size:24px}
-body:has(#editor:not(.hidden)) header .title-row{margin-top:0}
-body:has(#editor:not(.hidden)) .eq{transform:scale(.55);height:18px}
-/* Work mode is a fixed app screen: header, content and footer share exactly
-   one viewport, the page itself never scrolls - the song list and the editor
-   column scroll internally instead. */
+/* Once songs are loaded the tool becomes a console: the landing header
+   collapses to a slim title bar and the workspace takes the screen. */
+body.work header{margin:10px auto 0}
+body.work header .tagline,body.work header .lede{display:none}
+body.work header h1{font-size:22px}
+body.work header .title-row{margin-top:0}
+body.work .eq{transform:scale(.5);height:16px}
+/* Work mode is a fixed app screen: toolbar, table, editor dock and action
+   bar share exactly one viewport. Only the table scrolls. */
 @media(min-width:981px){
-body:has(#editor:not(.hidden)){height:100vh;overflow:hidden;display:flex;flex-direction:column}
-body:has(#editor:not(.hidden)) header{flex-shrink:0;width:100%}
-body:has(#editor:not(.hidden)) main{flex:1 1 auto;min-height:0;width:100%;max-width:1600px;grid-template-rows:minmax(0,1fr);padding:14px 24px 14px;overflow:hidden}
-body:has(#editor:not(.hidden)) #queuePanel{position:static;max-height:100%}
-body:has(#editor:not(.hidden)) #rightCol{min-height:0}
-body:has(#editor:not(.hidden)) #editor{flex:1 1 auto;min-height:0;overflow-y:auto;padding-right:2px}
-/* The waveform takes whatever height is left instead of leaving a hole
-   between it and the export panel. */
-body:has(#editor:not(.hidden)) #editor>.panel{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
-body:has(#editor:not(.hidden)) #waveWrap{flex:1 1 auto;min-height:200px}
-body:has(#editor:not(.hidden)) #wave{height:100%}
-body:has(#editor:not(.hidden)) #exportPanel{flex-shrink:0}
-body:has(#editor:not(.hidden)) #logPanel{flex-shrink:0}
-body:has(#editor:not(.hidden)) .slt-footer{flex-shrink:0}
+body.work{height:100vh;overflow:hidden;display:flex;flex-direction:column}
+body.work header{flex-shrink:0;width:100%}
+body.work main{flex:1 1 auto;min-height:0;width:100%;max-width:1700px;padding:6px 20px 0;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+body.work .tableWrap{flex:1 1 auto;min-height:90px}
+body.work #waveWrap{flex:1 1 auto;min-height:0}
+body.work #wave{height:100%}
+body.work .slt-footer{flex-shrink:0;margin:6px auto 10px}
 }
 @keyframes hue{to{background-position:300% 0}}
-main{display:grid;grid-template-columns:250px 1fr;gap:16px;padding:18px 24px 40px;max-width:1200px;margin:0 auto}
-/* Start state (no song loaded yet): the editor is hidden, so collapse
-   the grid to one centered column - the drop zone sits in the middle
-   instead of hugging the left edge. Progressive enhancement via :has
-   (all current Chrome/Edge/Firefox/Safari support it). */
-main:has(#editor.hidden){grid-template-columns:1fr;max-width:520px}
-main:has(#editor.hidden) #queuePanel{position:static;max-height:none}
-/* Start state: no songs loaded yet, so exporting makes no sense */
-main:has(#editor.hidden) #exportPanel,main:has(#editor.hidden) #logPanel,main:has(#editor.hidden) .secHead,main:has(#editor.hidden) #clearAll{display:none}
-@media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static;max-height:none}#songList{max-height:50vh}}
+main{max-width:520px;margin:0 auto;padding:18px 24px 40px}
+/* Start state: nothing but the drop zone exists yet. */
+body:not(.work) #bar,body:not(.work) .tableWrap,body:not(.work) #dock,
+body:not(.work) .actions,body:not(.work) #advPop,body:not(.work) #logPop{display:none}
+body.work #drop{display:none}
+@media(max-width:980px){body.work .tableWrap{max-height:52vh}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
-/* The whole queue column sticks and is capped to the viewport; the song list
-   is the only part that shrinks and scrolls, so export and settings always
-   stay in reach no matter how many songs are loaded. */
-#queuePanel{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto}
-#queuePanel>*{flex-shrink:0}
+/* The landing drop zone. Once songs exist the table itself is the target. */
 #drop{border:2px dashed rgba(255,255,255,.18);border-radius:18px;padding:24px 14px;text-align:center;color:var(--dim);cursor:pointer;transition:.2s;background:rgba(255,255,255,.02)}
 #drop::before{content:"🎧";display:block;font-size:28px;margin-bottom:8px;filter:drop-shadow(0 0 14px rgba(255,60,172,.65))}
 #drop b{color:var(--txt);display:block;margin-bottom:4px;font-size:15px}
 #drop.over,#drop:hover{border-color:var(--acc1);color:var(--txt);background:rgba(255,60,172,.07);box-shadow:inset 0 0 34px rgba(255,60,172,.12);transform:scale(1.01)}
-/* Once songs are loaded the drop zone has done its job: shrink it to a slim
-   add strip. The full hero stays byte-identical in the start state. */
-.dz-mini{display:none}
-main:has(#editor:not(.hidden)) #drop{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border-radius:13px;animation:none}
-main:has(#editor:not(.hidden)) #drop::before{font-size:16px;margin-bottom:0}
-main:has(#editor:not(.hidden)) #drop b,main:has(#editor:not(.hidden)) #drop .dz-more{display:none}
-main:has(#editor:not(.hidden)) #drop .dz-mini{display:inline;font-size:12.5px;font-weight:600;color:var(--txt)}
-main:has(#editor:not(.hidden)) #drop.over{box-shadow:inset 0 0 20px rgba(255,60,172,.28),0 0 0 2px var(--acc1)}
-#songList{display:flex;flex-direction:column;gap:7px;flex:0 1 auto;min-height:40px;overflow-y:auto;padding-right:2px}
+/* In work mode the whole table lights up as the drop target instead. */
+body.work.dragging .tableWrap{border-color:var(--acc1);box-shadow:inset 0 0 40px rgba(255,60,172,.14)}
+/* Toolbar above the table: search, state filters, counts, intake. */
+#bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+#q{flex:0 1 280px;min-width:150px;background:rgba(0,0,0,.35);border:1px solid var(--edge);border-radius:11px;color:var(--txt);padding:8px 12px;font:inherit;font-size:13px}
+#q:focus{outline:none;border-color:var(--acc3);box-shadow:0 0 0 3px rgba(43,210,255,.16)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{padding:5px 12px;border-radius:999px;border:1px solid var(--edge);background:var(--glass);color:var(--dim);font-size:12px;font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;transition:color .15s,border-color .15s,background .15s}
+.chip:hover{color:var(--txt);border-color:rgba(255,255,255,.28)}
+.chip.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--acc1),var(--acc2));box-shadow:0 3px 16px rgba(255,60,172,.32)}
+.grow{flex:1}
+/* The queue as a dense sortable table - one screen shows dozens of songs. */
+.tableWrap{overflow:auto;border:1px solid var(--edge);border-radius:16px;background:rgba(13,8,26,.5);transition:border-color .2s,box-shadow .2s}
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+thead th{position:sticky;top:0;z-index:2;background:rgba(14,9,28,.97);backdrop-filter:blur(8px);text-align:left;font-size:10px;font-weight:800;letter-spacing:1.6px;text-transform:uppercase;color:var(--dim);padding:9px 8px;border-bottom:1px solid var(--edge);white-space:nowrap;user-select:none}
+thead th[data-s]{cursor:pointer}
+thead th[data-s]:hover{color:var(--txt)}
+thead th .ar{opacity:0;font-size:9px;font-style:normal;margin-left:3px}
+thead th.sorted{color:var(--txt)}
+thead th.sorted .ar{opacity:1;color:var(--acc1)}
+tbody td{padding:0 8px;height:34px;border-bottom:1px solid rgba(255,255,255,.05);white-space:nowrap}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:rgba(255,255,255,.035)}
+tbody tr.active td{background:linear-gradient(90deg,rgba(255,60,172,.17),rgba(124,43,255,.06) 55%,transparent)}
+tbody tr.active td:first-child{box-shadow:inset 3px 0 0 var(--acc1)}
+tbody tr.dup td{background:rgba(255,84,112,.13)}
+td.t{width:100%;max-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+td.n{text-align:right;font-variant-numeric:tabular-nums;color:var(--dim)}
+td.wv{width:116px}
+td.wv canvas{display:block;width:106px;height:20px;opacity:.7}
+tbody tr:hover td.wv canvas,tbody tr.active td.wv canvas{opacity:1}
+th.cbx,td.cbx{width:30px}
+td.idx{font-size:11px;text-align:right;color:var(--dim);font-variant-numeric:tabular-nums}
+td .x{color:var(--dim);border:0;background:none;cursor:pointer;font-size:13px;padding:0 3px;box-shadow:none}
+td .x:hover{color:var(--bad);transform:none;box-shadow:none;border-color:transparent}
+input[type=checkbox]{accent-color:var(--acc1);width:14px;height:14px;cursor:pointer;vertical-align:middle}
 .secHead{display:flex;align-items:baseline;gap:8px;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin:2px 2px -6px;flex-shrink:0}
 .secHead::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--edge),transparent);align-self:center}
 .secHead .cnt{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:none;color:var(--txt);font-variant-numeric:tabular-nums}
-.song{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
-.song:hover{border-color:rgba(255,255,255,.28);transform:translateX(3px)}
-.song.active{border:1px solid transparent;background:linear-gradient(rgba(32,18,62,.9),rgba(32,18,62,.9)) padding-box,linear-gradient(90deg,var(--acc1),var(--acc2),var(--acc3)) border-box;box-shadow:0 0 20px rgba(124,43,255,.3)}
-.song.dup{border-color:var(--bad);box-shadow:0 0 16px rgba(255,84,112,.3)}
-.song .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;font-weight:600}
-.song .meta{color:var(--dim);font-size:11px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.song .x{color:var(--dim);border:0;background:none;cursor:pointer;font-size:14px;padding:0 2px;box-shadow:none}
-.song .x:hover{color:var(--bad);transform:scale(1.2)}
+/* Clicking a row unfolds the editor right underneath it, so the waveform is
+   only on screen for the song you are actually working on. */
+tr.det{cursor:default}
+tr.det:hover td{background:transparent}
+td.detCell{height:auto;padding:0;white-space:normal;background:rgba(9,5,18,.55);box-shadow:inset 3px 0 0 var(--acc1)}
+main>#dock{display:none}
+#dock{display:flex;gap:14px;padding:12px;height:clamp(230px,34vh,360px)}
+td.detCell #dock{border:0;border-radius:0;background:transparent;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;animation:none}
+.dockWave{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:9px}
+.dockSide{flex:0 0 280px;min-width:0;display:flex;flex-direction:column;gap:8px}
+.dockSide .row{gap:8px}
+.dockSide .row span{font-size:11.5px;color:var(--dim)}
+.dockSide input[type=range]{flex:1;min-width:0;accent-color:var(--acc2)}
+.actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+#advPop{position:fixed;left:20px;bottom:56px;width:min(720px,92vw);z-index:20;display:none}
+#logPop{position:fixed;right:20px;bottom:56px;width:min(560px,92vw);z-index:20;display:none}
+#advPop.on,#logPop.on{display:block}
+#lastMsg{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+#lastMsg:hover{color:var(--txt)}
 .badge{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--dim)}
 .badge.done{background:rgba(0,229,160,.16);color:var(--good);box-shadow:0 0 12px rgba(0,229,160,.25)}
-#editor{display:flex;flex-direction:column;gap:14px;min-width:0}
-#rightCol{min-width:0;display:flex;flex-direction:column;gap:14px}
-/* The log only earns its space once it has something to say. */
-#logPanel:has(#log:empty){display:none}
-#clearAll{align-self:center;margin-top:2px}
+.badge.edited{background:rgba(255,184,77,.16);color:var(--warn)}
 #clearAll.arm{color:var(--bad);border-color:var(--bad);background:rgba(255,84,112,.12)}
-#exportPanel{display:flex;flex-direction:column;gap:10px}
-#exportBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-#exportBar #exportAll{flex:1 1 auto}
 #advBody{display:none}
-#advBox:has(#adv:checked) #advBody{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 14px}
-#editor.hidden,#drop.hidden{display:none}
+#advBox:has(#adv:checked) #advBody{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 14px}
+#drop.hidden{display:none}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 input[type=text]{background:rgba(0,0,0,.35);border:1px solid var(--edge);border-radius:11px;color:var(--txt);padding:9px 12px;font-size:14px;transition:border-color .15s,box-shadow .15s}
 #title{flex:1;min-width:240px;font-weight:600;letter-spacing:.2px}
@@ -2026,52 +2041,83 @@ body{animation:slt-page-in .28s ease-out both}
   <p class="lede">Cut songs into ≤30s clips, boost loudness to one even level, and export upload-ready WAVs - everything runs locally in your browser.</p>
 </header>
 <main>
-  <div id="queuePanel">
-    <div id="drop"><b>Drop audio files here</b><span class="dz-mini">Add more songs</span><span class="dz-more">or click to browse<br><span style="font-size:11px">mp3 · wav · flac · ogg · m4a</span></span></div>
-    <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus" multiple hidden>
-    <div class="secHead">Songs<span class="cnt" id="songCount"></span></div>
-    <div id="songList"></div>
+  <div id="drop"><b>Drop audio files here</b>or click to browse<br><span style="font-size:11px">mp3 · wav · flac · ogg · m4a</span></div>
+  <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus" multiple hidden>
+
+  <div id="bar">
+    <input type="search" id="q" placeholder="Search the queue…">
+    <div class="chips">
+      <span class="chip on" data-f="all">All</span>
+      <span class="chip" data-f="pending">Pending</span>
+      <span class="chip" data-f="edited">Edited</span>
+      <span class="chip" data-f="done">Exported</span>
+    </div>
+    <span class="grow"></span>
+    <span class="stat" id="stat"></span>
+    <button id="addBtn" class="primary">＋ Add songs</button>
     <button id="clearAll" class="mini" title="Take every song out of the list. Your files on disk are not touched - only this queue is emptied.">✕ Clear list</button>
   </div>
-  <div id="rightCol">
-  <div id="editor" class="hidden">
-    <div class="panel">
+
+  <div class="tableWrap">
+    <table>
+      <thead><tr>
+        <th class="cbx"><input type="checkbox" id="tickAll" title="Tick everything the filter is currently showing"></th>
+        <th class="n" data-s="idx">#<i class="ar">▼</i></th>
+        <th data-s="title">Title<i class="ar">▼</i></th>
+        <th style="width:116px">Wave</th>
+        <th class="n" data-s="len">Length<i class="ar">▼</i></th>
+        <th class="n" data-s="clips">Clips<i class="ar">▼</i></th>
+        <th class="n" data-s="bass">Bass<i class="ar">▼</i></th>
+        <th data-s="status">Status<i class="ar">▼</i></th>
+        <th style="width:30px"></th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+
+  <div class="panel" id="dock">
+    <div class="dockWave">
       <div id="waveWrap"><canvas id="wave"></canvas><div id="waveInfo"></div></div>
-      <div class="row" style="margin-top:12px">
+      <div class="row">
         <button id="play" class="primary" style="width:96px">▶ Play</button>
         <button id="cut" title="click the wave to place the playhead, then cut">✂ Cut</button>
         <button id="undo" title="Undo every change to this song: bring back the cut-off start and end, and put the per-song bass and clip length back to their defaults.">↺ Reset</button>
         <button id="cutF" class="gone">🗑 ← delete front part</button>
         <button id="cutB" class="gone">delete back part → 🗑</button>
       </div>
-      <div class="row" id="sbassRow" style="margin-top:12px;align-items:center;gap:10px">
-        <span id="sbassTxt" style="font-size:12px;color:var(--dim);min-width:210px">Bass for this song: off (following the global setting)</span>
-        <input type="range" id="sbass" min="0" max="9" step="1" value="0" style="flex:0 0 140px;width:140px;accent-color:var(--acc2)">
-        <button id="sbassRst" title="use the global setting again" style="padding:4px 10px">↺</button>
+    </div>
+    <div class="dockSide">
+      <div class="secHead">Song</div>
+      <input type="text" id="title" spellcheck="false" maxlength="52" placeholder="Song title, e.g. Haddaway - What Is Love (Extended)">
+      <div id="sbassRow">
+        <div id="sbassTxt" style="font-size:11.5px;color:var(--dim)">Bass for this song: off (following the global setting)</div>
+        <div class="row" style="margin-top:4px"><input type="range" id="sbass" min="0" max="9" step="1" value="0"><button id="sbassRst" title="use the global setting again" style="padding:4px 10px">↺</button></div>
       </div>
-      <div class="row" id="slenRow" style="margin-top:12px;align-items:center;gap:10px">
-        <span id="slenTxt" style="font-size:12px;color:var(--dim);min-width:210px">Clip length for this song: 29.8 s (default)</span>
-        <input type="range" id="slen" min="5" max="29.8" step="0.1" value="29.8" style="flex:0 0 140px;width:140px;accent-color:var(--acc2)">
-        <button id="slenRst" title="back to the default length" style="padding:4px 10px">↺</button>
+      <div id="slenRow">
+        <div id="slenTxt" style="font-size:11.5px;color:var(--dim)">Clip length for this song: 29.8 s (default)</div>
+        <div class="row" style="margin-top:4px"><input type="range" id="slen" min="5" max="29.8" step="0.1" value="29.8"><button id="slenRst" title="back to the default length" style="padding:4px 10px">↺</button></div>
       </div>
+      <span class="grow"></span>
+      <button id="exportOne">⬇ Export this song (ZIP)</button>
     </div>
   </div>
-  <div class="panel" id="exportPanel">
-    <div class="secHead">Song title</div>
-    <div class="row">
-      <input type="text" id="title" spellcheck="false" maxlength="52" placeholder="Song title, e.g. Haddaway - What Is Love (Extended)">
-    </div>
-    <div class="secHead">Export</div>
-    <div id="exportBar">
-      <label id="flatZipRow" class="swRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level - handy for bulk-uploading everything in one go.">
-        <span class="fz-txt"><b>No folders in ZIP</b><small>all clips top-level</small></span>
-        <input type="checkbox" id="flatZip">
-        <i class="sw" aria-hidden="true"></i>
-      </label>
-      <button id="exportOne">⬇ Export selected song (ZIP)</button>
-      <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
-    </div>
+
+  <div class="actions">
+    <span class="stat" id="selInfo">nothing ticked</span>
+    <button id="advBtn">⚙ Advanced</button>
+    <label id="flatZipRow" class="swRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level - handy for bulk-uploading everything in one go.">
+      <span class="fz-txt"><b>No folders in ZIP</b><small>all clips top-level</small></span>
+      <input type="checkbox" id="flatZip">
+      <i class="sw" aria-hidden="true"></i>
+    </label>
     <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
+    <span class="grow"></span>
+    <span class="stat" id="lastMsg" title="Click for the full log"></span>
+    <button id="exportSel" disabled>⬇ Export ticked</button>
+    <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
+  </div>
+
+  <div class="panel" id="advPop">
     <div id="advBox">
       <label id="advRow" class="swRow" title="Shows the tuning controls most people never need. Everything set there keeps working even while this is collapsed.">
         <span class="fz-txt"><b>Advanced settings</b><small id="advVal">all at defaults</small></span>
@@ -2094,8 +2140,7 @@ body{animation:slt-page-in .28s ease-out both}
       </div>
     </div>
   </div>
-  <div class="panel" id="logPanel"><div id="log"></div></div>
-  </div>
+  <div class="panel" id="logPop"><div id="log"></div></div>
 </main>
 <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
 <script>
@@ -2361,6 +2406,11 @@ function log(msg, err) {
   d.textContent = msg;
   $('log').prepend(d);
   while ($('log').children.length > 40) $('log').lastChild.remove();
+  const last = $('lastMsg');
+  if (last) {
+    last.textContent = msg;
+    last.style.color = err ? 'var(--bad)' : '';
+  }
 }
 
 function addFiles(list) {
@@ -2534,7 +2584,8 @@ function sliceBoundsSec(s) {
 // ---------- editor UI ----------
 function open(i) {
   cur = i; renderList();
-  $('editor').classList.remove('hidden');
+  const row = $('rows').querySelector('tr.active');
+  if (row) row.scrollIntoView({ block: 'nearest' });
   const s = songs[cur];
   stopPB();
   const fresh = !s.dur;
@@ -2581,29 +2632,204 @@ function updateInfo() {
   }
 }
 
+// ---------- the queue table ----------
+// Search, state filter and sort only change WHICH rows are shown and in what
+// order; every row keeps its real index into songs, so nothing downstream has
+// to know the table is sorted.
+let query = '', filter = 'all', sortKey = 'idx', sortDir = 1, busy = false;
+const ticked = new Set();
+const clipsOf = s => s.dur ? Math.max(1, Math.ceil((s.trimE - s.trimS) / s.maxLen)) : 0;
+function stateOf(s) { return s.status === 'done' ? 'done' : songTouched(s) ? 'edited' : 'pending'; }
+function stateLabel(st) { return st === 'done' ? 'exported' : st; }
+function viewRows() {
+  let v = songs.map((s, i) => ({ s: s, i: i }));
+  if (query) v = v.filter(o => o.s.title.toLowerCase().indexOf(query) !== -1);
+  if (filter !== 'all') v = v.filter(o => stateOf(o.s) === filter);
+  const key = {
+    idx: o => o.i,
+    title: o => o.s.title.toLowerCase(),
+    len: o => o.s.trimE - o.s.trimS,
+    clips: o => clipsOf(o.s),
+    bass: o => (o.s.bass === null || o.s.bass === undefined) ? -1 : o.s.bass,
+    status: o => stateOf(o.s)
+  }[sortKey];
+  v.sort((a, b) => { const x = key(a), y = key(b); return x > y ? sortDir : x < y ? -sortDir : a.i - b.i; });
+  return v;
+}
+// Row waveform: 106x20 is fixed in CSS, so no layout is read per row.
+function drawMini(c, s) {
+  const dpr = devicePixelRatio || 1, W = 106, H = 20;
+  c.width = Math.round(W * dpr); c.height = Math.round(H * dpr);
+  const g = c.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const pk = s.peaks;
+  if (!pk) { g.fillStyle = 'rgba(255,255,255,.14)'; g.fillRect(0, H / 2 - .5, W, 1); return; }
+  const grad = g.createLinearGradient(0, 0, W, 0);
+  grad.addColorStop(0, '#2bd2ff'); grad.addColorStop(.5, '#ff3cac'); grad.addColorStop(1, '#7c2bff');
+  g.fillStyle = grad;
+  const cols = 52, bw = W / cols, mid = H / 2;
+  for (let i = 0; i < cols; i++) {
+    const b0 = Math.floor(i / cols * pk.n), b1 = Math.max(b0 + 1, Math.floor((i + 1) / cols * pk.n));
+    let hi = 0;
+    for (let b = b0; b < b1 && b < pk.n; b++) {
+      const v = Math.max(Math.abs(pk.mn[b]), Math.abs(pk.mx[b]));
+      if (v > hi) hi = v;
+    }
+    const h = Math.max(.5, hi * mid);
+    g.fillRect(i * bw, mid - h, Math.max(1, bw - .5), h * 2);
+  }
+}
+// Rows fill in their waveform as they scroll into view: one decode at a time,
+// never while something is playing or exporting.
+let warming = false;
+const warmQ = [];
+function queueVisible() {
+  const tw = document.querySelector('.tableWrap');
+  const wr = tw.getBoundingClientRect();
+  for (const tr of Array.from($('rows').children)) {
+    if (tr.className.indexOf('det') !== -1) continue;
+    const s = songs[+tr.dataset.i];
+    if (!s || s.peaks) continue;
+    const r = tr.getBoundingClientRect();
+    if (r.bottom >= wr.top - 220 && r.top <= wr.bottom + 220 && warmQ.indexOf(tr) === -1) warmQ.push(tr);
+  }
+  pumpWarm();
+}
+let warmT = 0;
+function queueSoon() {
+  if (warmT) return;
+  warmT = setTimeout(() => { warmT = 0; queueVisible(); }, 60);
+}
+function pumpWarm() {
+  if (warming || busy || pb) return;
+  while (warmQ.length) {
+    const tr = warmQ.shift();
+    const s = songs[+tr.dataset.i];
+    if (!s || s.peaks || !tr.isConnected) continue;
+    warming = true;
+    ensureDecoded(s).then(() => {
+      warming = false;
+      const c = tr.querySelector('canvas');
+      if (c && c.isConnected) drawMini(c, s);
+      if (songs[cur] === s) updateInfo();
+      pumpWarm();
+    }).catch(() => { warming = false; pumpWarm(); });
+    return;
+  }
+}
+function paintSel() {
+  for (const s of Array.from(ticked)) if (songs.indexOf(s) === -1) ticked.delete(s);
+  $('selInfo').innerHTML = ticked.size ? '<b>' + ticked.size + '</b> ticked' : 'nothing ticked';
+  $('exportSel').disabled = !ticked.size || busy;
+  $('exportSel').textContent = '⬇ Export ticked' + (ticked.size ? ' · ' + ticked.size : '');
+}
 function renderList() {
   disarmClear();
-  const box = $('songList'); box.innerHTML = '';
+  document.body.classList.toggle('work', songs.length > 0);
+  const box = $('rows');
+  // Park the editor outside the table first: emptying the tbody would
+  // otherwise destroy it along with the rows.
+  const home = document.querySelector('main');
+  if ($('dock').parentElement !== home) home.appendChild($('dock'));
+  box.innerHTML = '';
   const seen = {};
   for (const s of songs) { const k = s.title.toLowerCase(); seen[k] = (seen[k] || 0) + 1; }
-  songs.forEach((s, i) => {
-    const d = document.createElement('div');
-    d.className = 'song' + (i === cur ? ' active' : '') + (seen[s.title.toLowerCase()] > 1 ? ' dup' : '');
-    const nm = document.createElement('span'); nm.className = 'nm'; nm.textContent = s.title || '(untitled)'; nm.title = s.file.name;
-    const meta = document.createElement('span'); meta.className = 'meta'; meta.textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
-    const badge = document.createElement('span'); badge.className = 'badge' + (s.status === 'done' ? ' done' : ''); badge.textContent = s.status === 'done' ? 'exported' : 'pending';
-    const x = document.createElement('button'); x.className = 'x'; x.textContent = '✕';
-    x.onclick = e => { e.stopPropagation(); removeSong(i); };
-    d.append(nm, meta, badge, x);
-    d.onclick = () => open(i);
-    box.appendChild(d);
-  });
-  $('exportAll').disabled = !songs.length;
+  const rows = viewRows();
+  for (const o of rows) {
+    const s = o.s, i = o.i, st = stateOf(s);
+    const tr = document.createElement('tr');
+    tr.className = (i === cur ? 'active ' : '') + (seen[s.title.toLowerCase()] > 1 ? 'dup' : '');
+    tr.dataset.i = i;
+    tr.innerHTML =
+      '<td class="cbx"><input type="checkbox"></td>' +
+      '<td class="idx">' + (i + 1) + '</td>' +
+      '<td class="t"></td>' +
+      '<td class="wv"><canvas></canvas></td>' +
+      '<td class="n">' + (s.dur ? fmtMS(s.trimE - s.trimS) : '…') + '</td>' +
+      '<td class="n">' + (s.dur ? clipsOf(s) : '·') + '</td>' +
+      '<td class="n">' + (s.bass === null || s.bass === undefined ? '·' : '+' + s.bass) + '</td>' +
+      '<td><span class="badge ' + st + '">' + stateLabel(st) + '</span></td>' +
+      '<td><button class="x" title="Take this song out of the list">✕</button></td>';
+    const t = tr.children[2];
+    t.textContent = s.title || '(untitled)';
+    t.title = s.file ? s.file.name : s.title;
+    const cb = tr.querySelector('input');
+    cb.checked = ticked.has(s);
+    cb.onclick = e => { e.stopPropagation(); if (cb.checked) ticked.add(s); else ticked.delete(s); paintSel(); };
+    tr.querySelector('.x').onclick = e => { e.stopPropagation(); removeSong(i); };
+    tr.onclick = () => { if (i === cur) closeRow(); else open(i); };
+    box.appendChild(tr);
+    drawMini(tr.querySelector('canvas'), s);
+    if (i === cur) {
+      const det = document.createElement('tr');
+      det.className = 'det';
+      const cell = document.createElement('td');
+      cell.className = 'detCell';
+      cell.colSpan = 9;
+      det.appendChild(cell);
+      box.appendChild(det);
+      cell.appendChild($('dock'));
+    }
+  }
   const done = songs.filter(s => s.status === 'done').length;
   const n = songs.length + (songs.length === 1 ? ' song' : ' songs');
-  $('songCount').textContent = songs.length ? n + (done ? ' · ' + done + ' exported' : '') : '';
+  $('stat').innerHTML = songs.length
+    ? '<b>' + songs.length + '</b> songs · <b>' + done + '</b> exported' + (rows.length !== songs.length ? ' · <b>' + rows.length + '</b> shown' : '')
+    : '';
+  $('exportAll').disabled = !songs.length || busy;
   $('exportAll').textContent = songs.length ? '⬇ Export ALL · ' + n + ' (ZIP)' : '⬇ Export ALL songs (ZIP)';
+  $('tickAll').checked = rows.length > 0 && rows.every(o => ticked.has(o.s));
+  paintSel();
+  queueSoon();
 }
+// Only the open row's own numbers change while you drag a trim handle, so that
+// path updates those cells instead of rebuilding the whole table.
+function syncRow() {
+  const s = songs[cur]; if (!s) return;
+  const tr = $('rows').querySelector('tr.active');
+  if (!tr) return;
+  tr.children[4].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
+  tr.children[5].textContent = s.dur ? clipsOf(s) : '·';
+  tr.children[6].textContent = (s.bass === null || s.bass === undefined) ? '·' : '+' + s.bass;
+  const st = stateOf(s);
+  tr.children[7].firstChild.className = 'badge ' + st;
+  tr.children[7].firstChild.textContent = stateLabel(st);
+}
+function closeRow() {
+  stopPB();
+  cur = -1;
+  renderList();
+}
+$('q').oninput = () => { query = $('q').value.trim().toLowerCase(); renderList(); };
+document.querySelectorAll('.chip').forEach(c => {
+  c.onclick = () => {
+    document.querySelectorAll('.chip').forEach(o => o.classList.remove('on'));
+    c.classList.add('on');
+    filter = c.dataset.f;
+    renderList();
+  };
+});
+document.querySelectorAll('thead th[data-s]').forEach(th => {
+  th.onclick = () => {
+    const k = th.dataset.s;
+    sortDir = sortKey === k ? -sortDir : 1;
+    sortKey = k;
+    document.querySelectorAll('thead th').forEach(o => o.classList.remove('sorted'));
+    th.classList.add('sorted');
+    th.querySelector('.ar').textContent = sortDir > 0 ? '▼' : '▲';
+    renderList();
+  };
+});
+$('tickAll').onclick = () => {
+  const rows = viewRows();
+  if ($('tickAll').checked) rows.forEach(o => ticked.add(o.s));
+  else rows.forEach(o => ticked.delete(o.s));
+  renderList();
+};
+document.querySelector('.tableWrap').addEventListener('scroll', queueSoon, { passive: true });
+$('addBtn').onclick = () => $('fileIn').click();
+$('advBtn').onclick = () => { $('logPop').classList.remove('on'); $('advPop').classList.toggle('on'); };
+$('lastMsg').onclick = () => { $('advPop').classList.remove('on'); $('logPop').classList.toggle('on'); };
 // Emptying the whole queue is one click away, so it asks once before it acts.
 // The armed state falls back on its own if the click was a slip.
 let clrT = 0;
@@ -2625,9 +2851,12 @@ $('clearAll').onclick = () => {
   stopPB();
   songs = [];
   lru.length = 0;
+  ticked.clear();
   cur = -1;
-  $('editor').classList.add('hidden');
   $('log').textContent = '';
+  $('lastMsg').textContent = '';
+  $('advPop').classList.remove('on');
+  $('logPop').classList.remove('on');
   disarmClear();
   renderList();
 };
@@ -2636,7 +2865,8 @@ function removeSong(i) {
   const gone = songs.splice(i, 1)[0];
   const li = lru.indexOf(gone);
   if (li >= 0) lru.splice(li, 1);
-  if (cur === i) { cur = -1; $('editor').classList.add('hidden'); if (songs.length) open(Math.min(i, songs.length - 1)); }
+  ticked.delete(gone);
+  if (cur === i) { cur = -1; if (songs.length) open(Math.min(i, songs.length - 1)); }
   else if (cur > i) cur--;
   renderList();
 }
@@ -2746,7 +2976,7 @@ function setTrim(which, t) {
   const s = songs[cur];
   if (which === 's') s.trimS = clamp(t, 0, s.trimE - 0.5);
   else s.trimE = clamp(t, s.trimS + 0.5, s.dur);
-  updateInfo(); renderList(); draw();
+  updateInfo(); syncRow(); draw();
 }
 
 $('wave').addEventListener('mousedown', e => {
@@ -2865,6 +3095,8 @@ $('undo').onclick = () => {
 $('title').addEventListener('input', () => {
   const s = songs[cur]; if (!s) return;
   s.title = clampBytes(sanitizeTitle($('title').value), TITLE_MAX);
+  const tr = $('rows').querySelector('tr.active');
+  if (tr) tr.children[2].textContent = s.title || '(untitled)';
   updateInfo();
 });
 $('title').addEventListener('change', () => { const s = songs[cur]; if (s) { $('title').value = s.title; renderList(); } });
@@ -3018,6 +3250,7 @@ function prog(on, pct, txt) {
 $('exportOne').onclick = async () => {
   const s = songs[cur]; if (!s) return;
   stopPB();
+  busy = true;
   $('exportOne').disabled = true;
   try {
     prog(true, 0, 'rendering…');
@@ -3031,7 +3264,9 @@ $('exportOne').onclick = async () => {
     boom($('exportOne'));
   } catch (e) { log('✖ ' + s.title + ': ' + (e.message || e), true); }
   prog(false);
+  busy = false;
   $('exportOne').disabled = false;
+  renderList();
 };
 // "No folders in ZIP" toggle - flat Export-ALL for one-shot bulk
 // uploads. Clip names are collision-free without folders: they start
@@ -3149,30 +3384,43 @@ $('adv').onchange = () => {
   try { localStorage.setItem('ms-advanced', $('adv').checked ? '1' : '0'); } catch (e) {}
 };
 
-$('exportAll').onclick = async () => {
-  if (!songs.length) return;
+// One batch run for both buttons: everything, or just the ticked rows.
+function syncSongRow(s) {
+  const tr = $('rows').querySelector('tr[data-i="' + songs.indexOf(s) + '"]');
+  if (!tr) return;
+  const st = stateOf(s);
+  tr.children[7].firstChild.className = 'badge ' + st;
+  tr.children[7].firstChild.textContent = stateLabel(st);
+}
+async function exportMany(list, btn) {
+  if (!list.length || busy) return;
   stopPB();
+  busy = true;
   $('exportAll').disabled = true;
+  $('exportSel').disabled = true;
   const flat = $('flatZip').checked;
   const all = []; let done = 0, fail = 0, clips = 0;
-  for (const s of songs) {
+  for (const s of list) {
     try {
-      prog(true, done / songs.length * 100, s.title);
+      prog(true, done / list.length * 100, s.title);
       const res = await renderSong(s);
       all.push(...res.files.map(f => ({ name: (flat ? '' : s.title + '/') + f.name, data: f.data })));
       clips += res.files.length;
       s.status = 'done'; done++;
     } catch (e) { log('✖ ' + s.title + ': ' + (e.message || e), true); fail++; }
-    renderList();
+    syncSongRow(s);
   }
   if (all.length) {
     download(makeZip(all), 'QuickyMusic_Clips.zip');
-    log('✔ ' + done + ' songs / ' + clips + ' clips → SL_Music_Clips.zip (' + (flat ? 'all clips top-level, no folders' : 'one folder per title inside') + ')' + (fail ? ' - ' + fail + ' FAILED, see above' : ''));
-    boom($('exportAll'));
+    log('✔ ' + done + ' songs / ' + clips + ' clips → QuickyMusic_Clips.zip (' + (flat ? 'all clips top-level, no folders' : 'one folder per title inside') + ')' + (fail ? ' - ' + fail + ' FAILED, see above' : ''));
+    boom(btn);
   }
   prog(false);
-  $('exportAll').disabled = false;
-};
+  busy = false;
+  renderList();
+}
+$('exportAll').onclick = () => exportMany(songs.slice(), $('exportAll'));
+$('exportSel').onclick = () => exportMany(songs.filter(s => ticked.has(s)), $('exportSel'));
 
 // ---------- file intake ----------
 $('drop').onclick = () => $('fileIn').click();
@@ -3181,6 +3429,7 @@ for (const ev of ['dragover', 'dragleave', 'drop']) {
   document.body.addEventListener(ev, e => {
     e.preventDefault();
     $('drop').classList.toggle('over', ev === 'dragover');
+    document.body.classList.toggle('dragging', ev === 'dragover');
     if (ev === 'drop' && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
   });
 }
