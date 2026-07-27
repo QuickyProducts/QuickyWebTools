@@ -2137,8 +2137,7 @@ body{animation:slt-page-in .28s ease-out both}
       <input type="checkbox" id="flatZip">
       <i class="sw" aria-hidden="true"></i>
     </label>
-    <button id="exportSel" disabled>⬇ Export ticked</button>
-    <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
+    <button id="exportSel" class="go" disabled>⬇ Export ticked (ZIP)</button>
     </div>
   </div>
 
@@ -2749,7 +2748,7 @@ function paintSel() {
   for (const s of Array.from(ticked)) if (songs.indexOf(s) === -1) ticked.delete(s);
   $('selInfo').innerHTML = '<b>' + ticked.size + '</b>/' + shown;
   $('exportSel').disabled = !ticked.size || busy;
-  $('exportSel').textContent = '⬇ Export ticked' + (ticked.size ? ' · ' + ticked.size : '');
+  $('exportSel').textContent = '⬇ Export ticked' + (ticked.size ? ' · ' + ticked.size : '') + ' (ZIP)';
 }
 function renderList() {
   disarmClear();
@@ -2811,12 +2810,9 @@ function renderList() {
     }
   }
   const done = songs.filter(s => s.status === 'done').length;
-  const n = songs.length + (songs.length === 1 ? ' song' : ' songs');
   $('stat').innerHTML = songs.length
     ? '<b>' + songs.length + '</b> songs · <b>' + done + '</b> exported' + (rows.length !== songs.length ? ' · <b>' + rows.length + '</b> shown' : '')
     : '';
-  $('exportAll').disabled = !songs.length || busy;
-  $('exportAll').textContent = songs.length ? '⬇ Export ALL · ' + n + ' (ZIP)' : '⬇ Export ALL songs (ZIP)';
   $('tickAll').checked = rows.length > 0 && rows.every(o => ticked.has(o.s));
   paintSel();
   queueSoon();
@@ -3490,7 +3486,6 @@ async function exportMany(list, btn) {
   if (!list.length || busy) return;
   stopPB();
   busy = true;
-  $('exportAll').disabled = true;
   $('exportSel').disabled = true;
   const flat = !$('flatZip').checked;
   const all = []; let done = 0, fail = 0, clips = 0;
@@ -3513,7 +3508,6 @@ async function exportMany(list, btn) {
   busy = false;
   renderList();
 }
-$('exportAll').onclick = () => exportMany(songs.slice(), $('exportAll'));
 $('exportSel').onclick = () => exportMany(songs.filter(s => ticked.has(s)), $('exportSel'));
 
 // ---------- file intake ----------
