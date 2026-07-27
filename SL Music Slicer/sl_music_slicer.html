@@ -1536,7 +1536,7 @@ main{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:18px 24px 40p
 main:has(#editor.hidden){grid-template-columns:1fr;max-width:520px}
 main:has(#editor.hidden) #queuePanel{position:static;max-height:none}
 /* Start state: no songs loaded yet, so exporting makes no sense */
-main:has(#editor.hidden) #exportPanel,main:has(#editor.hidden) #logPanel,main:has(#editor.hidden) .secHead{display:none}
+main:has(#editor.hidden) #exportPanel,main:has(#editor.hidden) #logPanel,main:has(#editor.hidden) .secHead,main:has(#editor.hidden) #clearAll{display:none}
 @media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static;max-height:none}#songList{max-height:50vh}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
 /* The whole queue column sticks and is capped to the viewport; the song list
@@ -1574,6 +1574,8 @@ main:has(#editor:not(.hidden)) #drop.over{box-shadow:inset 0 0 20px rgba(255,60,
 #rightCol{min-width:0;display:flex;flex-direction:column;gap:14px}
 /* The log only earns its space once it has something to say. */
 #logPanel:has(#log:empty){display:none}
+#clearAll{align-self:center;margin-top:2px}
+#clearAll.arm{color:var(--bad);border-color:var(--bad);background:rgba(255,84,112,.12)}
 #exportPanel{display:flex;flex-direction:column;gap:10px}
 #exportBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #exportBar #exportAll{flex:1 1 auto}
@@ -2024,6 +2026,7 @@ body{animation:slt-page-in .28s ease-out both}
     <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus" multiple hidden>
     <div class="secHead">Songs<span class="cnt" id="songCount"></span></div>
     <div id="songList"></div>
+    <button id="clearAll" class="mini" title="Take every song out of the list. Your files on disk are not touched - only this queue is emptied.">✕ Clear the list</button>
   </div>
   <div id="rightCol">
   <div id="editor" class="hidden">
@@ -2032,6 +2035,7 @@ body{animation:slt-page-in .28s ease-out both}
       <div class="row" style="margin-top:12px">
         <button id="play" class="primary" style="width:96px">▶ Play</button>
         <button id="cut" title="click the wave to place the playhead, then cut">✂ Cut</button>
+        <button id="undo" title="Undo every change to this song: bring back the cut-off start and end, and put the per-song bass and clip length back to their defaults.">↺ Reset</button>
         <button id="cutF" class="gone">🗑 ← delete front part</button>
         <button id="cutB" class="gone">delete back part → 🗑</button>
       </div>
@@ -2555,8 +2559,10 @@ function paintSongBass() {
   $('sbassRst').disabled = !own;
   $('sbassTxt').textContent = 'Bass for this song: ' + (d ? '+' + d + ' dB' : 'off')
     + (own ? '' : ' (following the global setting)');
+  paintReset();
 }
 function updateInfo() {
+  paintReset();
   const s = songs[cur]; if (!s) return;
   const T = Math.max(0, s.trimE - s.trimS);
   const total = Math.round(T * SR), lens = total > 0 ? sliceLens(total, Math.round(s.maxLen * SR)) : [];
@@ -2571,6 +2577,7 @@ function updateInfo() {
 }
 
 function renderList() {
+  disarmClear();
   const box = $('songList'); box.innerHTML = '';
   const seen = {};
   for (const s of songs) { const k = s.title.toLowerCase(); seen[k] = (seen[k] || 0) + 1; }
@@ -2592,6 +2599,33 @@ function renderList() {
   $('songCount').textContent = songs.length ? n + (done ? ' · ' + done + ' exported' : '') : '';
   $('exportAll').textContent = songs.length ? '⬇ Export ALL · ' + n + ' (ZIP)' : '⬇ Export ALL songs (ZIP)';
 }
+// Emptying the whole queue is one click away, so it asks once before it acts.
+// The armed state falls back on its own if the click was a slip.
+let clrT = 0;
+function disarmClear() {
+  clearTimeout(clrT);
+  const b = $('clearAll');
+  b.classList.remove('arm');
+  b.textContent = '✕ Clear the list';
+}
+$('clearAll').onclick = () => {
+  if (!songs.length) return;
+  const b = $('clearAll');
+  if (!b.classList.contains('arm')) {
+    b.classList.add('arm');
+    b.textContent = '✕ Remove all ' + songs.length + ' songs?';
+    clrT = setTimeout(disarmClear, 5000);
+    return;
+  }
+  stopPB();
+  songs = [];
+  lru.length = 0;
+  cur = -1;
+  $('editor').classList.add('hidden');
+  $('log').textContent = '';
+  disarmClear();
+  renderList();
+};
 function removeSong(i) {
   stopPB();
   const gone = songs.splice(i, 1)[0];
@@ -2796,6 +2830,31 @@ $('cut').onclick = () => {
 };
 $('cutF').onclick = () => { setTrim('s', ph); cutMode(false); };
 $('cutB').onclick = () => { setTrim('e', ph); cutMode(false); };
+
+// Everything the editor can change about one song lives in these four fields,
+// so putting them back to their initial values IS the undo.
+function songTouched(s) {
+  return s && (s.trimS > 0.001 || (s.dur && s.trimE < s.dur - 0.001) ||
+    (s.bass !== null && s.bass !== undefined) || s.maxLen < 29.75);
+}
+function paintReset() {
+  const s = songs[cur];
+  $('undo').disabled = !songTouched(s);
+}
+$('undo').onclick = () => {
+  const s = songs[cur]; if (!songTouched(s)) return;
+  stopPB();
+  s.trimS = 0;
+  s.trimE = s.dur;
+  s.bass = null;
+  s.maxLen = 29.8;
+  ph = 0;
+  view = { v0: 0, v1: s.dur };
+  cutMode(false);
+  paintSongBass(); paintSongLen(); paintAdv();
+  updateInfo(); renderList(); draw();
+  log('↺ ' + s.title + ': back to the untouched song');
+};
 
 // ---------- fields ----------
 $('title').addEventListener('input', () => {
