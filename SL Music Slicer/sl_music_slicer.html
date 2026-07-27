@@ -1622,11 +1622,11 @@ td.detCell #dock{border:0;border-radius:0;background:transparent;box-shadow:none
 #advPop{position:fixed;left:20px;bottom:56px;width:min(560px,92vw);z-index:20;display:none}
 /* The three tuning columns only exist while Advanced is on. */
 body:not(.adv) .advCol{display:none}
-td.set{cursor:pointer;color:var(--dim);font-variant-numeric:tabular-nums}
-td.set:hover{color:var(--txt);background:rgba(255,255,255,.06)}
-td.set.own{color:var(--acc3)}
-td.set select{width:100%;background:rgba(0,0,0,.5);color:var(--txt);border:1px solid var(--acc2);border-radius:8px;font:inherit;font-size:12px;padding:2px 4px}
-th.advCol,td.advCol{width:76px}
+td.set{white-space:nowrap}
+td.set input[type=range]{width:58px;accent-color:var(--acc2);vertical-align:middle;cursor:pointer}
+td.set .v{display:inline-block;min-width:36px;margin-left:6px;font-size:11px;color:var(--dim);text-align:right;font-variant-numeric:tabular-nums;vertical-align:middle}
+td.set.own .v{color:var(--acc3);font-weight:700}
+th.advCol,td.advCol{width:108px}
 #logPop{position:fixed;right:20px;bottom:56px;width:min(560px,92vw);z-index:20;display:none}
 #advPop.on,#logPop.on{display:block}
 #lastMsg{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
@@ -2099,10 +2099,10 @@ body{animation:slt-page-in .28s ease-out both}
         <th class="cbx"><input type="checkbox" id="tickAll" title="Tick everything the filter is currently showing"></th>
         <th class="n" data-s="idx">#<i class="ar">▼</i></th>
         <th data-s="title">Title<i class="ar">▼</i></th>
+        <th class="advCol" data-s="bass" title="Extra bass for this song. Drag the slider, double-click to follow the global setting again.">Bass<i class="ar">▼</i></th>
+        <th class="advCol" data-s="loud" title="Mastering loudness for this song. Drag the slider, double-click to follow the global setting again.">Loud<i class="ar">▼</i></th>
+        <th class="advCol" data-s="fade" title="Edge fade for this song. Drag the slider, double-click to follow the global setting again.">Fade<i class="ar">▼</i></th>
         <th style="width:116px">Wave</th>
-        <th class="n advCol" data-s="bass" title="Extra bass for this song. Click a cell to change it.">Bass<i class="ar">▼</i></th>
-        <th class="n advCol" data-s="loud" title="Mastering loudness for this song. Click a cell to change it.">Loud<i class="ar">▼</i></th>
-        <th class="n advCol" data-s="fade" title="Edge fade for this song. Click a cell to change it.">Fade<i class="ar">▼</i></th>
         <th class="n" data-s="len">Length<i class="ar">▼</i></th>
         <th class="n" data-s="clips">Clips<i class="ar">▼</i></th>
         <th data-s="status">Status<i class="ar">▼</i></th>
@@ -2781,54 +2781,50 @@ function pumpWarm() {
 // will actually use and turns into a picker on click. An empty pick means
 // "follow the global setting" again.
 const SET = {
-  bass: {
-    get: s => s.bass, put: (s, v) => { s.bass = v; }, res: songBass,
-    fmt: v => v ? '+' + v : 'off',
-    opts: () => { const a = []; for (let i = 0; i <= 9; i++) a.push([i, i ? '+' + i + ' dB' : 'off']); return a; }
-  },
-  loud: {
-    get: s => s.loud, put: (s, v) => { s.loud = v; }, res: songLoud,
-    fmt: v => v.toFixed(1),
-    opts: () => { const a = []; for (let v = -12; v <= -6.001; v += 0.5) a.push([v, v.toFixed(1) + ' LUFS']); a.push([-6, '-6.0 LUFS']); return a; }
-  },
-  fade: {
-    get: s => s.fade, put: (s, v) => { s.fade = v; }, res: songFade,
-    fmt: v => v + ' ms',
-    opts: () => { const a = []; for (let i = 0; i <= 12; i++) a.push([i, i + ' ms']); return a; }
-  }
+  bass: { get: s => s.bass, put: (s, v) => { s.bass = v; }, res: songBass, fmt: v => v ? '+' + v : 'off', min: 0, max: 9, step: 1 },
+  loud: { get: s => s.loud, put: (s, v) => { s.loud = v; }, res: songLoud, fmt: v => v.toFixed(1), min: -12, max: -6, step: 0.5 },
+  fade: { get: s => s.fade, put: (s, v) => { s.fade = v; }, res: songFade, fmt: v => v + ' ms', min: 0, max: 12, step: 1 }
 };
 function paintSet(cell, s) {
   const d = SET[cell.dataset.k];
   const own = ownVal(d.get(s));
-  cell.textContent = d.fmt(d.res(s));
+  const v = cell.querySelector('.v');
+  if (v) v.textContent = d.fmt(d.res(s));
   cell.classList.toggle('own', own);
-  cell.title = (own ? 'Set for this song' : 'Following the global setting') + ', click to change';
+  cell.title = (own ? 'Set for this song' : 'Following the global setting') +
+    ' - drag to change, double-click to follow the global again';
 }
-function editSet(cell, s) {
-  if (cell.querySelector('select')) return;
+// A slider per cell, built only while the columns are on screen.
+function buildSet(cell, s) {
   const d = SET[cell.dataset.k];
-  const sel = document.createElement('select');
-  sel.className = 'setSel';
-  const g = document.createElement('option');
-  g.value = '';
-  g.textContent = 'global (' + d.fmt(d.res({})) + ')';
-  sel.appendChild(g);
-  for (const o of d.opts()) {
-    const op = document.createElement('option');
-    op.value = o[0];
-    op.textContent = o[1];
-    sel.appendChild(op);
-  }
-  sel.value = ownVal(d.get(s)) ? String(d.get(s)) : '';
-  sel.onclick = e => e.stopPropagation();
-  sel.onchange = () => {
-    d.put(s, sel.value === '' ? null : +sel.value);
-    finishSet(cell, s);
-  };
-  sel.onblur = () => finishSet(cell, s);
   cell.textContent = '';
-  cell.appendChild(sel);
-  sel.focus();
+  const inp = document.createElement('input');
+  inp.type = 'range';
+  inp.min = d.min; inp.max = d.max; inp.step = d.step;
+  inp.value = d.res(s);
+  inp.autocomplete = 'off';
+  const val = document.createElement('span');
+  val.className = 'v';
+  cell.appendChild(inp);
+  cell.appendChild(val);
+  inp.onclick = e => e.stopPropagation();
+  inp.onmousedown = e => e.stopPropagation();
+  inp.oninput = () => {
+    d.put(s, +inp.value);
+    paintSet(cell, s);
+    syncSongRow(s);
+    if (songs[cur] === s) { paintSongBass(); updateInfo(); draw(); }
+    paintAdv();
+  };
+  cell.ondblclick = e => {
+    e.stopPropagation();
+    d.put(s, null);
+    inp.value = d.res(s);
+    paintSet(cell, s);
+    syncSongRow(s);
+    paintAdv();
+  };
+  paintSet(cell, s);
 }
 // Rows that follow a global setting have to show the new value at once.
 function repaintSets() {
@@ -2836,14 +2832,13 @@ function repaintSets() {
     if (tr.className.indexOf('det') !== -1) continue;
     const s = songs[+tr.dataset.i];
     if (!s) continue;
-    for (const cell of tr.querySelectorAll('td.set')) if (!cell.querySelector('select')) paintSet(cell, s);
+    for (const cell of tr.querySelectorAll('td.set')) {
+      const inp = cell.querySelector('input');
+      if (!inp) continue;
+      if (!ownVal(SET[cell.dataset.k].get(s))) inp.value = SET[cell.dataset.k].res(s);
+      paintSet(cell, s);
+    }
   }
-}
-function finishSet(cell, s) {
-  paintSet(cell, s);
-  syncSongRow(s);
-  if (songs[cur] === s) { paintSongBass(); updateInfo(); draw(); }
-  paintAdv();
 }
 function paintSel() {
   for (const s of Array.from(ticked)) if (songs.indexOf(s) === -1) ticked.delete(s);
@@ -2865,6 +2860,7 @@ function renderList() {
   for (const s of songs) { const k = s.title.toLowerCase(); seen[k] = (seen[k] || 0) + 1; }
   const rows = viewRows();
   shown = rows.length;
+  const advOn = document.body.classList.contains('adv');
   for (const o of rows) {
     const s = o.s, i = o.i, st = stateOf(s);
     const tr = document.createElement('tr');
@@ -2874,18 +2870,15 @@ function renderList() {
       '<td class="cbx"><input type="checkbox"></td>' +
       '<td class="idx">' + (i + 1) + '</td>' +
       '<td class="t"></td>' +
+      '<td class="advCol set" data-k="bass"></td>' +
+      '<td class="advCol set" data-k="loud"></td>' +
+      '<td class="advCol set" data-k="fade"></td>' +
       '<td class="wv"><canvas></canvas></td>' +
-      '<td class="n advCol set" data-k="bass"></td>' +
-      '<td class="n advCol set" data-k="loud"></td>' +
-      '<td class="n advCol set" data-k="fade"></td>' +
       '<td class="n">' + (s.dur ? fmtMS(s.trimE - s.trimS) : '…') + '</td>' +
       '<td class="n">' + (s.dur ? clipsOf(s) : '·') + '</td>' +
       '<td><span class="badge ' + st + '">' + stateLabel(st) + '</span></td>' +
       '<td><button class="x" title="Take this song out of the list">✕</button></td>';
-    for (const cell of tr.querySelectorAll('td.set')) {
-      paintSet(cell, s);
-      cell.onclick = e => { e.stopPropagation(); if (e.detail > 1) return; editSet(cell, s); };
-    }
+    if (advOn) for (const cell of tr.querySelectorAll('td.set')) buildSet(cell, s);
     const t = tr.children[2];
     t.textContent = s.title || '(untitled)';
     t.title = (s.file ? s.file.name : s.title) + '  ·  double-click to rename';
@@ -2931,7 +2924,11 @@ function syncRow() {
   const s = songs[cur]; if (!s) return;
   const tr = $('rows').querySelector('tr.active');
   if (!tr) return;
-  for (const cell of tr.querySelectorAll('td.set')) if (!cell.querySelector('select')) paintSet(cell, s);
+  for (const cell of tr.querySelectorAll('td.set')) {
+    const inp = cell.querySelector('input');
+    if (inp) inp.value = SET[cell.dataset.k].res(s);
+    paintSet(cell, s);
+  }
   tr.children[7].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
   tr.children[8].textContent = s.dur ? clipsOf(s) : '·';
   const st = stateOf(s);
