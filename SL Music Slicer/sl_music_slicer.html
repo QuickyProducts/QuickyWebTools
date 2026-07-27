@@ -1658,6 +1658,13 @@ th.advCol,td.advCol{width:108px}
 /* The panel rise animation leaves a 16px offset on elements that start out
    hidden, which would push these popovers over their own button. */
 #advPop,#zipPop,#logPop{animation:none}
+/* Popovers float over the busy table, so they get a solid backing instead of
+   the panel's glass - text on top of song rows is unreadable. */
+#advPop,#zipPop,#logPop{
+  background:linear-gradient(160deg,rgba(38,24,68,.99),rgba(21,13,40,.99));
+  border-color:rgba(255,255,255,.22);
+  box-shadow:0 18px 60px rgba(0,0,0,.66),0 0 0 1px rgba(0,0,0,.5);
+}
 #lastMsg{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 #lastMsg:hover{color:var(--txt)}
 #lastMsg:empty{display:none}
@@ -2530,7 +2537,7 @@ async function ensureDecoded(s) {
       s.buffer = buf;
       s.dur = buf.duration;
       if (!s.trimE || s.trimE > s.dur) s.trimE = s.dur;
-      if (!s.peaks) s.peaks = buildPeaks(toMono(buf));
+      if (!s.peaks) s.peaks = buildPeaks(buf);
       s._dec = null;
       touchLRU(s);
       return buf;
@@ -2542,27 +2549,33 @@ async function ensureDecoded(s) {
   return s._dec;
 }
 
-// The mono sum SL will end up with - used for the peaks and every loudness
-// measurement, never for playback.
-function toMono(buf) {
-  if (buf.numberOfChannels < 2) return buf;
-  const out = ctx().createBuffer(1, buf.length, buf.sampleRate);
-  const d = out.getChannelData(0), n = buf.length, ch = buf.numberOfChannels;
-  for (let c = 0; c < ch; c++) {
-    const sc = buf.getChannelData(c);
-    for (let i = 0; i < n; i++) d[i] += sc[i] / ch;
-  }
-  return out;
-}
+// Peaks describe the MONO sum SL will end up with, and they are built in one
+// pass straight off the source channels: mixing into a second buffer first
+// meant walking every sample twice and allocating a copy of the whole song.
 function buildPeaks(buf) {
-  const B = 512, n = Math.ceil(buf.length / B), mn = new Float32Array(n), mx = new Float32Array(n), sq = new Float32Array(n);
-  const chs = [];
-  for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c));
+  const B = 512, len = buf.length, n = Math.ceil(len / B);
+  const mn = new Float32Array(n), mx = new Float32Array(n), sq = new Float32Array(n);
+  const ch = buf.numberOfChannels;
+  const c0 = buf.getChannelData(0);
+  const c1 = ch > 1 ? buf.getChannelData(1) : null;
+  const rest = [];
+  for (let c = 2; c < ch; c++) rest.push(buf.getChannelData(c));
+  const inv = 1 / ch;
   for (let b = 0; b < n; b++) {
+    const s0 = b * B, s1 = Math.min(len, s0 + B);
     let lo = 1, hi = -1, ss = 0;
-    const s0 = b * B, s1 = Math.min(buf.length, s0 + B);
-    for (const cd of chs) for (let i = s0; i < s1; i++) { const v = cd[i]; if (v < lo) lo = v; if (v > hi) hi = v; ss += v * v; }
-    mn[b] = lo; mx[b] = hi; sq[b] = ss / (chs.length * Math.max(1, s1 - s0));
+    for (let i = s0; i < s1; i++) {
+      let v = c0[i];
+      if (c1) {
+        v += c1[i];
+        for (let k = 0; k < rest.length; k++) v += rest[k][i];
+        v *= inv;
+      }
+      if (v < lo) lo = v;
+      if (v > hi) hi = v;
+      ss += v * v;
+    }
+    mn[b] = lo; mx[b] = hi; sq[b] = ss / Math.max(1, s1 - s0);
   }
   return { mn, mx, sq, B, sr: buf.sampleRate, n };
 }
@@ -2751,9 +2764,11 @@ function drawMini(c, s) {
     g.fillRect(i * bw, mid - h, Math.max(1, bw - .5), h * 2);
   }
 }
-// Rows fill in their waveform as they scroll into view: one decode at a time,
-// never while something is playing or exporting.
-let warming = false;
+// Rows fill in their waveform as they scroll into view. A few songs decode at
+// once because decoding itself runs off the main thread, but never while
+// something is playing or exporting.
+const WARM_AT_ONCE = 4;
+let warming = 0;
 const warmQ = [];
 // What you are looking at is decoded first, then the rest of the queue keeps
 // going on its own - no scrolling needed to make the waveforms appear.
@@ -2780,22 +2795,28 @@ function queueSoon() {
   warmT = setTimeout(() => { warmT = 0; queueVisible(); }, 60);
 }
 function pumpWarm() {
-  if (warming || busy || pb) return;
-  while (warmQ.length) {
+  if (busy || pb) return;
+  while (warming < WARM_AT_ONCE && warmQ.length) {
     const tr = warmQ.shift();
     const s = songs[+tr.dataset.i];
     if (!s || s.peaks || !tr.isConnected) continue;
-    warming = true;
+    warming++;
     ensureDecoded(s).then(() => {
-      warming = false;
+      warming--;
       const c = tr.querySelector('canvas');
       if (c && c.isConnected) drawMini(c, s);
       // Length and clip count were unknown until now, so fill them in.
       syncSongRow(s);
       if (songs[cur] === s) updateInfo();
+      else {
+        // Only the peaks are wanted here, and a decoded song is huge - a
+        // three minute stereo track is about 70 MB. Hand it back right away.
+        s.buffer = null;
+        const li = lru.indexOf(s);
+        if (li >= 0) lru.splice(li, 1);
+      }
       pumpWarm();
-    }).catch(() => { warming = false; pumpWarm(); });
-    return;
+    }).catch(() => { warming--; pumpWarm(); });
   }
 }
 // The three advanced values as table columns: each cell shows what the song
