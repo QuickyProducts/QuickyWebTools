@@ -1545,7 +1545,7 @@ body.work .slt-footer{flex-shrink:0;margin:6px auto 10px}
 main{max-width:520px;margin:0 auto;padding:18px 24px 40px}
 /* Start state: nothing but the drop zone exists yet. */
 body:not(.work) #bar,body:not(.work) .tableWrap,body:not(.work) #dock,
-body:not(.work) .actions,body:not(.work) #advPop,body:not(.work) #logPop{display:none}
+body:not(.work) .actions,body:not(.work) #advPop,body:not(.work) #zipPop,body:not(.work) #logPop{display:none}
 body.work #drop{display:none}
 @media(max-width:980px){body.work .tableWrap{max-height:52vh}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
@@ -1644,7 +1644,11 @@ td.set .v{display:inline-block;min-width:36px;margin-left:6px;font-size:11px;col
 td.set.own .v{color:var(--acc3);font-weight:700}
 th.advCol,td.advCol{width:108px}
 #logPop{position:fixed;right:20px;bottom:56px;width:min(560px,92vw);z-index:20;display:none}
-#advPop.on,#logPop.on{display:block}
+#zipPop{position:fixed;left:20px;bottom:56px;width:min(320px,92vw);z-index:20;display:none}
+#advPop.on,#zipPop.on,#logPop.on{display:block}
+/* The panel rise animation leaves a 16px offset on elements that start out
+   hidden, which would push these popovers over their own button. */
+#advPop,#zipPop,#logPop{animation:none}
 #lastMsg{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 #lastMsg:hover{color:var(--txt)}
 #lastMsg:empty{display:none}
@@ -2137,29 +2141,32 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div class="actions">
     <div class="side">
+      <button id="advBtn">⚙ Advanced</button>
+      <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
+      <span class="stat" id="lastMsg" title="Click for the full log"></span>
+    </div>
+    <div class="side right">
       <span class="expLbl">Remove</span>
       <span class="pillBtn danger">
         <button id="removeSel" disabled title="Take the selected songs out of the list. Your files on disk are not touched.">🗑 0 Selected</button>
         <button id="removeAll" title="Empty the whole list. Your files on disk are not touched.">🗑 ALL</button>
       </span>
-      <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
-      <span class="stat" id="lastMsg" title="Click for the full log"></span>
+      <span class="expLbl">Export</span>
+      <span class="pillBtn">
+        <button id="exportSel" title="Export only the songs you selected, as one ZIP" disabled>⬇ Selected</button>
+        <button id="exportAll" title="Export every song in the list, as one ZIP">⬇ ALL</button>
+      </span>
+      <button id="zipBtn" class="mini" title="How the ZIP is put together">⚙</button>
     </div>
-    <div class="mid">
-      <button id="advBtn">⚙ Advanced</button>
-    </div>
-    <div class="side right">
+  </div>
+
+  <div class="panel" id="zipPop">
+    <div class="secHead">ZIP options</div>
     <label id="flatZipRow" class="swRow" title="On: every song gets its own folder inside the ZIP. Off: all clips sit at the top level - handy for bulk-uploading everything in one go.">
-      <span class="fz-txt"><b>Export in folders?</b></span>
+      <span class="fz-txt"><b>Export in folders?</b><small>one folder per song instead of all clips loose</small></span>
       <input type="checkbox" id="flatZip" autocomplete="off">
       <i class="sw" aria-hidden="true"></i>
     </label>
-    <span class="expLbl">Export</span>
-    <span class="pillBtn">
-      <button id="exportSel" title="Export only the songs you selected, as one ZIP" disabled>⬇ Selected</button>
-      <button id="exportAll" title="Export every song in the list, as one ZIP">⬇ ALL</button>
-    </span>
-    </div>
   </div>
 
   <div class="panel" id="advPop">
@@ -3038,12 +3045,28 @@ function startRename(i) {
   inp.focus();
   inp.select();
 }
+// Leaving the field must NOT rebuild the table: the blur happens on mousedown,
+// and a rebuild between mousedown and mouseup swallows that very click - which
+// is why the Close button needed two presses after renaming.
 function endRename() {
   const inp = $('title');
   const home = document.querySelector('main');
   if (!inp || inp.parentElement === home) return;
+  const cell = inp.parentElement;
+  const s = songs[+((cell.closest('tr') || {}).dataset || {}).i];
   home.appendChild(inp);
-  renderList();
+  cell.textContent = s ? (s.title || '(untitled)') : '';
+  paintDups();
+}
+// Two songs with the same title collide on export, so they stay marked.
+function paintDups() {
+  const seen = {};
+  for (const s of songs) { const k = s.title.toLowerCase(); seen[k] = (seen[k] || 0) + 1; }
+  for (const tr of Array.from($('rows').children)) {
+    if (tr.className.indexOf('det') !== -1) continue;
+    const s = songs[+tr.dataset.i];
+    tr.classList.toggle('dup', !!s && seen[s.title.toLowerCase()] > 1);
+  }
 }
 $('title').addEventListener('blur', endRename);
 $('title').addEventListener('keydown', e => {
@@ -3083,28 +3106,34 @@ function placeLogo() {
 addEventListener('resize', placeLogo);
 document.querySelector('.tableWrap').addEventListener('scroll', queueSoon, { passive: true });
 $('addBtn').onclick = () => $('fileIn').click();
-// The popover sits directly above its button, clamped to the window edges.
-function placeAdvPop() {
-  const b = $('advBtn').getBoundingClientRect(), p = $('advPop');
-  const w = Math.min(560, innerWidth - 24);
-  p.style.width = w + 'px';
-  p.style.left = Math.round(Math.max(12, Math.min(b.left + b.width / 2 - w / 2, innerWidth - w - 12))) + 'px';
-  p.style.bottom = Math.round(innerHeight - b.top + 10) + 'px';
+// Popovers sit directly above their button, clamped to the window edges.
+function placePop(btn, pop, want) {
+  const b = btn.getBoundingClientRect();
+  const w = Math.min(want, innerWidth - 24);
+  pop.style.width = w + 'px';
+  pop.style.left = Math.round(Math.max(12, Math.min(b.left + b.width / 2 - w / 2, innerWidth - w - 12))) + 'px';
+  pop.style.bottom = Math.round(innerHeight - b.top + 10) + 'px';
 }
-$('advBtn').onclick = () => {
-  $('logPop').classList.remove('on');
-  placeAdvPop();
-  $('advPop').classList.toggle('on');
-};
+function placeAdvPop() { placePop($('advBtn'), $('advPop'), 560); }
+function togglePop(btn, pop, want) {
+  const on = pop.classList.contains('on');
+  for (const id of ['advPop', 'zipPop', 'logPop']) $(id).classList.remove('on');
+  if (on) return;
+  placePop(btn, pop, want);
+  pop.classList.add('on');
+}
+$('advBtn').onclick = () => togglePop($('advBtn'), $('advPop'), 560);
+$('zipBtn').onclick = () => togglePop($('zipBtn'), $('zipPop'), 320);
 $('lastMsg').onclick = () => {
   if (!$('log').children.length) return;
-  $('advPop').classList.remove('on');
-  $('logPop').classList.toggle('on');
+  togglePop($('lastMsg'), $('logPop'), 560);
 };
 // Clicking anywhere else puts a popover away again.
 document.addEventListener('click', e => {
-  if (!$('advPop').contains(e.target) && e.target !== $('advBtn') && !$('advBtn').contains(e.target)) $('advPop').classList.remove('on');
-  if (!$('logPop').contains(e.target) && e.target !== $('lastMsg')) $('logPop').classList.remove('on');
+  const pairs = [['advPop', 'advBtn'], ['zipPop', 'zipBtn'], ['logPop', 'lastMsg']];
+  for (const [pop, btn] of pairs) {
+    if (!$(pop).contains(e.target) && !$(btn).contains(e.target) && e.target !== $(btn)) $(pop).classList.remove('on');
+  }
 });
 // Throwing songs out is one click away, so each half asks once before it
 // acts. The armed state falls back on its own if the click was a slip.
@@ -3142,8 +3171,7 @@ function askRemove(which, list) {
   if (!songs.length) {
     $('log').textContent = '';
     $('lastMsg').textContent = '';
-    $('advPop').classList.remove('on');
-    $('logPop').classList.remove('on');
+    for (const id of ['advPop', 'zipPop', 'logPop']) $(id).classList.remove('on');
   } else {
     log('🗑 ' + gone.size + (gone.size === 1 ? ' song removed from the list' : ' songs removed from the list'));
   }
@@ -3390,7 +3418,8 @@ $('title').addEventListener('input', () => {
   if (tr && !tr.contains($('title'))) tr.children[1].textContent = s.title || '(untitled)';
   updateInfo();
 });
-$('title').addEventListener('change', () => { const s = songs[cur]; if (s) { $('title').value = s.title; renderList(); } });
+// Same reason as endRename: no rebuild while the pointer is mid-click.
+$('title').addEventListener('change', () => { const s = songs[cur]; if (s) $('title').value = s.title; });
 
 window.addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
