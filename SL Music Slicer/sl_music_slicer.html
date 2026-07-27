@@ -1619,7 +1619,14 @@ td.detCell #dock{border:0;border-radius:0;background:transparent;box-shadow:none
 .actions .side{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:10px}
 .actions .side.right{justify-content:flex-end}
 .actions .mid{display:flex;align-items:center;gap:10px;flex-shrink:0}
-#advPop{position:fixed;left:20px;bottom:56px;width:min(720px,92vw);z-index:20;display:none}
+#advPop{position:fixed;left:20px;bottom:56px;width:min(560px,92vw);z-index:20;display:none}
+/* The three tuning columns only exist while Advanced is on. */
+body:not(.adv) .advCol{display:none}
+td.set{cursor:pointer;color:var(--dim);font-variant-numeric:tabular-nums}
+td.set:hover{color:var(--txt);background:rgba(255,255,255,.06)}
+td.set.own{color:var(--acc3)}
+td.set select{width:100%;background:rgba(0,0,0,.5);color:var(--txt);border:1px solid var(--acc2);border-radius:8px;font:inherit;font-size:12px;padding:2px 4px}
+th.advCol,td.advCol{width:76px}
 #logPop{position:fixed;right:20px;bottom:56px;width:min(560px,92vw);z-index:20;display:none}
 #advPop.on,#logPop.on{display:block}
 #lastMsg{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
@@ -2095,9 +2102,11 @@ body{animation:slt-page-in .28s ease-out both}
         <th class="n" data-s="idx">#<i class="ar">▼</i></th>
         <th data-s="title">Title<i class="ar">▼</i></th>
         <th style="width:116px">Wave</th>
+        <th class="n advCol" data-s="bass" title="Extra bass for this song. Click a cell to change it.">Bass<i class="ar">▼</i></th>
+        <th class="n advCol" data-s="loud" title="Mastering loudness for this song. Click a cell to change it.">Loud<i class="ar">▼</i></th>
+        <th class="n advCol" data-s="fade" title="Edge fade for this song. Click a cell to change it.">Fade<i class="ar">▼</i></th>
         <th class="n" data-s="len">Length<i class="ar">▼</i></th>
         <th class="n" data-s="clips">Clips<i class="ar">▼</i></th>
-        <th class="n" data-s="bass">Bass<i class="ar">▼</i></th>
         <th data-s="status">Status<i class="ar">▼</i></th>
         <th style="width:30px"></th>
       </tr></thead>
@@ -2183,6 +2192,10 @@ function declickMs() { const e = $('declick'); return e ? +e.value : 3; }
 // s.bass === null means "follow the global slider"; a number overrides it for that
 // one song. Export ALL therefore mixes both without any extra bookkeeping.
 function songBass(s) { return (s && s.bass !== null && s.bass !== undefined) ? s.bass : bassDb(); }
+// Each song may override any of the three; null means "follow the global".
+function songLoud(s) { return (s && s.loud !== null && s.loud !== undefined) ? s.loud : loudDb(); }
+function songFade(s) { return (s && s.fade !== null && s.fade !== undefined) ? s.fade : declickMs(); }
+function ownVal(v) { return v !== null && v !== undefined; }
 function bassNode(ac, s) {
   const d = songBass(s);
   if (!d) return null;
@@ -2437,18 +2450,30 @@ function log(msg, err) {
   }
 }
 
+// Same name, same size, same timestamp means it is the very same file, and
+// the queue takes it only once.
+function sameFile(a, b) {
+  return !!a && !!b && a.name === b.name && a.size === b.size && a.lastModified === b.lastModified;
+}
 // New files just join the queue; nothing unfolds until a row is clicked.
 function addFiles(list) {
+  let dup = 0;
   for (const f of list) {
     if (!/\.(mp3|wav|flac|ogg|oga|m4a|aac|opus|webm)$/i.test(f.name) && !(f.type || '').startsWith('audio')) { log('skipped (not audio): ' + f.name, true); continue; }
+    if (songs.some(o => sameFile(o.file, f))) {
+      dup++;
+      log('ℹ already in the list, not added again: ' + f.name);
+      continue;
+    }
     const sng = {
       id: ++seq, file: f, title: titleFromFile(f.name), buffer: null, peaks: null,
-      dur: 0, trimS: 0, trimE: 0, maxLen: 29.8, bass: null, status: 'new'
+      dur: 0, trimS: 0, trimE: 0, maxLen: 29.8, bass: null, loud: null, fade: null, status: 'new'
     };
     sng._auto = sng.title;
     songs.push(sng);
     readTags(f).then(tg => applyTags(sng, tg));
   }
+  if (dup > 1) log('ℹ ' + dup + ' files were already in the list and were left out');
   renderList();
 }
 
@@ -2549,7 +2574,7 @@ function estGain(s) {
   const L = gatedDb(ms);
   const p = peakOfRegion(s);
   if (L <= -60 || p < 1e-6) return 1;
-  return clamp(Math.pow(10, (loudDb() - L) / 20), 0.2, Math.min(10, 2 * CEIL / p));
+  return clamp(Math.pow(10, (songLoud(s) - L) / 20), 0.2, Math.min(10, 2 * CEIL / p));
 }
 function limitInPlace(x, G, C) {
   const n = x.length, LA = Math.max(1, Math.round(SR * 0.002));
@@ -2677,7 +2702,9 @@ function viewRows() {
     title: o => o.s.title.toLowerCase(),
     len: o => o.s.trimE - o.s.trimS,
     clips: o => clipsOf(o.s),
-    bass: o => (o.s.bass === null || o.s.bass === undefined) ? -1 : o.s.bass,
+    bass: o => songBass(o.s),
+    loud: o => songLoud(o.s),
+    fade: o => songFade(o.s),
     status: o => stateOf(o.s)
   }[sortKey];
   v.sort((a, b) => { const x = key(a), y = key(b); return x > y ? sortDir : x < y ? -sortDir : a.i - b.i; });
@@ -2744,6 +2771,74 @@ function pumpWarm() {
     return;
   }
 }
+// The three advanced values as table columns: each cell shows what the song
+// will actually use and turns into a picker on click. An empty pick means
+// "follow the global setting" again.
+const SET = {
+  bass: {
+    get: s => s.bass, put: (s, v) => { s.bass = v; }, res: songBass,
+    fmt: v => v ? '+' + v : 'off',
+    opts: () => { const a = []; for (let i = 0; i <= 9; i++) a.push([i, i ? '+' + i + ' dB' : 'off']); return a; }
+  },
+  loud: {
+    get: s => s.loud, put: (s, v) => { s.loud = v; }, res: songLoud,
+    fmt: v => v.toFixed(1),
+    opts: () => { const a = []; for (let v = -12; v <= -6.001; v += 0.5) a.push([v, v.toFixed(1) + ' LUFS']); a.push([-6, '-6.0 LUFS']); return a; }
+  },
+  fade: {
+    get: s => s.fade, put: (s, v) => { s.fade = v; }, res: songFade,
+    fmt: v => v + ' ms',
+    opts: () => { const a = []; for (let i = 0; i <= 12; i++) a.push([i, i + ' ms']); return a; }
+  }
+};
+function paintSet(cell, s) {
+  const d = SET[cell.dataset.k];
+  const own = ownVal(d.get(s));
+  cell.textContent = d.fmt(d.res(s));
+  cell.classList.toggle('own', own);
+  cell.title = (own ? 'Set for this song' : 'Following the global setting') + ', click to change';
+}
+function editSet(cell, s) {
+  if (cell.querySelector('select')) return;
+  const d = SET[cell.dataset.k];
+  const sel = document.createElement('select');
+  sel.className = 'setSel';
+  const g = document.createElement('option');
+  g.value = '';
+  g.textContent = 'global (' + d.fmt(d.res({})) + ')';
+  sel.appendChild(g);
+  for (const o of d.opts()) {
+    const op = document.createElement('option');
+    op.value = o[0];
+    op.textContent = o[1];
+    sel.appendChild(op);
+  }
+  sel.value = ownVal(d.get(s)) ? String(d.get(s)) : '';
+  sel.onclick = e => e.stopPropagation();
+  sel.onchange = () => {
+    d.put(s, sel.value === '' ? null : +sel.value);
+    finishSet(cell, s);
+  };
+  sel.onblur = () => finishSet(cell, s);
+  cell.textContent = '';
+  cell.appendChild(sel);
+  sel.focus();
+}
+// Rows that follow a global setting have to show the new value at once.
+function repaintSets() {
+  for (const tr of Array.from($('rows').children)) {
+    if (tr.className.indexOf('det') !== -1) continue;
+    const s = songs[+tr.dataset.i];
+    if (!s) continue;
+    for (const cell of tr.querySelectorAll('td.set')) if (!cell.querySelector('select')) paintSet(cell, s);
+  }
+}
+function finishSet(cell, s) {
+  paintSet(cell, s);
+  syncSongRow(s);
+  if (songs[cur] === s) { paintSongBass(); updateInfo(); draw(); }
+  paintAdv();
+}
 function paintSel() {
   for (const s of Array.from(ticked)) if (songs.indexOf(s) === -1) ticked.delete(s);
   $('selInfo').innerHTML = '<b>' + ticked.size + '</b>/' + shown;
@@ -2774,11 +2869,17 @@ function renderList() {
       '<td class="idx">' + (i + 1) + '</td>' +
       '<td class="t"></td>' +
       '<td class="wv"><canvas></canvas></td>' +
+      '<td class="n advCol set" data-k="bass"></td>' +
+      '<td class="n advCol set" data-k="loud"></td>' +
+      '<td class="n advCol set" data-k="fade"></td>' +
       '<td class="n">' + (s.dur ? fmtMS(s.trimE - s.trimS) : '…') + '</td>' +
       '<td class="n">' + (s.dur ? clipsOf(s) : '·') + '</td>' +
-      '<td class="n">' + (s.bass === null || s.bass === undefined ? '·' : '+' + s.bass) + '</td>' +
       '<td><span class="badge ' + st + '">' + stateLabel(st) + '</span></td>' +
       '<td><button class="x" title="Take this song out of the list">✕</button></td>';
+    for (const cell of tr.querySelectorAll('td.set')) {
+      paintSet(cell, s);
+      cell.onclick = e => { e.stopPropagation(); if (e.detail > 1) return; editSet(cell, s); };
+    }
     const t = tr.children[2];
     t.textContent = s.title || '(untitled)';
     t.title = (s.file ? s.file.name : s.title) + '  ·  double-click to rename';
@@ -2792,7 +2893,7 @@ function renderList() {
       if (cb.checked) ticked.add(s); else ticked.delete(s);
       paintSel();
     };
-    tr.children[8].onclick = e => { e.stopPropagation(); if (e.detail > 1) return; removeSong(i); };
+    tr.children[10].onclick = e => { e.stopPropagation(); if (e.detail > 1) return; removeSong(i); };
     // The second click of a double-click must not toggle the row shut, or the
     // rename would fight the table rebuild it just triggered.
     tr.onclick = e => { if (e.detail > 1) return; if (i === cur) closeRow(); else open(i); };
@@ -2803,7 +2904,7 @@ function renderList() {
       det.className = 'det';
       const cell = document.createElement('td');
       cell.className = 'detCell';
-      cell.colSpan = 9;
+      cell.colSpan = 11;
       det.appendChild(cell);
       box.appendChild(det);
       cell.appendChild($('dock'));
@@ -2824,12 +2925,12 @@ function syncRow() {
   const s = songs[cur]; if (!s) return;
   const tr = $('rows').querySelector('tr.active');
   if (!tr) return;
-  tr.children[4].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
-  tr.children[5].textContent = s.dur ? clipsOf(s) : '·';
-  tr.children[6].textContent = (s.bass === null || s.bass === undefined) ? '·' : '+' + s.bass;
+  for (const cell of tr.querySelectorAll('td.set')) if (!cell.querySelector('select')) paintSet(cell, s);
+  tr.children[7].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
+  tr.children[8].textContent = s.dur ? clipsOf(s) : '·';
   const st = stateOf(s);
-  tr.children[7].firstChild.className = 'badge ' + st;
-  tr.children[7].firstChild.textContent = stateLabel(st);
+  tr.children[9].firstChild.className = 'badge ' + st;
+  tr.children[9].firstChild.textContent = stateLabel(st);
 }
 function closeRow() {
   stopPB();
@@ -2909,7 +3010,19 @@ function placeLogo() {
 addEventListener('resize', placeLogo);
 document.querySelector('.tableWrap').addEventListener('scroll', queueSoon, { passive: true });
 $('addBtn').onclick = () => $('fileIn').click();
-$('advBtn').onclick = () => { $('logPop').classList.remove('on'); $('advPop').classList.toggle('on'); };
+// The popover sits directly above its button, clamped to the window edges.
+function placeAdvPop() {
+  const b = $('advBtn').getBoundingClientRect(), p = $('advPop');
+  const w = Math.min(560, innerWidth - 24);
+  p.style.width = w + 'px';
+  p.style.left = Math.round(Math.max(12, Math.min(b.left + b.width / 2 - w / 2, innerWidth - w - 12))) + 'px';
+  p.style.bottom = Math.round(innerHeight - b.top + 10) + 'px';
+}
+$('advBtn').onclick = () => {
+  $('logPop').classList.remove('on');
+  placeAdvPop();
+  $('advPop').classList.toggle('on');
+};
 $('lastMsg').onclick = () => {
   if (!$('log').children.length) return;
   $('advPop').classList.remove('on');
@@ -3155,11 +3268,11 @@ $('cut').onclick = () => {
 $('cutF').onclick = () => { setTrim('s', ph); cutMode(false); };
 $('cutB').onclick = () => { setTrim('e', ph); cutMode(false); };
 
-// Everything the editor can change about one song lives in these four fields,
-// so putting them back to their initial values IS the undo.
+// Everything that can be changed about one song lives in these fields, so
+// putting them back to their initial values IS the undo.
 function songTouched(s) {
   return s && (s.trimS > 0.001 || (s.dur && s.trimE < s.dur - 0.001) ||
-    (s.bass !== null && s.bass !== undefined) || s.maxLen < 29.75);
+    ownVal(s.bass) || ownVal(s.loud) || ownVal(s.fade) || s.maxLen < 29.75);
 }
 function paintReset() {
   const s = songs[cur];
@@ -3171,6 +3284,8 @@ $('undo').onclick = () => {
   s.trimS = 0;
   s.trimE = s.dur;
   s.bass = null;
+  s.loud = null;
+  s.fade = null;
   s.maxLen = 29.8;
   ph = 0;
   view = { v0: 0, v1: s.dur };
@@ -3309,12 +3424,12 @@ async function renderSong(s, onprog) {
   }
   const L = gatedDb(ms);
   let G = 1;
-  if (L > -60 && peak > 1e-6) G = clamp(Math.pow(10, (loudDb() - L) / 20), 0.1, Math.min(16, 2 * CEIL / peak));
+  if (L > -60 && peak > 1e-6) G = clamp(Math.pow(10, (songLoud(s) - L) / 20), 0.1, Math.min(16, 2 * CEIL / peak));
   const minG = limitInPlace(x, G, CEIL);
   const lens = sliceLens(outLen, Math.round(s.maxLen * SR));
   if (!lens) throw 'more than 999 clips - trim more';
   const expT = lens.length > 99 ? clampBytes(s.title, TITLE_MAX - 2) : s.title;
-  const PAD = Math.round(SR * 0.15), EDGE = edgeSamp();
+  const PAD = Math.round(SR * 0.15), EDGE = Math.round(SR * songFade(s) / 1000);
   const files = []; let offs = 0;
   for (let i = 0; i < lens.length; i++) {
     const Ln = lens[i];
@@ -3329,7 +3444,7 @@ async function renderSong(s, onprog) {
     offs += Ln;
     if (onprog) { onprog((i + 1) / lens.length); await new Promise(r2 => setTimeout(r2)); }
   }
-  return { files, gdb: 20 * Math.log10(G), gr: 20 * Math.log10(minG), bass: songBass(s), target: loudDb() };
+  return { files, gdb: 20 * Math.log10(G), gr: 20 * Math.log10(minG), bass: songBass(s), target: songLoud(s) };
 }
 function prog(on, pct, txt) {
   $('progress').className = on ? 'on' : '';
@@ -3379,6 +3494,7 @@ $('bass').oninput = () => {
   paintBass();
   paintSongBass();
   paintAdv();
+  repaintSets();
   try { localStorage.setItem('ms-bass', $('bass').value); } catch (e) {}
 };
 $('sbass').oninput = () => {
@@ -3386,12 +3502,14 @@ $('sbass').oninput = () => {
   s.bass = +$('sbass').value;
   paintSongBass();
   paintAdv();
+  syncRow();
 };
 $('sbassRst').onclick = () => {
   const s = songs[cur]; if (!s) return;
   s.bass = null;
   paintSongBass();
   paintAdv();
+  syncRow();
 };
 
 // Mastering loudness. Only the target moves; the ceiling and the limiter stay
@@ -3411,6 +3529,7 @@ paintLoud();
 $('loud').oninput = () => {
   paintLoud();
   paintAdv();
+  repaintSets();
   try { localStorage.setItem('ms-loud', $('loud').value); } catch (e) {}
 };
 
@@ -3427,6 +3546,7 @@ paintFade();
 $('declick').oninput = () => {
   paintFade();
   paintAdv();
+  repaintSets();
   try { localStorage.setItem('ms-declick', $('declick').value); } catch (e) {}
 };
 
@@ -3448,20 +3568,22 @@ $('slenRst').onclick = () => {
   paintSongLen(); updateInfo(); draw(); paintAdv();
 };
 
-// Advanced toggle only hides the tuning UI; whatever is set stays in effect,
-// and the label says so to keep hidden-but-active state honest.
+// Switching Advanced on adds the three tuning columns to the queue and shows
+// the same three as global settings inside the popover. Switching it off only
+// hides that UI, whatever is set stays in effect and the label says so.
 function paintAdv() {
   const on = $('adv').checked;
+  document.body.classList.toggle('adv', on);
   $('sbassRow').style.display = on ? '' : 'none';
   $('slenRow').style.display = on ? '' : 'none';
   const act = [];
   if (bassDb() > 0) act.push('bass +' + bassDb() + ' dB');
-  if (songs.some(s => s.bass !== null && s.bass !== undefined && s.bass > 0)) act.push('per-song bass');
   if (Math.abs(loudDb() - LOUD_DB) > 0.01) act.push('loudness ' + loudDb().toFixed(1));
   if (declickMs() !== 3) act.push('de-click ' + declickMs() + ' ms');
-  if (songs.some(s => s.maxLen < 29.75)) act.push('clip length');
+  const per = songs.filter(s => ownVal(s.bass) || ownVal(s.loud) || ownVal(s.fade) || s.maxLen < 29.75).length;
+  if (per) act.push(per + (per === 1 ? ' song' : ' songs') + ' tuned by hand');
   $('advRow').classList.toggle('on', act.length > 0);
-  if (on && !act.length) { $('advVal').textContent = 'bass · loudness · de-click · clip length'; return; }
+  if (on && !act.length) { $('advVal').textContent = 'bass · loudness · de-click, per song and global'; return; }
   $('advVal').textContent = act.length ? 'active: ' + act.join(', ') : 'all at defaults';
 }
 try {
@@ -3471,6 +3593,7 @@ try {
 paintAdv();
 $('adv').onchange = () => {
   paintAdv();
+  renderList();
   try { localStorage.setItem('ms-advanced', $('adv').checked ? '1' : '0'); } catch (e) {}
 };
 
@@ -3479,8 +3602,8 @@ function syncSongRow(s) {
   const tr = $('rows').querySelector('tr[data-i="' + songs.indexOf(s) + '"]');
   if (!tr) return;
   const st = stateOf(s);
-  tr.children[7].firstChild.className = 'badge ' + st;
-  tr.children[7].firstChild.textContent = stateLabel(st);
+  tr.children[9].firstChild.className = 'badge ' + st;
+  tr.children[9].firstChild.textContent = stateLabel(st);
 }
 async function exportMany(list, btn) {
   if (!list.length || busy) return;
