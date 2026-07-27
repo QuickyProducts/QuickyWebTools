@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <!--
   ====================================================================
-  SL Music Slicer
+  QuickyMusic Slicer
   Required Notice: Copyright © 2026 Ya.
 
   Application code in this file (UI, waveform editor, WebAudio
@@ -17,7 +17,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>SL Music Slicer</title>
+<title>QuickyMusic Slicer</title>
 <!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
@@ -1725,7 +1725,7 @@ body{animation:slt-page-in .28s ease-out both}
     },
     {
       id: 'music-slicer',
-      name: 'Music Slicer',
+      name: 'QuickyMusic Slicer',
       subtitle: 'songs → ≤30s SL clips',
       folder: 'SL Music Slicer',
       file: 'sl_music_slicer.html',
@@ -1967,7 +1967,7 @@ body{animation:slt-page-in .28s ease-out both}
   <span class="tagline">Songs to SL sound clips</span>
   <div class="title-row">
     <div class="eq"><i></i><i></i><i></i><i></i><i></i></div>
-    <h1>SL Music Slicer</h1>
+    <h1>QuickyMusic Slicer</h1>
     <div class="eq"><i></i><i></i><i></i><i></i><i></i></div>
   </div>
   <p class="lede">Cut songs into ≤30s clips, boost loudness to one even level, and export upload-ready WAVs - everything runs locally in your browser.</p>
@@ -3045,7 +3045,7 @@ $('exportAll').onclick = async () => {
     renderList();
   }
   if (all.length) {
-    download(makeZip(all), 'SL_Music_Clips.zip');
+    download(makeZip(all), 'QuickyMusic_Clips.zip');
     log('✔ ' + done + ' songs / ' + clips + ' clips → SL_Music_Clips.zip (' + (flat ? 'all clips top-level, no folders' : 'one folder per title inside') + ')' + (fail ? ' - ' + fail + ' FAILED, see above' : ''));
     boom($('exportAll'));
   }

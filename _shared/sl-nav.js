@@ -83,7 +83,7 @@
     },
     {
       id: 'music-slicer',
-      name: 'Music Slicer',
+      name: 'QuickyMusic Slicer',
       subtitle: 'songs → ≤30s SL clips',
       folder: 'SL Music Slicer',
       file: 'sl_music_slicer.html',

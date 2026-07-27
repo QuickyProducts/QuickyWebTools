@@ -1,4 +1,4 @@
-# SL Music Slicer
+# QuickyMusic Slicer
 
 Song-length music playback in Second Life despite the 30-second sound-clip limit: this browser tool slices songs into perfectly named ≤30s WAV clips. A companion in-world LSD-backed player script (not part of this repository) streams them back gaplessly - the clip naming spec below is the contract between the two.
 
