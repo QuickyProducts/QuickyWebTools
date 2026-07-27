@@ -2077,7 +2077,7 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div class="panel" id="dock">
     <div class="dockWave">
-      <div id="waveWrap"><canvas id="wave"></canvas><div id="waveInfo"></div></div>
+      <div id="waveWrap" title="Ctrl + wheel zooms, Shift + wheel pans, double-click fits the whole song"><canvas id="wave"></canvas><div id="waveInfo"></div></div>
       <div class="row">
         <button id="play" class="primary" style="width:96px">▶ Play</button>
         <button id="cut" title="click the wave to place the playhead, then cut">✂ Cut</button>
@@ -2413,8 +2413,8 @@ function log(msg, err) {
   }
 }
 
+// New files just join the queue; nothing unfolds until a row is clicked.
 function addFiles(list) {
-  let first = -1;
   for (const f of list) {
     if (!/\.(mp3|wav|flac|ogg|oga|m4a|aac|opus|webm)$/i.test(f.name) && !(f.type || '').startsWith('audio')) { log('skipped (not audio): ' + f.name, true); continue; }
     const sng = {
@@ -2424,10 +2424,8 @@ function addFiles(list) {
     sng._auto = sng.title;
     songs.push(sng);
     readTags(f).then(tg => applyTags(sng, tg));
-    if (first < 0) first = songs.length - 1;
   }
   renderList();
-  if (cur < 0 && first >= 0) open(first);
 }
 
 const BUFKEEP = 5, lru = [];
@@ -2866,7 +2864,7 @@ function removeSong(i) {
   const li = lru.indexOf(gone);
   if (li >= 0) lru.splice(li, 1);
   ticked.delete(gone);
-  if (cur === i) { cur = -1; if (songs.length) open(Math.min(i, songs.length - 1)); }
+  if (cur === i) cur = -1;
   else if (cur > i) cur--;
   renderList();
 }
@@ -3004,8 +3002,12 @@ window.addEventListener('mousemove', e => {
   }
 });
 window.addEventListener('mouseup', () => drag = null);
+// A bare wheel belongs to the queue underneath, not to the waveform: zooming
+// needs Ctrl and panning needs Shift, so scrolling past an open editor never
+// zooms it by accident.
 $('wave').addEventListener('wheel', e => {
   const s = songs[cur]; if (!s || !s.dur) return;
+  if (!e.ctrlKey && !e.metaKey && !e.shiftKey) return;
   e.preventDefault();
   const { x, W } = canvasPos(e), span = view.v1 - view.v0;
   if (e.shiftKey) {
