@@ -1517,7 +1517,7 @@ main:has(#editor.hidden) #queuePanel{position:static;max-height:none}
 /* Start state: no songs loaded yet, so exporting makes no sense */
 main:has(#editor.hidden) #exportOne,
 main:has(#editor.hidden) #exportAll,
-main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #advBox{display:none}
+main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #advBox,main:has(#editor.hidden) .secHead{display:none}
 @media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static;max-height:none}#songList{max-height:50vh}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
 /* The whole queue column sticks and is capped to the viewport; the song list
@@ -1529,7 +1529,18 @@ main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #advBox{display:no
 #drop::before{content:"🎧";display:block;font-size:28px;margin-bottom:8px;filter:drop-shadow(0 0 14px rgba(255,60,172,.65))}
 #drop b{color:var(--txt);display:block;margin-bottom:4px;font-size:15px}
 #drop.over,#drop:hover{border-color:var(--acc1);color:var(--txt);background:rgba(255,60,172,.07);box-shadow:inset 0 0 34px rgba(255,60,172,.12);transform:scale(1.01)}
-#songList{display:flex;flex-direction:column;gap:7px;flex:0 1 auto;min-height:60px;max-height:50vh;overflow-y:auto;padding-right:2px}
+/* Once songs are loaded the drop zone has done its job: shrink it to a slim
+   add strip. The full hero stays byte-identical in the start state. */
+.dz-mini{display:none}
+main:has(#editor:not(.hidden)) #drop{display:flex;align-items:center;justify-content:center;gap:8px;padding:8px 12px;border-radius:13px;animation:none}
+main:has(#editor:not(.hidden)) #drop::before{font-size:16px;margin-bottom:0}
+main:has(#editor:not(.hidden)) #drop b,main:has(#editor:not(.hidden)) #drop .dz-more{display:none}
+main:has(#editor:not(.hidden)) #drop .dz-mini{display:inline;font-size:12.5px;font-weight:600;color:var(--txt)}
+main:has(#editor:not(.hidden)) #drop.over{box-shadow:inset 0 0 20px rgba(255,60,172,.28),0 0 0 2px var(--acc1)}
+#songList{display:flex;flex-direction:column;gap:7px;flex:0 1 auto;min-height:60px;overflow-y:auto;padding-right:2px}
+.secHead{display:flex;align-items:baseline;gap:8px;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin:2px 2px -6px;flex-shrink:0}
+.secHead::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--edge),transparent);align-self:center}
+.secHead .cnt{font-size:11px;font-weight:600;letter-spacing:.5px;text-transform:none;color:var(--txt);font-variant-numeric:tabular-nums}
 .song{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
 .song:hover{border-color:rgba(255,255,255,.28);transform:translateX(3px)}
 .song.active{border:1px solid transparent;background:linear-gradient(rgba(32,18,62,.9),rgba(32,18,62,.9)) padding-box,linear-gradient(90deg,var(--acc1),var(--acc2),var(--acc3)) border-box;box-shadow:0 0 20px rgba(124,43,255,.3)}
@@ -1620,6 +1631,14 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 #advBox #bassRow,#advBox #loudRow,#advBox #fadeRow{border:none;border-top:1px solid var(--edge);border-radius:0;background:transparent;margin-top:0}
 #advBox #bassRow:hover,#advBox #loudRow:hover,#advBox #fadeRow:hover{box-shadow:none}
 #advBox .on .fz-txt small{color:var(--acc2)}
+/* The ZIP toggle is an option OF export, not a sibling of the song rows:
+   strip its glass box so only songs look like songs. */
+#flatZipRow{border:none;background:transparent;padding:5px 4px;border-radius:8px}
+#flatZipRow:hover{box-shadow:none;background:rgba(255,255,255,.04)}
+#flatZipRow:has(input:checked){border-color:transparent}
+.chev{flex-shrink:0;width:8px;height:8px;margin-right:4px;border-right:2px solid var(--dim);border-bottom:2px solid var(--dim);transform:rotate(-45deg);transition:transform .18s}
+#advBox:has(#adv:checked) .chev{transform:rotate(45deg)}
+#advRow:has(input:focus-visible){outline:2px solid var(--acc3);outline-offset:2px;border-radius:13px}
 #bassRow,#loudRow,#fadeRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin-top:8px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);user-select:none;transition:border-color .15s,box-shadow .15s}
 #bassRow:hover,#loudRow:hover,#fadeRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
 #bassRow.on,#loudRow.on,#fadeRow.on{border-color:rgba(255,60,172,.35)}
@@ -1974,22 +1993,24 @@ body{animation:slt-page-in .28s ease-out both}
 </header>
 <main>
   <div id="queuePanel">
-    <div id="drop"><b>Drop audio files here</b>or click to browse<br><span style="font-size:11px">mp3 · wav · flac · ogg · m4a</span></div>
+    <div id="drop"><b>Drop audio files here</b><span class="dz-mini">Add more songs</span><span class="dz-more">or click to browse<br><span style="font-size:11px">mp3 · wav · flac · ogg · m4a</span></span></div>
     <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus" multiple hidden>
+    <div class="secHead">Songs<span class="cnt" id="songCount"></span></div>
     <div id="songList"></div>
-    <button id="exportOne" class="go">⬇ Export selected song (ZIP)</button>
-    <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
-    <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
+    <div class="secHead">Export</div>
     <label id="flatZipRow" class="swRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level - handy for bulk-uploading everything in one go.">
       <span class="fz-txt"><b>No folders in ZIP</b><small>all clips top-level</small></span>
       <input type="checkbox" id="flatZip">
       <i class="sw" aria-hidden="true"></i>
     </label>
+    <button id="exportOne">⬇ Export selected song (ZIP)</button>
+    <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
+    <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
     <div id="advBox">
-      <label id="advRow" class="swRow" title="Shows the tuning controls most people never need. Everything set there keeps working even while this is switched off.">
-        <span class="fz-txt"><b>Advanced settings</b><small id="advVal">off</small></span>
+      <label id="advRow" class="swRow" title="Shows the tuning controls most people never need. Everything set there keeps working even while this is collapsed.">
+        <span class="fz-txt"><b>Advanced settings</b><small id="advVal">all at defaults</small></span>
         <input type="checkbox" id="adv">
-        <i class="sw" aria-hidden="true"></i>
+        <i class="chev" aria-hidden="true"></i>
       </label>
       <div id="advBody">
         <label id="bassRow" title="Lifts everything below about 100 Hz before the loudness stage, so the clips end up with more weight at the same volume. Applies to preview and export alike.">
@@ -2534,6 +2555,10 @@ function renderList() {
     box.appendChild(d);
   });
   $('exportAll').disabled = !songs.length;
+  const done = songs.filter(s => s.status === 'done').length;
+  const n = songs.length + (songs.length === 1 ? ' song' : ' songs');
+  $('songCount').textContent = songs.length ? n + (done ? ' · ' + done + ' exported' : '') : '';
+  $('exportAll').textContent = songs.length ? '⬇ Export ALL · ' + n + ' (ZIP)' : '⬇ Export ALL songs (ZIP)';
 }
 function removeSong(i) {
   stopPB();
@@ -3009,14 +3034,15 @@ function paintAdv() {
   $('advBody').style.display = on ? 'block' : 'none';
   $('sbassRow').style.display = on ? '' : 'none';
   $('slenRow').style.display = on ? '' : 'none';
-  if (on) { $('advVal').textContent = 'bass · loudness · de-click · clip length'; return; }
   const act = [];
   if (bassDb() > 0) act.push('bass +' + bassDb() + ' dB');
   if (songs.some(s => s.bass !== null && s.bass !== undefined && s.bass > 0)) act.push('per-song bass');
   if (Math.abs(loudDb() - LOUD_DB) > 0.01) act.push('loudness ' + loudDb().toFixed(1));
   if (declickMs() !== 3) act.push('de-click ' + declickMs() + ' ms');
   if (songs.some(s => s.maxLen < 29.75)) act.push('clip length');
-  $('advVal').textContent = act.length ? 'off · still active: ' + act.join(', ') : 'off';
+  $('advRow').classList.toggle('on', act.length > 0);
+  if (on && !act.length) { $('advVal').textContent = 'bass · loudness · de-click · clip length'; return; }
+  $('advVal').textContent = act.length ? 'active: ' + act.join(', ') : 'all at defaults';
 }
 try {
   const a = localStorage.getItem('ms-advanced');
