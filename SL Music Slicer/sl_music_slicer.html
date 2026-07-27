@@ -1557,7 +1557,9 @@ body.work #drop{display:none}
 /* In work mode the whole table lights up as the drop target instead. */
 body.work.dragging .tableWrap{border-color:var(--acc1);box-shadow:inset 0 0 40px rgba(255,60,172,.14)}
 /* Toolbar above the table: search, state filters, counts, intake. */
-#bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
+/* The shared nav badge is pinned to the top right corner, so the toolbar
+   stops short of it instead of running underneath. */
+#bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0;padding-right:80px}
 #q{flex:0 1 280px;min-width:150px;background:rgba(0,0,0,.35);border:1px solid var(--edge);border-radius:11px;color:var(--txt);padding:8px 12px;font:inherit;font-size:13px}
 #q:focus{outline:none;border-color:var(--acc3);box-shadow:0 0 0 3px rgba(43,210,255,.16)}
 .chips{display:flex;gap:6px;flex-wrap:wrap}
@@ -2466,22 +2468,16 @@ async function ensureDecoded(s) {
     try {
       const ab = await s.file.arrayBuffer();
       const buf = await ctx().decodeAudioData(ab);
-      let mono = buf;
-      if (buf.numberOfChannels > 1) {
-        mono = ctx().createBuffer(1, buf.length, buf.sampleRate);
-        const d = mono.getChannelData(0), n = buf.length, ch = buf.numberOfChannels;
-        for (let c = 0; c < ch; c++) {
-          const sc = buf.getChannelData(c);
-          for (let i = 0; i < n; i++) d[i] += sc[i] / ch;
-        }
-      }
-      s.buffer = mono;
-      s.dur = mono.duration;
+      // The preview plays the file as it is, in stereo. The export still ends
+      // up mono (SL only takes mono), and every loudness number is measured on
+      // that same mono sum, so what you hear still matches what you upload.
+      s.buffer = buf;
+      s.dur = buf.duration;
       if (!s.trimE || s.trimE > s.dur) s.trimE = s.dur;
-      if (!s.peaks) s.peaks = buildPeaks(mono);
+      if (!s.peaks) s.peaks = buildPeaks(toMono(buf));
       s._dec = null;
       touchLRU(s);
-      return mono;
+      return buf;
     } catch (e) {
       s._dec = null;
       throw e;
@@ -2490,6 +2486,18 @@ async function ensureDecoded(s) {
   return s._dec;
 }
 
+// The mono sum SL will end up with - used for the peaks and every loudness
+// measurement, never for playback.
+function toMono(buf) {
+  if (buf.numberOfChannels < 2) return buf;
+  const out = ctx().createBuffer(1, buf.length, buf.sampleRate);
+  const d = out.getChannelData(0), n = buf.length, ch = buf.numberOfChannels;
+  for (let c = 0; c < ch; c++) {
+    const sc = buf.getChannelData(c);
+    for (let i = 0; i < n; i++) d[i] += sc[i] / ch;
+  }
+  return out;
+}
 function buildPeaks(buf) {
   const B = 512, n = Math.ceil(buf.length / B), mn = new Float32Array(n), mx = new Float32Array(n), sq = new Float32Array(n);
   const chs = [];
