@@ -1646,6 +1646,24 @@ tbody tr.run .fill::after{
     repeating-linear-gradient(90deg,rgba(43,210,255,0) 0 52px,rgba(43,210,255,.13) 100px,rgba(43,210,255,0) 180px);
   animation:rowflow 3.4s linear infinite;
 }
+/* Reading the songs takes a moment per file. Rather than let clicks land on a
+   list that is still filling itself in, the whole app is covered until it is
+   done. It lifts by itself, and playing or exporting pauses the reading, so it
+   can never sit there over an app that has stopped working. */
+#loading{
+  position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;
+  background:rgba(6,3,14,.62);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);
+}
+body.loading #loading{display:flex}
+#loading .panel{width:min(360px,84vw);padding:18px;text-align:center;animation:none}
+#loading p{margin:10px 0 0;font-size:13px;color:var(--txt)}
+#loading .loadHint{font-size:11px;color:var(--dim);margin-top:8px}
+.loadBar{height:6px;margin-top:12px;border-radius:999px;background:rgba(0,0,0,.4);overflow:hidden}
+.loadBar i{
+  display:block;height:100%;width:0;border-radius:999px;
+  background:linear-gradient(90deg,var(--acc3),var(--acc1));
+  transition:width .25s ease;
+}
 input[type=checkbox]{accent-color:var(--acc1);width:14px;height:14px;cursor:pointer;vertical-align:middle}
 .secHead{display:flex;align-items:baseline;gap:8px;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin:2px 2px -6px;flex-shrink:0}
 .secHead::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--edge),transparent);align-self:center}
@@ -2250,6 +2268,15 @@ body{animation:slt-page-in .28s ease-out both}
     <p><b>Click the little wave</b> of a song to open its editor and cut it. Esc closes the editor again.</p>
     <p>Then <b>Export</b> at the bottom right: the songs you picked, or ALL of them in one go.</p>
     <div class="row"><span class="grow"></span><button id="tipsOk" class="primary">Got it</button></div>
+  </div>
+
+  <div id="loading" aria-live="polite">
+    <div class="panel">
+      <div class="secHead">Reading your songs</div>
+      <p id="loadTxt">…</p>
+      <div class="loadBar"><i></i></div>
+      <p class="loadHint">This runs once per song. Everything is ready the moment it finishes.</p>
+    </div>
   </div>
 </main>
 <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
@@ -2859,8 +2886,20 @@ function queueSoon() {
   if (warmT) return;
   warmT = setTimeout(() => { warmT = 0; queueVisible(); }, 60);
 }
+// The cover is tied to work actually running, not to the queue being non-empty:
+// a paused queue must not leave the user locked out.
+function paintLoad() {
+  const total = songs.length;
+  let done = 0;
+  for (const s of songs) if (s.peaks) done++;
+  const on = warming > 0 && done < total;
+  document.body.classList.toggle('loading', on);
+  if (!on) return;
+  $('loadTxt').textContent = done + ' of ' + total + ' song' + (total === 1 ? '' : 's') + ' ready';
+  $('loading').querySelector('.loadBar i').style.width = (total ? done / total * 100 : 0).toFixed(1) + '%';
+}
 function pumpWarm() {
-  if (busy || pb) return;
+  if (busy || pb) { paintLoad(); return; }
   while (warming < WARM_AT_ONCE && warmQ.length) {
     const tr = warmQ.shift();
     const s = songs[+tr.dataset.i];
@@ -2874,8 +2913,10 @@ function pumpWarm() {
       syncSongRow(s);
       if (songs[cur] === s) { updateInfo(); draw(); }
       pumpWarm();
-    }).catch(() => { warming--; pumpWarm(); });
+      paintLoad();
+    }).catch(() => { warming--; pumpWarm(); paintLoad(); });
   }
+  paintLoad();
 }
 // The three advanced values as table columns: each cell shows what the song
 // will actually use and turns into a picker on click. An empty pick means
