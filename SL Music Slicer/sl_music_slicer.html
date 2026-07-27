@@ -1601,6 +1601,9 @@ button.solo:hover:not(:disabled){color:var(--good);border-color:var(--good);box-
 .pillBtn button.go{background:linear-gradient(135deg,#00e5a0,#00b3e6);color:#03121a;font-weight:800}
 .pillBtn button.go:hover:not(:disabled){background:linear-gradient(135deg,#00f5ad,#00c2f7);box-shadow:0 0 22px rgba(0,229,160,.45)}
 .pillBtn button:disabled{opacity:.4}
+/* While an export runs, the button that started it becomes the stop button. */
+button.cancel,.pillBtn button.cancel{background:linear-gradient(135deg,#ff5470,#c31b3c);border-color:transparent;color:#fff;font-weight:800;opacity:1}
+button.cancel:hover:not(:disabled),.pillBtn button.cancel:hover:not(:disabled){background:linear-gradient(135deg,#ff6b84,#d82348);box-shadow:0 0 22px rgba(255,84,112,.5)}
 button.danger{border-color:rgba(255,84,112,.45);color:#ffb9c4;background:rgba(255,84,112,.08)}
 button.danger:hover:not(:disabled){border-color:var(--bad);background:rgba(255,84,112,.16);box-shadow:0 4px 18px rgba(255,84,112,.3)}
 button.danger.arm{background:rgba(255,84,112,.28);border-color:var(--bad);color:#fff}
@@ -2979,7 +2982,12 @@ function renderList() {
       if (e.detail > 1) return;
       if (i === cur) closeRow(); else open(i);
     };
-    tr.children[10].onclick = e => { e.stopPropagation(); if (e.detail > 1) return; exportSingle(s, e.target); };
+    tr.children[10].onclick = e => {
+      e.stopPropagation();
+      if (e.detail > 1) return;
+      if (busy) return stopExport();
+      exportSingle(s, e.target);
+    };
     tr.onclick = e => { if (e.detail > 1) return; pickRow(s, i, e); };
     tr.onmousedown = e => dragStart(s, i, e);
     tr.onmouseover = () => dragOver(i);
@@ -3574,11 +3582,16 @@ async function exportSingle(s, btn) {
   if (!s || busy) return;
   stopPB();
   busy = true;
+  cancelReq = false;
   $('exportOne').disabled = true;
   paintSel();
+  armCancel(btn);
   try {
     prog(true, 0, 'rendering…');
-    const res = await renderSong(s, p => prog(true, p * 100, 'slicing…'));
+    const res = await renderSong(s, p => {
+      if (cancelReq) throw CANCEL;
+      prog(true, p * 100, 'slicing…');
+    });
     download(makeZip(res.files.map(f => ({ name: s.title + '/' + f.name, data: f.data }))), s.title + '.zip');
     s.status = 'done';
     syncSongRow(s);
@@ -3587,13 +3600,17 @@ async function exportSingle(s, btn) {
     if (res.gr < -0.5) li += ', peaks tamed ' + res.gr.toFixed(1) + ' dB';
     log('✔ ' + s.title + ' → ' + s.title + '.zip (' + res.files.length + ' clips' + li + ')');
     if (btn) boom(btn);
-  } catch (e) { log('✖ ' + s.title + ': ' + (e.message || e), true); }
+  } catch (e) {
+    if (e === CANCEL || cancelReq) log('✕ Export stopped, no file was written');
+    else log('✖ ' + s.title + ': ' + (e.message || e), true);
+  }
   prog(false);
   busy = false;
+  disarmCancel();
   $('exportOne').disabled = false;
   renderList();
 }
-$('exportOne').onclick = () => exportSingle(songs[cur], $('exportOne'));
+$('exportOne').onclick = () => { if (busy) return stopExport(); exportSingle(songs[cur], $('exportOne')); };
 $('closeRow').onclick = () => closeRow();
 // "No folders in ZIP" toggle - flat Export-ALL for one-shot bulk
 // uploads. Clip names are collision-free without folders: they start
@@ -3696,6 +3713,31 @@ addEventListener('pageshow', () => {
   renderList();
 });
 
+// A running export can be stopped: the button that started it turns into a
+// red Cancel while it works, and every other export button stays locked.
+const CANCEL = { cancelled: true };
+let cancelReq = false, cancelBtn = null;
+function armCancel(btn) {
+  cancelBtn = btn || null;
+  if (!cancelBtn) return;
+  cancelBtn.dataset.label = cancelBtn.textContent;
+  cancelBtn.textContent = cancelBtn.classList.contains('solo') ? '✕' : '✕ Cancel';
+  cancelBtn.classList.add('cancel');
+  cancelBtn.disabled = false;
+}
+function disarmCancel() {
+  if (cancelBtn) {
+    cancelBtn.classList.remove('cancel');
+    if (cancelBtn.dataset.label) cancelBtn.textContent = cancelBtn.dataset.label;
+    delete cancelBtn.dataset.label;
+  }
+  cancelBtn = null;
+}
+function stopExport() {
+  if (!busy) return;
+  cancelReq = true;
+  if (cancelBtn) cancelBtn.textContent = cancelBtn.classList.contains('solo') ? '…' : '… stopping';
+}
 // One batch run for both buttons: everything, or just the ticked rows.
 function syncSongRow(s) {
   const tr = $('rows').querySelector('tr[data-i="' + songs.indexOf(s) + '"]');
@@ -3710,31 +3752,47 @@ async function exportMany(list, btn) {
   if (!list.length || busy) return;
   stopPB();
   busy = true;
+  cancelReq = false;
   $('exportSel').disabled = true;
   $('exportAll').disabled = true;
+  armCancel(btn);
   const flat = !$('flatZip').checked;
   const all = []; let done = 0, fail = 0, clips = 0;
+  const was = new Map();
   for (const s of list) {
+    if (cancelReq) break;
     try {
-      prog(true, done / list.length * 100, s.title);
-      const res = await renderSong(s);
+      const res = await renderSong(s, p => {
+        if (cancelReq) throw CANCEL;
+        prog(true, (done + p) / list.length * 100, s.title);
+      });
       all.push(...res.files.map(f => ({ name: (flat ? '' : s.title + '/') + f.name, data: f.data })));
       clips += res.files.length;
+      was.set(s, s.status);
       s.status = 'done'; done++;
-    } catch (e) { log('✖ ' + s.title + ': ' + (e.message || e), true); fail++; }
+    } catch (e) {
+      if (e === CANCEL || cancelReq) break;
+      log('✖ ' + s.title + ': ' + (e.message || e), true);
+      fail++;
+    }
     syncSongRow(s);
   }
-  if (all.length) {
+  if (cancelReq) {
+    // Nothing was handed over, so nothing may look exported either.
+    for (const [s, st] of was) s.status = st;
+    log('✕ Export stopped, no file was written');
+  } else if (all.length) {
     download(makeZip(all), 'QuickyMusic_Clips.zip');
     log('✔ ' + done + ' songs / ' + clips + ' clips → QuickyMusic_Clips.zip (' + (flat ? 'all clips top-level, no folders' : 'one folder per title inside') + ')' + (fail ? ' - ' + fail + ' FAILED, see above' : ''));
     boom(btn);
   }
   prog(false);
   busy = false;
+  disarmCancel();
   renderList();
 }
-$('exportSel').onclick = () => exportMany(songs.filter(s => ticked.has(s)), $('exportSel'));
-$('exportAll').onclick = () => exportMany(songs.slice(), $('exportAll'));
+$('exportSel').onclick = () => { if (busy) return stopExport(); exportMany(songs.filter(s => ticked.has(s)), $('exportSel')); };
+$('exportAll').onclick = () => { if (busy) return stopExport(); exportMany(songs.slice(), $('exportAll')); };
 
 // ---------- file intake ----------
 $('drop').onclick = () => $('fileIn').click();
