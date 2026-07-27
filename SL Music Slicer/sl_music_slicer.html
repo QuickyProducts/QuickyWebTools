@@ -1515,7 +1515,7 @@ main:has(#editor.hidden) #queuePanel{position:static}
 /* Start state: no songs loaded yet, so exporting makes no sense */
 main:has(#editor.hidden) #exportOne,
 main:has(#editor.hidden) #exportAll,
-main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #bassRow{display:none}
+main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #advRow,main:has(#editor.hidden) #bassRow,main:has(#editor.hidden) #loudRow,main:has(#editor.hidden) #fadeRow,main:has(#editor.hidden) #monoRow{display:none}
 @media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
 #queuePanel{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:16px}
@@ -1596,25 +1596,27 @@ body.playing #play{animation:playpulse 1.5s ease-in-out infinite}
 body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43,210,255,.1);border-color:rgba(255,60,172,.35)}
 /* "No folders in ZIP" toggle - glass row matching the .song rows,
    with a sliding switch instead of a bare checkbox. */
-#flatZipRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);cursor:pointer;user-select:none;transition:border-color .15s,box-shadow .15s}
-#flatZipRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
-#flatZipRow .fz-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
-#flatZipRow .fz-txt b{font-size:12.5px;font-weight:600;color:var(--txt)}
-#flatZipRow .fz-txt small{font-size:10.5px;color:var(--dim)}
-#flatZipRow input{position:absolute;opacity:0;pointer-events:none}
-#flatZipRow .sw{position:relative;flex-shrink:0;width:36px;height:20px;border-radius:999px;background:rgba(0,0,0,.42);border:1px solid var(--edge);transition:background .18s,border-color .18s,box-shadow .18s}
-#flatZipRow .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--dim);transition:transform .18s,background .18s}
-#flatZipRow input:checked ~ .sw{background:linear-gradient(135deg,var(--acc1),var(--acc2));border-color:transparent;box-shadow:0 0 12px rgba(255,60,172,.4)}
-#flatZipRow input:checked ~ .sw::after{transform:translateX(16px);background:#fff}
-#flatZipRow input:focus-visible ~ .sw{outline:2px solid var(--acc3);outline-offset:2px}
-#flatZipRow:has(input:checked){border-color:rgba(255,60,172,.35)}
-#bassRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin-top:8px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);user-select:none;transition:border-color .15s,box-shadow .15s}
-#bassRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
-#bassRow.on{border-color:rgba(255,60,172,.35)}
-#bassRow .fz-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
-#bassRow .fz-txt b{font-size:12.5px;font-weight:600;color:var(--txt)}
-#bassRow .fz-txt small{font-size:10.5px;color:var(--dim)}
-#bassRow input[type=range]{flex:0 0 120px;width:120px;accent-color:var(--acc2)}
+.swRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);cursor:pointer;user-select:none;transition:border-color .15s,box-shadow .15s}
+.swRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
+.swRow .fz-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
+.swRow .fz-txt b{font-size:12.5px;font-weight:600;color:var(--txt)}
+.swRow .fz-txt small{font-size:10.5px;color:var(--dim)}
+.swRow input{position:absolute;opacity:0;pointer-events:none}
+.swRow .sw{position:relative;flex-shrink:0;width:36px;height:20px;border-radius:999px;background:rgba(0,0,0,.42);border:1px solid var(--edge);transition:background .18s,border-color .18s,box-shadow .18s}
+.swRow .sw::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--dim);transition:transform .18s,background .18s}
+.swRow input:checked ~ .sw{background:linear-gradient(135deg,var(--acc1),var(--acc2));border-color:transparent;box-shadow:0 0 12px rgba(255,60,172,.4)}
+.swRow input:checked ~ .sw::after{transform:translateX(16px);background:#fff}
+.swRow input:focus-visible ~ .sw{outline:2px solid var(--acc3);outline-offset:2px}
+.swRow:has(input:checked){border-color:rgba(255,60,172,.35)}
+#advRow{margin-top:8px}
+#bassRow,#loudRow,#fadeRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin-top:8px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);user-select:none;transition:border-color .15s,box-shadow .15s}
+#bassRow:hover,#loudRow:hover,#fadeRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
+#bassRow.on,#loudRow.on,#fadeRow.on{border-color:rgba(255,60,172,.35)}
+#bassRow .fz-txt,#loudRow .fz-txt,#fadeRow .fz-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
+#bassRow .fz-txt b,#loudRow .fz-txt b,#fadeRow .fz-txt b{font-size:12.5px;font-weight:600;color:var(--txt)}
+#bassRow .fz-txt small,#loudRow .fz-txt small,#fadeRow .fz-txt small{font-size:10.5px;color:var(--dim)}
+#bassRow input[type=range],#loudRow input[type=range],#fadeRow input[type=range]{flex:0 0 120px;width:120px;accent-color:var(--acc2)}
+#monoRow{margin-top:8px}
 /* Unified tool footer (local copy - this tool doesn't use slt-themed) */
 .slt-footer{position:relative;z-index:1;text-align:center;margin:38px auto 14px;font-size:11.5px;letter-spacing:.3px;color:var(--dim)}
 .slt-footer a{color:var(--acc1);text-decoration:none}
@@ -1968,14 +1970,32 @@ body{animation:slt-page-in .28s ease-out both}
     <button id="exportOne" class="go">⬇ Export selected song (ZIP)</button>
     <button id="exportAll" class="go" disabled>⬇ Export ALL songs (ZIP)</button>
     <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
-    <label id="flatZipRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level - handy for bulk-uploading everything in one go.">
+    <label id="flatZipRow" class="swRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level - handy for bulk-uploading everything in one go.">
       <span class="fz-txt"><b>No folders in ZIP</b><small>all clips top-level</small></span>
       <input type="checkbox" id="flatZip">
+      <i class="sw" aria-hidden="true"></i>
+    </label>
+    <label id="advRow" class="swRow" title="Shows the tuning controls most people never need. Everything set there keeps working even while this is switched off.">
+      <span class="fz-txt"><b>Advanced settings</b><small id="advVal">off</small></span>
+      <input type="checkbox" id="adv">
       <i class="sw" aria-hidden="true"></i>
     </label>
     <label id="bassRow" title="Lifts everything below about 100 Hz before the loudness stage, so the clips end up with more weight at the same volume. Applies to preview and export alike.">
       <span class="fz-txt"><b>Bass boost (Global)</b><small id="bassVal">off</small></span>
       <input type="range" id="bass" min="0" max="9" step="1" value="0">
+    </label>
+    <label id="loudRow" title="How loud the finished clips are mastered. Louder settings do not raise the peak, they squeeze the quiet parts up against the limiter, so the track gains presence and loses dynamics. Above about -9 the limiter starts working audibly on dense music.">
+      <span class="fz-txt"><b>Loudness (Global)</b><small id="loudVal">normal</small></span>
+      <input type="range" id="loud" min="-12" max="-6" step="0.5" value="-10.5">
+    </label>
+    <label id="fadeRow" title="Every clip edge gets a short fade so the splice between clips never ticks. Longer is safer for harsh electronic material, shorter keeps attacks crisp. 3 ms is the tested default; 0 switches the protection off.">
+      <span class="fz-txt"><b>Edge fade (De-click)</b><small id="fadeVal">3 ms (default)</small></span>
+      <input type="range" id="declick" min="0" max="12" step="1" value="3">
+    </label>
+    <label id="monoRow" class="swRow" title="SL converts every uploaded sound to mono, and the export already is mono. This makes the preview match it, so you hear exactly what listeners will get.">
+      <span class="fz-txt"><b>Mono preview</b><small id="monoVal">preview in stereo</small></span>
+      <input type="checkbox" id="mono">
+      <i class="sw" aria-hidden="true"></i>
     </label>
   </div>
   <div id="editor" class="hidden">
@@ -1997,6 +2017,11 @@ body{animation:slt-page-in .28s ease-out both}
         <input type="range" id="sbass" min="0" max="9" step="1" value="0" style="flex:0 0 140px;width:140px;accent-color:var(--acc2)">
         <button id="sbassRst" title="use the global setting again" style="padding:4px 10px">↺</button>
       </div>
+      <div class="row" id="slenRow" style="margin-top:12px;align-items:center;gap:10px">
+        <span id="slenTxt" style="font-size:12px;color:var(--dim);min-width:210px">Clip length for this song: 29.8 s (default)</span>
+        <input type="range" id="slen" min="5" max="29.8" step="0.1" value="29.8" style="flex:0 0 140px;width:140px;accent-color:var(--acc2)">
+        <button id="slenRst" title="back to the default length" style="padding:4px 10px">↺</button>
+      </div>
     </div>
     <div class="panel"><div id="log"></div></div>
   </div>
@@ -2011,6 +2036,10 @@ const SR = 44100, TITLE_MAX = 52, LOUD_DB = -10.5, CEIL = 0.97;
 // would push the peaks straight through the ceiling.
 const BASS_HZ = 100;
 function bassDb() { const e = $('bass'); return e ? +e.value : 0; }
+// Mastering target. LOUD_DB is the default; the slider only moves this number, so
+// the ceiling and the limiter still guarantee no clipping.
+function loudDb() { const e = $('loud'); return e ? +e.value : LOUD_DB; }
+function declickMs() { const e = $('declick'); return e ? +e.value : 3; }
 // s.bass === null means "follow the global slider"; a number overrides it for that
 // one song. Export ALL therefore mixes both without any extra bookkeeping.
 function songBass(s) { return (s && s.bass !== null && s.bass !== undefined) ? s.bass : bassDb(); }
@@ -2371,7 +2400,7 @@ function estGain(s) {
   const L = gatedDb(ms);
   const p = peakOfRegion(s);
   if (L <= -60 || p < 1e-6) return 1;
-  return clamp(Math.pow(10, (LOUD_DB - L) / 20), 0.2, Math.min(10, 2 * CEIL / p));
+  return clamp(Math.pow(10, (loudDb() - L) / 20), 0.2, Math.min(10, 2 * CEIL / p));
 }
 function limitInPlace(x, G, C) {
   const n = x.length, LA = Math.max(1, Math.round(SR * 0.002));
@@ -2452,6 +2481,7 @@ function fillFields() {
   $('title').value = s.title;
   cutMode(false);
   paintSongBass();
+  paintSongLen();
   updateInfo();
 }
 function paintSongBass() {
@@ -2673,6 +2703,11 @@ function playFrom(pos, end) {
   const a = ctx(), src = a.createBufferSource(), gn = a.createGain();
   src.buffer = s.buffer;
   gn.gain.value = estGain(s);
+  if ($('mono').checked) {
+    gn.channelCount = 1;
+    gn.channelCountMode = 'explicit';
+    gn.channelInterpretation = 'speakers';
+  }
   const pbq = bassNode(a, s);
   src.connect(gn);
   if (pbq) { gn.connect(pbq); pbq.connect(gComp); } else gn.connect(gComp);
@@ -2729,7 +2764,7 @@ window.addEventListener('keydown', e => {
    splice to zero hides it - the working Audacity reference gets away without
    fades only because its joints happen to sit in quiet passages; our loudness
    normalization makes every joint loud, so we always fade. */
-const EDGE = Math.round(SR * 0.003);
+function edgeSamp() { return Math.round(SR * declickMs() / 1000); }
 function edgeFade(c, start, len, up) {
   for (let i = 0; i < len; i++) {
     const idx = start + i;
@@ -2828,12 +2863,12 @@ async function renderSong(s, onprog) {
   }
   const L = gatedDb(ms);
   let G = 1;
-  if (L > -60 && peak > 1e-6) G = clamp(Math.pow(10, (LOUD_DB - L) / 20), 0.1, Math.min(16, 2 * CEIL / peak));
+  if (L > -60 && peak > 1e-6) G = clamp(Math.pow(10, (loudDb() - L) / 20), 0.1, Math.min(16, 2 * CEIL / peak));
   const minG = limitInPlace(x, G, CEIL);
   const lens = sliceLens(outLen, Math.round(s.maxLen * SR));
   if (!lens) throw 'more than 999 clips - trim more';
   const expT = lens.length > 99 ? clampBytes(s.title, TITLE_MAX - 2) : s.title;
-  const PAD = Math.round(SR * 0.15);
+  const PAD = Math.round(SR * 0.15), EDGE = edgeSamp();
   const files = []; let offs = 0;
   for (let i = 0; i < lens.length; i++) {
     const Ln = lens[i];
@@ -2848,7 +2883,7 @@ async function renderSong(s, onprog) {
     offs += Ln;
     if (onprog) { onprog((i + 1) / lens.length); await new Promise(r2 => setTimeout(r2)); }
   }
-  return { files, gdb: 20 * Math.log10(G), gr: 20 * Math.log10(minG), bass: songBass(s) };
+  return { files, gdb: 20 * Math.log10(G), gr: 20 * Math.log10(minG), bass: songBass(s), target: loudDb() };
 }
 function prog(on, pct, txt) {
   $('progress').className = on ? 'on' : '';
@@ -2864,7 +2899,7 @@ $('exportOne').onclick = async () => {
     const res = await renderSong(s, p => prog(true, p * 100, 'slicing…'));
     download(makeZip(res.files.map(f => ({ name: s.title + '/' + f.name, data: f.data }))), s.title + '.zip');
     s.status = 'done'; renderList();
-    let li = ' · loudness ' + (res.gdb >= 0 ? '+' : '') + res.gdb.toFixed(1) + ' dB';
+    let li = ' · mastered to ' + res.target.toFixed(1) + ' LUFS (gain ' + (res.gdb >= 0 ? '+' : '') + res.gdb.toFixed(1) + ' dB)';
     if (res.bass) li += ', bass +' + res.bass + ' dB';
     if (res.gr < -0.5) li += ', peaks tamed ' + res.gr.toFixed(1) + ' dB';
     log('✔ ' + s.title + ' → ' + s.title + '.zip (' + res.files.length + ' clips' + li + ')');
@@ -2893,17 +2928,115 @@ paintBass();
 $('bass').oninput = () => {
   paintBass();
   paintSongBass();
+  paintAdv();
   try { localStorage.setItem('ms-bass', $('bass').value); } catch (e) {}
 };
 $('sbass').oninput = () => {
   const s = songs[cur]; if (!s) return;
   s.bass = +$('sbass').value;
   paintSongBass();
+  paintAdv();
 };
 $('sbassRst').onclick = () => {
   const s = songs[cur]; if (!s) return;
   s.bass = null;
   paintSongBass();
+  paintAdv();
+};
+
+// Mastering loudness. Only the target moves; the ceiling and the limiter stay
+// as they are, so this can never clip - it only trades dynamics for presence.
+function paintLoud() {
+  const d = loudDb();
+  let tag = d.toFixed(1) + ' LUFS';
+  if (d <= LOUD_DB - 0.25) tag += ' · gentler, more dynamic';
+  else if (d < -9) tag = 'normal · ' + tag;
+  else if (d < -7.5) tag += ' · louder, limiter works harder';
+  else tag += ' · very loud, expect pumping';
+  $('loudVal').textContent = tag;
+  $('loudRow').classList.toggle('on', Math.abs(d - LOUD_DB) > 0.01);
+}
+try { const lv = localStorage.getItem('ms-loud'); if (lv !== null) $('loud').value = lv; } catch (e) {}
+paintLoud();
+$('loud').oninput = () => {
+  paintLoud();
+  paintAdv();
+  try { localStorage.setItem('ms-loud', $('loud').value); } catch (e) {}
+};
+
+function paintFade() {
+  const m = declickMs();
+  let tag = m + ' ms';
+  if (m === 3) tag = '3 ms (default)';
+  else if (m === 0) tag = 'off · splices may tick';
+  $('fadeVal').textContent = tag;
+  $('fadeRow').classList.toggle('on', m !== 3);
+}
+try { const fv = localStorage.getItem('ms-declick'); if (fv !== null) $('declick').value = fv; } catch (e) {}
+paintFade();
+$('declick').oninput = () => {
+  paintFade();
+  paintAdv();
+  try { localStorage.setItem('ms-declick', $('declick').value); } catch (e) {}
+};
+
+// Export is mono anyway (SL converts every sound to mono); this only makes the
+// preview honest. Restarts a running preview so the toggle is audible at once.
+function paintMono() {
+  $('monoVal').textContent = $('mono').checked ? 'preview downmixed like SL' : 'preview in stereo';
+}
+try { $('mono').checked = localStorage.getItem('ms-mono') === '1'; } catch (e) {}
+paintMono();
+$('mono').onchange = () => {
+  paintMono();
+  paintAdv();
+  const s = songs[cur];
+  if (pb && s) playFrom(clamp(ph, s.trimS, s.trimE - 0.05));
+  try { localStorage.setItem('ms-mono', $('mono').checked ? '1' : '0'); } catch (e) {}
+};
+
+function paintSongLen() {
+  const s = songs[cur]; if (!s) return;
+  const def = Math.abs(s.maxLen - 29.8) < 0.01;
+  $('slen').value = s.maxLen;
+  $('slenRst').disabled = def;
+  $('slenTxt').textContent = 'Clip length for this song: ' + s.maxLen.toFixed(1) + ' s' + (def ? ' (default)' : '');
+}
+$('slen').oninput = () => {
+  const s = songs[cur]; if (!s) return;
+  s.maxLen = +$('slen').value;
+  paintSongLen(); updateInfo(); draw(); paintAdv();
+};
+$('slenRst').onclick = () => {
+  const s = songs[cur]; if (!s) return;
+  s.maxLen = 29.8;
+  paintSongLen(); updateInfo(); draw(); paintAdv();
+};
+
+// Advanced toggle only hides the tuning UI; whatever is set stays in effect,
+// and the label says so to keep hidden-but-active state honest.
+function paintAdv() {
+  const on = $('adv').checked;
+  const rows = ['bassRow', 'loudRow', 'fadeRow', 'monoRow', 'sbassRow', 'slenRow'];
+  for (const id of rows) $(id).style.display = on ? '' : 'none';
+  if (on) { $('advVal').textContent = 'bass · loudness · de-click · mono · clip length'; return; }
+  const act = [];
+  if (bassDb() > 0) act.push('bass +' + bassDb() + ' dB');
+  if (songs.some(s => s.bass !== null && s.bass !== undefined && s.bass > 0)) act.push('per-song bass');
+  if (Math.abs(loudDb() - LOUD_DB) > 0.01) act.push('loudness ' + loudDb().toFixed(1));
+  if (declickMs() !== 3) act.push('de-click ' + declickMs() + ' ms');
+  if ($('mono').checked) act.push('mono preview');
+  if (songs.some(s => s.maxLen < 29.75)) act.push('clip length');
+  $('advVal').textContent = act.length ? 'off · still active: ' + act.join(', ') : 'off';
+}
+try {
+  const a = localStorage.getItem('ms-advanced');
+  $('adv').checked = a === null ? bassDb() > 0 : a === '1';
+} catch (e) {}
+paintAdv();
+$('adv').onchange = () => {
+  paintAdv();
+  try { localStorage.setItem('ms-advanced', $('adv').checked ? '1' : '0'); } catch (e) {}
 };
 
 $('exportAll').onclick = async () => {
