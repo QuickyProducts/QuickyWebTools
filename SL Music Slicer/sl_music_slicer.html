@@ -1556,7 +1556,7 @@ body.work #drop{display:none}
 #drop.over,#drop:hover{border-color:var(--acc1);color:var(--txt);background:rgba(255,60,172,.07);box-shadow:inset 0 0 34px rgba(255,60,172,.12);transform:scale(1.01)}
 /* In work mode the whole table lights up as the drop target instead. */
 body.work.dragging .tableWrap{border-color:var(--acc1);box-shadow:inset 0 0 40px rgba(255,60,172,.14)}
-/* Toolbar above the table: search, state filters, counts, intake. */
+/* Toolbar above the table: search, counts, intake. */
 /* The shared nav badge is pinned to the top right corner, so the toolbar
    stops short of it instead of running underneath. In work mode it also
    lines up with the toolbar row. This override lives here, not in the
@@ -1565,10 +1565,6 @@ body.work.dragging .tableWrap{border-color:var(--acc1);box-shadow:inset 0 0 40px
 body.work .slt-nav{top:6px}
 #q{flex:0 1 280px;min-width:150px;background:rgba(0,0,0,.35);border:1px solid var(--edge);border-radius:11px;color:var(--txt);padding:8px 12px;font:inherit;font-size:13px}
 #q:focus{outline:none;border-color:var(--acc3);box-shadow:0 0 0 3px rgba(43,210,255,.16)}
-.chips{display:flex;gap:6px;flex-wrap:wrap}
-.chip{padding:5px 12px;border-radius:999px;border:1px solid var(--edge);background:var(--glass);color:var(--dim);font-size:12px;font-weight:600;cursor:pointer;user-select:none;white-space:nowrap;transition:color .15s,border-color .15s,background .15s}
-.chip:hover{color:var(--txt);border-color:rgba(255,255,255,.28)}
-.chip.on{color:#fff;border-color:transparent;background:linear-gradient(135deg,var(--acc1),var(--acc2));box-shadow:0 3px 16px rgba(255,60,172,.32)}
 .grow{flex:1}
 /* The queue as a dense sortable table - one screen shows dozens of songs. */
 .tableWrap{overflow:auto;border:1px solid var(--edge);border-radius:16px;background:rgba(13,8,26,.5);transition:border-color .2s,box-shadow .2s}
@@ -2101,12 +2097,6 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div id="bar">
     <input type="search" id="q" placeholder="Search the queue…">
-    <div class="chips">
-      <span class="chip on" data-f="all">All</span>
-      <span class="chip" data-f="ready">Ready</span>
-      <span class="chip" data-f="edited">Edited</span>
-      <span class="chip" data-f="done">Exported</span>
-    </div>
     <span class="grow"></span>
     <span class="stat" id="stat"></span>
     <button id="addBtn" class="primary">＋ Add songs</button>
@@ -2148,8 +2138,8 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div class="actions">
     <div class="side">
-      <span class="stat" id="selInfo" title="Selected songs / songs the filter is showing. Click a row to select it, click it again to remove it, or drag across several.">0/0</span>
-      <button id="selAll" class="mini" title="Select or deselect everything the filter is showing (Ctrl+A)">Select all</button>
+      <span class="stat" id="selInfo" title="Selected songs / songs currently listed. Click a row to select it, click it again to remove it, or drag across several.">0/0</span>
+      <button id="selAll" class="mini" title="Select or deselect every song currently listed (Ctrl+A)">Select all</button>
       <button id="removeSel" class="danger" disabled title="Take the selected songs out of the list. Your files on disk are not touched.">🗑 Remove selected</button>
       <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
       <span class="stat" id="lastMsg" title="Click for the full log"></span>
@@ -2695,10 +2685,10 @@ function updateInfo() {
 }
 
 // ---------- the queue table ----------
-// Search, state filter and sort only change WHICH rows are shown and in what
+// Search and sort only change WHICH rows are shown and in what
 // order; every row keeps its real index into songs, so nothing downstream has
 // to know the table is sorted.
-let query = '', filter = 'all', sortKey = 'idx', sortDir = 1, busy = false, shown = 0;
+let query = '', sortKey = 'idx', sortDir = 1, busy = false, shown = 0;
 const ticked = new Set();
 const clipsOf = s => s.dur ? Math.max(1, Math.ceil((s.trimE - s.trimS) / s.maxLen)) : 0;
 // "ready" means the song is in the queue untouched and can be exported as is.
@@ -2707,7 +2697,6 @@ function stateLabel(st) { return st === 'done' ? 'exported' : st; }
 function viewRows() {
   let v = songs.map((s, i) => ({ s: s, i: i }));
   if (query) v = v.filter(o => o.s.title.toLowerCase().indexOf(query) !== -1);
-  if (filter !== 'all') v = v.filter(o => stateOf(o.s) === filter);
   const key = {
     idx: o => o.i,
     title: o => o.s.title.toLowerCase(),
@@ -3066,14 +3055,6 @@ $('title').addEventListener('keydown', e => {
   if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); endRename(); }
 });
 $('q').oninput = () => { query = $('q').value.trim().toLowerCase(); renderList(); };
-document.querySelectorAll('.chip').forEach(c => {
-  c.onclick = () => {
-    document.querySelectorAll('.chip').forEach(o => o.classList.remove('on'));
-    c.classList.add('on');
-    filter = c.dataset.f;
-    renderList();
-  };
-});
 document.querySelectorAll('thead th[data-s]').forEach(th => {
   th.onclick = () => {
     const k = th.dataset.s;
@@ -3093,7 +3074,7 @@ function placeLogo() {
     h.style.left = h.style.right = h.style.height = h.style.visibility = '';
     return;
   }
-  const left = document.querySelector('.chips').getBoundingClientRect().right + 14;
+  const left = $('q').getBoundingClientRect().right + 14;
   const right = innerWidth - $('stat').getBoundingClientRect().left + 14;
   h.style.left = Math.round(left) + 'px';
   h.style.right = Math.round(right) + 'px';
