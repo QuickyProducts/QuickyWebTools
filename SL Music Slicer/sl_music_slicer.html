@@ -1621,21 +1621,43 @@ td.idx{font-size:11px;text-align:right;color:var(--dim);font-variant-numeric:tab
 th.pl,td.pl{width:28px;padding:0 3px}
 .pbtn{
   width:22px;height:22px;padding:0;border-radius:50%;border:1px solid var(--edge);
-  background:var(--glass);color:var(--dim);font-size:9px;line-height:1;
+  background:var(--glass);color:var(--dim);line-height:1;
   display:flex;align-items:center;justify-content:center;
 }
+/* Both symbols are drawn, not typed: the triangle as a glyph at a size that
+   fills the circle, the stop as a real square so it cannot come out tiny. */
+.pbtn::before{content:"▶";font-size:10px;margin-left:1px}
+.pbtn.on::before{content:"";width:9px;height:9px;margin:0;border-radius:2px;background:#fff}
 .pbtn:hover:not(:disabled){transform:none;box-shadow:none;color:var(--txt);border-color:rgba(255,255,255,.32)}
 .pbtn.on{background:linear-gradient(135deg,var(--acc1),var(--acc3));border-color:transparent;color:#fff}
-/* The playing row IS the progress bar: a soft wash runs across it in the time
-   the song takes. Its own cells go transparent so the wash stays one piece. */
-@keyframes rowrun{from{background-size:0 100%,100% 100%}to{background-size:100% 100%,100% 100%}}
+/* The playing row IS the progress bar. The fill is its own element inside the
+   first cell, stretched across the row, so it can carry a moving highlight of
+   its own - that drift is what makes it read as liquid rising instead of a bar
+   being dragged. It sits behind the cell content, hence the row's z-index. */
+@keyframes rowrun{from{width:0}to{width:100%}}
+@keyframes rowflow{from{background-position:0 0,0 0}to{background-position:190px 0,-260px 0}}
+tbody tr{position:relative}
+.fill{display:none}
+tbody tr.run{z-index:0;background:rgba(255,255,255,.045)}
 tbody tr.run td{background:transparent}
-tbody tr.run{
-  background-image:linear-gradient(90deg,rgba(43,210,255,.20),rgba(255,60,172,.20)),linear-gradient(rgba(255,255,255,.05),rgba(255,255,255,.05));
-  background-repeat:no-repeat;background-size:0 100%,100% 100%;
+tbody tr.run .fill{
+  display:block;position:absolute;left:0;top:0;bottom:0;width:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(90deg,rgba(43,210,255,.22),rgba(255,60,172,.24));
+  box-shadow:inset -1px 0 0 rgba(255,255,255,.45),0 0 14px rgba(255,60,172,.3);
   animation:rowrun linear forwards;
 }
-@media (prefers-reduced-motion:reduce){tbody tr.run{animation:none;background-size:100% 100%,100% 100%}}
+tbody tr.run .fill::after{
+  content:"";position:absolute;inset:0;
+  background:
+    radial-gradient(48px 20px at 24px 62%,rgba(255,255,255,.16),transparent 70%),
+    radial-gradient(70px 26px at 60px 34%,rgba(43,210,255,.22),transparent 72%);
+  background-repeat:repeat-x;background-size:190px 100%,260px 100%;
+  animation:rowflow 3.4s linear infinite;
+}
+@media (prefers-reduced-motion:reduce){
+  tbody tr.run .fill{width:100%;animation:none}
+  tbody tr.run .fill::after{animation:none}
+}
 input[type=checkbox]{accent-color:var(--acc1);width:14px;height:14px;cursor:pointer;vertical-align:middle}
 .secHead{display:flex;align-items:baseline;gap:8px;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin:2px 2px -6px;flex-shrink:0}
 .secHead::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--edge),transparent);align-self:center}
@@ -3042,8 +3064,8 @@ function renderList() {
     tr.className = (i === cur ? 'active ' : '') + (ticked.has(s) ? 'sel ' : '') + (seen[s.title.toLowerCase()] > 1 ? 'dup' : '');
     tr.dataset.i = i;
     tr.innerHTML =
-      '<td class="idx">' + (i + 1) + '</td>' +
-      '<td class="pl"><button class="pbtn" title="Listen to this song">▶</button></td>' +
+      '<td class="idx"><i class="fill"></i>' + (i + 1) + '</td>' +
+      '<td class="pl"><button class="pbtn" title="Listen to this song"></button></td>' +
       '<td class="t"></td>' +
       '<td class="advCol set" data-k="bass"></td>' +
       '<td class="advCol set" data-k="loud"></td>' +
@@ -3499,17 +3521,21 @@ function paintRun() {
   for (const tr of $('rows').querySelectorAll('tr.run')) {
     if (pb && +tr.dataset.i === songs.indexOf(pb.song)) continue;
     tr.classList.remove('run');
-    tr.style.animationDuration = tr.style.animationDelay = '';
+    const f = tr.querySelector('.fill');
+    if (f) f.style.animationDuration = f.style.animationDelay = '';
   }
-  for (const b of $('rows').querySelectorAll('.pbtn')) { b.textContent = '▶'; b.classList.remove('on'); }
+  for (const b of $('rows').querySelectorAll('.pbtn.on')) b.classList.remove('on');
   if (!pb) return;
   const tr = $('rows').querySelector('tr[data-i="' + songs.indexOf(pb.song) + '"]');
   if (!tr) return;
   const btn = tr.querySelector('.pbtn');
-  if (btn) { btn.textContent = '■'; btn.classList.add('on'); }
+  if (btn) btn.classList.add('on');
   if (tr.classList.contains('run')) return;
-  tr.style.animationDuration = (pb.end - pb.pos0).toFixed(2) + 's';
-  tr.style.animationDelay = '-' + Math.max(0, ctx().currentTime - pb.at0).toFixed(2) + 's';
+  const fill = tr.querySelector('.fill');
+  if (fill) {
+    fill.style.animationDuration = (pb.end - pb.pos0).toFixed(2) + 's';
+    fill.style.animationDelay = '-' + Math.max(0, ctx().currentTime - pb.at0).toFixed(2) + 's';
+  }
   tr.classList.add('run');
 }
 function togglePlay() {
