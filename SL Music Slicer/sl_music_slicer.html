@@ -1593,6 +1593,16 @@ td.wv{cursor:zoom-in}
 tbody tr.active td.wv{cursor:zoom-out}
 button.solo{padding:2px 7px;font-size:12px;border-radius:8px;color:var(--dim);background:rgba(255,255,255,.05);box-shadow:none}
 button.solo:hover:not(:disabled){color:var(--good);border-color:var(--good);box-shadow:0 3px 14px rgba(0,229,160,.25)}
+/* Export offers both targets side by side; the one that fits the current
+   selection is the green one. */
+.expLbl{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--dim)}
+.pillBtn{display:inline-flex;border:1px solid var(--edge);border-radius:999px;overflow:hidden;background:var(--glass)}
+.pillBtn button{border:0;border-radius:0;background:transparent;box-shadow:none;padding:8px 15px;font-variant-numeric:tabular-nums}
+.pillBtn button+button{border-left:1px solid var(--edge)}
+.pillBtn button:hover:not(:disabled){transform:none;box-shadow:none;background:rgba(255,255,255,.08)}
+.pillBtn button.go{background:linear-gradient(135deg,#00e5a0,#00b3e6);color:#03121a;font-weight:800}
+.pillBtn button.go:hover:not(:disabled){background:linear-gradient(135deg,#00f5ad,#00c2f7);box-shadow:0 0 22px rgba(0,229,160,.45)}
+.pillBtn button:disabled{opacity:.4}
 button.danger{border-color:rgba(255,84,112,.45);color:#ffb9c4;background:rgba(255,84,112,.08)}
 button.danger:hover:not(:disabled){border-color:var(--bad);background:rgba(255,84,112,.16);box-shadow:0 4px 18px rgba(255,84,112,.3)}
 button.danger.arm{background:rgba(255,84,112,.28);border-color:var(--bad);color:#fff}
@@ -2150,7 +2160,11 @@ body{animation:slt-page-in .28s ease-out both}
       <input type="checkbox" id="flatZip" autocomplete="off">
       <i class="sw" aria-hidden="true"></i>
     </label>
-    <button id="exportSel" class="go" disabled>⬇ Export ticked (ZIP)</button>
+    <span class="expLbl">Export</span>
+    <span class="pillBtn">
+      <button id="exportSel" title="Export only the songs you selected, as one ZIP" disabled>⬇ Selected</button>
+      <button id="exportAll" title="Export every song in the list, as one ZIP">⬇ ALL</button>
+    </span>
     </div>
   </div>
 
@@ -2885,12 +2899,14 @@ function paintSel() {
   for (const s of Array.from(ticked)) if (songs.indexOf(s) === -1) ticked.delete(s);
   const n = ticked.size;
   $('selInfo').innerHTML = '<b>' + n + '</b>/' + shown;
-  // With nothing selected the button exports everything, so there is always an
-  // obvious way out for someone who has not discovered selecting yet.
-  $('exportSel').disabled = busy || (!n && !songs.length);
-  $('exportSel').textContent = n
-    ? '⬇ Export selected · ' + n + ' (ZIP)'
-    : '⬇ Export ALL · ' + songs.length + (songs.length === 1 ? ' song' : ' songs') + ' (ZIP)';
+  // Both targets sit side by side; whichever fits the current selection is the
+  // green one, so there is always one obvious button to press.
+  $('exportSel').disabled = !n || busy;
+  $('exportSel').textContent = '⬇ ' + n + ' Selected';
+  $('exportSel').classList.toggle('go', !!n && !busy);
+  $('exportAll').disabled = !songs.length || busy;
+  $('exportAll').textContent = '⬇ ALL';
+  $('exportAll').classList.toggle('go', !n && !!songs.length && !busy);
   $('selAll').textContent = (shown > 0 && n === shown) ? 'Select none' : 'Select all';
   $('selAll').disabled = !shown;
   if (!$('removeSel').classList.contains('arm')) $('removeSel').textContent = '🗑 Remove selected' + (n ? ' · ' + n : '');
@@ -3641,6 +3657,7 @@ async function exportMany(list, btn) {
   stopPB();
   busy = true;
   $('exportSel').disabled = true;
+  $('exportAll').disabled = true;
   const flat = !$('flatZip').checked;
   const all = []; let done = 0, fail = 0, clips = 0;
   for (const s of list) {
@@ -3662,7 +3679,8 @@ async function exportMany(list, btn) {
   busy = false;
   renderList();
 }
-$('exportSel').onclick = () => exportMany(ticked.size ? songs.filter(s => ticked.has(s)) : songs.slice(), $('exportSel'));
+$('exportSel').onclick = () => exportMany(songs.filter(s => ticked.has(s)), $('exportSel'));
+$('exportAll').onclick = () => exportMany(songs.slice(), $('exportAll'));
 
 // ---------- file intake ----------
 $('drop').onclick = () => $('fileIn').click();
