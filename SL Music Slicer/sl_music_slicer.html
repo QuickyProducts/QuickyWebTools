@@ -1515,7 +1515,7 @@ main:has(#editor.hidden) #queuePanel{position:static}
 /* Start state: no songs loaded yet, so exporting makes no sense */
 main:has(#editor.hidden) #exportOne,
 main:has(#editor.hidden) #exportAll,
-main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #advRow,main:has(#editor.hidden) #bassRow,main:has(#editor.hidden) #loudRow,main:has(#editor.hidden) #fadeRow{display:none}
+main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #advBox{display:none}
 @media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
 #queuePanel{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:16px}
@@ -1608,7 +1608,13 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 .swRow input:checked ~ .sw::after{transform:translateX(16px);background:#fff}
 .swRow input:focus-visible ~ .sw{outline:2px solid var(--acc3);outline-offset:2px}
 .swRow:has(input:checked){border-color:rgba(255,60,172,.35)}
-#advRow{margin-top:8px}
+#advBox{margin-top:8px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);transition:border-color .15s,box-shadow .15s}
+#advBox:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
+#advBox:has(#adv:checked){border-color:rgba(255,60,172,.35)}
+#advBox .swRow,#advBox .swRow:hover,#advBox .swRow:has(input:checked){border:none;background:transparent;box-shadow:none}
+#advBox #bassRow,#advBox #loudRow,#advBox #fadeRow{border:none;border-top:1px solid var(--edge);border-radius:0;background:transparent;margin-top:0}
+#advBox #bassRow:hover,#advBox #loudRow:hover,#advBox #fadeRow:hover{box-shadow:none}
+#advBox .on .fz-txt small{color:var(--acc2)}
 #bassRow,#loudRow,#fadeRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin-top:8px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);user-select:none;transition:border-color .15s,box-shadow .15s}
 #bassRow:hover,#loudRow:hover,#fadeRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
 #bassRow.on,#loudRow.on,#fadeRow.on{border-color:rgba(255,60,172,.35)}
@@ -1974,23 +1980,27 @@ body{animation:slt-page-in .28s ease-out both}
       <input type="checkbox" id="flatZip">
       <i class="sw" aria-hidden="true"></i>
     </label>
-    <label id="advRow" class="swRow" title="Shows the tuning controls most people never need. Everything set there keeps working even while this is switched off.">
-      <span class="fz-txt"><b>Advanced settings</b><small id="advVal">off</small></span>
-      <input type="checkbox" id="adv">
-      <i class="sw" aria-hidden="true"></i>
-    </label>
-    <label id="bassRow" title="Lifts everything below about 100 Hz before the loudness stage, so the clips end up with more weight at the same volume. Applies to preview and export alike.">
-      <span class="fz-txt"><b>Bass boost (Global)</b><small id="bassVal">off</small></span>
-      <input type="range" id="bass" min="0" max="9" step="1" value="0">
-    </label>
-    <label id="loudRow" title="How loud the finished clips are mastered. Louder settings do not raise the peak, they squeeze the quiet parts up against the limiter, so the track gains presence and loses dynamics. Above about -9 the limiter starts working audibly on dense music.">
-      <span class="fz-txt"><b>Loudness (Global)</b><small id="loudVal">normal</small></span>
-      <input type="range" id="loud" min="-12" max="-6" step="0.5" value="-10.5">
-    </label>
-    <label id="fadeRow" title="Every clip edge gets a short fade so the splice between clips never ticks. Longer is safer for harsh electronic material, shorter keeps attacks crisp. 3 ms is the tested default; 0 switches the protection off.">
-      <span class="fz-txt"><b>Edge fade (De-click)</b><small id="fadeVal">3 ms (default)</small></span>
-      <input type="range" id="declick" min="0" max="12" step="1" value="3">
-    </label>
+    <div id="advBox">
+      <label id="advRow" class="swRow" title="Shows the tuning controls most people never need. Everything set there keeps working even while this is switched off.">
+        <span class="fz-txt"><b>Advanced settings</b><small id="advVal">off</small></span>
+        <input type="checkbox" id="adv">
+        <i class="sw" aria-hidden="true"></i>
+      </label>
+      <div id="advBody">
+        <label id="bassRow" title="Lifts everything below about 100 Hz before the loudness stage, so the clips end up with more weight at the same volume. Applies to preview and export alike.">
+          <span class="fz-txt"><b>Bass boost (Global)</b><small id="bassVal">off</small></span>
+          <input type="range" id="bass" min="0" max="9" step="1" value="0">
+        </label>
+        <label id="loudRow" title="How loud the finished clips are mastered. Louder settings do not raise the peak, they squeeze the quiet parts up against the limiter, so the track gains presence and loses dynamics. Above about -9 the limiter starts working audibly on dense music.">
+          <span class="fz-txt"><b>Loudness (Global)</b><small id="loudVal">normal</small></span>
+          <input type="range" id="loud" min="-12" max="-6" step="0.5" value="-10.5">
+        </label>
+        <label id="fadeRow" title="Every clip edge gets a short fade so the splice between clips never ticks. Longer is safer for harsh electronic material, shorter keeps attacks crisp. 3 ms is the tested default; 0 switches the protection off.">
+          <span class="fz-txt"><b>Edge fade (De-click)</b><small id="fadeVal">3 ms (default)</small></span>
+          <input type="range" id="declick" min="0" max="12" step="1" value="3">
+        </label>
+      </div>
+    </div>
   </div>
   <div id="editor" class="hidden">
     <div class="panel">
@@ -2991,8 +3001,9 @@ $('slenRst').onclick = () => {
 // and the label says so to keep hidden-but-active state honest.
 function paintAdv() {
   const on = $('adv').checked;
-  const rows = ['bassRow', 'loudRow', 'fadeRow', 'sbassRow', 'slenRow'];
-  for (const id of rows) $(id).style.display = on ? '' : 'none';
+  $('advBody').style.display = on ? 'block' : 'none';
+  $('sbassRow').style.display = on ? '' : 'none';
+  $('slenRow').style.display = on ? '' : 'none';
   if (on) { $('advVal').textContent = 'bass · loudness · de-click · clip length'; return; }
   const act = [];
   if (bassDb() > 0) act.push('bass +' + bassDb() + ' dB');
