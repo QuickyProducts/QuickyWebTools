@@ -1617,6 +1617,25 @@ td.wv{width:116px}
 td.wv canvas{display:block;width:106px;height:20px;opacity:.7}
 tbody tr:hover td.wv canvas,tbody tr.active td.wv canvas{opacity:1}
 td.idx{font-size:11px;text-align:right;color:var(--dim);font-variant-numeric:tabular-nums}
+/* Listen to a song straight from the list, no editor needed. */
+th.pl,td.pl{width:28px;padding:0 3px}
+.pbtn{
+  width:22px;height:22px;padding:0;border-radius:50%;border:1px solid var(--edge);
+  background:var(--glass);color:var(--dim);font-size:9px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+}
+.pbtn:hover:not(:disabled){transform:none;box-shadow:none;color:var(--txt);border-color:rgba(255,255,255,.32)}
+.pbtn.on{background:linear-gradient(135deg,var(--acc1),var(--acc3));border-color:transparent;color:#fff}
+/* The playing row IS the progress bar: a soft wash runs across it in the time
+   the song takes. Its own cells go transparent so the wash stays one piece. */
+@keyframes rowrun{from{background-size:0 100%,100% 100%}to{background-size:100% 100%,100% 100%}}
+tbody tr.run td{background:transparent}
+tbody tr.run{
+  background-image:linear-gradient(90deg,rgba(43,210,255,.20),rgba(255,60,172,.20)),linear-gradient(rgba(255,255,255,.05),rgba(255,255,255,.05));
+  background-repeat:no-repeat;background-size:0 100%,100% 100%;
+  animation:rowrun linear forwards;
+}
+@media (prefers-reduced-motion:reduce){tbody tr.run{animation:none;background-size:100% 100%,100% 100%}}
 input[type=checkbox]{accent-color:var(--acc1);width:14px;height:14px;cursor:pointer;vertical-align:middle}
 .secHead{display:flex;align-items:baseline;gap:8px;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin:2px 2px -6px;flex-shrink:0}
 .secHead::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--edge),transparent);align-self:center}
@@ -2128,6 +2147,7 @@ body{animation:slt-page-in .28s ease-out both}
     <table>
       <thead><tr>
         <th class="n" data-s="idx">#<i class="ar">▼</i></th>
+        <th class="pl"></th>
         <th data-s="title">Title<i class="ar">▼</i></th>
         <th class="advCol" data-s="bass" title="Extra bass for this song. Drag the slider, double-click to follow the global setting again.">Bass<i class="ar">▼</i></th>
         <th class="advCol" data-s="loud" title="Mastering loudness for this song. Drag the slider, double-click to follow the global setting again.">Loud<i class="ar">▼</i></th>
@@ -3023,21 +3043,28 @@ function renderList() {
     tr.dataset.i = i;
     tr.innerHTML =
       '<td class="idx">' + (i + 1) + '</td>' +
+      '<td class="pl"><button class="pbtn" title="Listen to this song">▶</button></td>' +
       '<td class="t"></td>' +
       '<td class="advCol set" data-k="bass"></td>' +
       '<td class="advCol set" data-k="loud"></td>' +
       '<td class="advCol set" data-k="fade"></td>' +
       '<td class="advCol set" data-k="clip"></td>' +
       '<td class="wv" title="Open this song in the editor"><canvas></canvas></td>' +
-      '<td class="n">' + (s.dur ? fmtMS(s.trimE - s.trimS) : '…') + '</td>' +
-      '<td class="n">' + (s.dur ? clipsOf(s) : '·') + '</td>' +
-      '<td><span class="badge ' + st + '">' + stateLabel(st) + '</span></td>';
+      '<td class="n len">' + (s.dur ? fmtMS(s.trimE - s.trimS) : '…') + '</td>' +
+      '<td class="n cnt">' + (s.dur ? clipsOf(s) : '·') + '</td>' +
+      '<td class="st"><span class="badge ' + st + '">' + stateLabel(st) + '</span></td>';
     if (advOn) for (const cell of tr.querySelectorAll('td.set')) buildSet(cell, s);
-    const t = tr.children[1];
+    const pbtn = tr.querySelector('.pbtn');
+    pbtn.onmousedown = e => e.stopPropagation();
+    pbtn.onclick = e => {
+      e.stopPropagation();
+      if (pb && pb.song === s) stopPB(); else playSong(s, s.trimS);
+    };
+    const t = tr.querySelector('td.t');
     t.textContent = s.title || '(untitled)';
     t.title = (s.file ? s.file.name : s.title) + '  ·  double-click to rename';
     // The wave opens the editor, everything else in the row selects.
-    tr.children[6].onclick = e => {
+    tr.querySelector('td.wv').onclick = e => {
       e.stopPropagation();
       if (e.detail > 1) return;
       if (i === cur) closeRow(); else open(i);
@@ -3058,13 +3085,14 @@ function renderList() {
       det.className = 'det';
       const cell = document.createElement('td');
       cell.className = 'detCell';
-      cell.colSpan = 10;
+      cell.colSpan = 11;
       det.appendChild(cell);
       box.appendChild(det);
       cell.appendChild($('dock'));
     }
   }
   paintSel();
+  paintRun();
   if (wasNaming >= 0) startRename(wasNaming);
   queueSoon();
   placeLogo();
@@ -3081,11 +3109,12 @@ function syncRow() {
     if (inp) inp.value = SET[cell.dataset.k].res(s);
     paintSet(cell, s);
   }
-  tr.children[7].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
-  tr.children[8].textContent = s.dur ? clipsOf(s) : '·';
+  tr.querySelector('td.len').textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
+  tr.querySelector('td.cnt').textContent = s.dur ? clipsOf(s) : '·';
   const st = stateOf(s);
-  tr.children[9].firstChild.className = 'badge ' + st;
-  tr.children[9].firstChild.textContent = stateLabel(st);
+  const bd = tr.querySelector('td.st > span');
+  bd.className = 'badge ' + st;
+  bd.textContent = stateLabel(st);
 }
 function closeRow() {
   stopPB();
@@ -3428,13 +3457,16 @@ function stopPB() {
   const was = !!pb;
   if (pb) { const p = pb; pb = null; p.src.onended = null; try { p.src.stop(); } catch (e) { } }
   $('play').textContent = '▶ Play';
+  paintRun();
   // Waveform decoding pauses while something plays, so pick it back up here.
   if (was && typeof queueSoon === 'function') queueSoon();
 }
-function playFrom(pos, end) {
-  const s = songs[cur]; if (!s) return;
+// Nothing here knows about the editor: any song can play, whether its editor is
+// open, another one is open, or none is.
+function playSong(s, pos, end) {
+  if (!s) return;
   if (!s.buffer) {
-    ensureDecoded(s).then(() => { if (songs[cur] === s && !pb) playFrom(pos, end); });
+    ensureDecoded(s).then(() => { if (songs.indexOf(s) >= 0 && !pb) playSong(s, pos, end); });
     return;
   }
   stopPB();
@@ -3447,14 +3479,42 @@ function playFrom(pos, end) {
   src.connect(gn);
   if (pbq) { gn.connect(pbq); pbq.connect(gComp); } else gn.connect(gComp);
   src.start(0, pos, end - pos);
-  pb = { src, at0: a.currentTime, pos0: pos, end };
-  src.onended = () => { if (pb && pb.src === src) { pb = null; ph = end; $('play').textContent = '▶ Play'; draw(); } };
-  $('play').textContent = '⏸ Pause';
-  (function tick() { if (!pb || pb.src !== src) return; ph = pb.pos0 + (a.currentTime - pb.at0); draw(); requestAnimationFrame(tick); })();
+  pb = { src, at0: a.currentTime, pos0: pos, end, song: s };
+  src.onended = () => {
+    if (pb && pb.src === src) { pb = null; if (s === songs[cur]) { ph = end; draw(); } $('play').textContent = '▶ Play'; paintRun(); }
+  };
+  if (s === songs[cur]) $('play').textContent = '⏸ Pause';
+  paintRun();
+  (function tick() {
+    if (!pb || pb.src !== src) return;
+    if (pb.song === songs[cur]) { ph = pb.pos0 + (a.currentTime - pb.at0); draw(); }
+    requestAnimationFrame(tick);
+  })();
+}
+function playFrom(pos, end) { playSong(songs[cur], pos, end); }
+// The running row is pure CSS: one linear animation over the song's length, so
+// it keeps sweeping without a timer. A rebuilt row rejoins it mid-sweep via a
+// negative delay.
+function paintRun() {
+  for (const tr of $('rows').querySelectorAll('tr.run')) {
+    if (pb && +tr.dataset.i === songs.indexOf(pb.song)) continue;
+    tr.classList.remove('run');
+    tr.style.animationDuration = tr.style.animationDelay = '';
+  }
+  for (const b of $('rows').querySelectorAll('.pbtn')) { b.textContent = '▶'; b.classList.remove('on'); }
+  if (!pb) return;
+  const tr = $('rows').querySelector('tr[data-i="' + songs.indexOf(pb.song) + '"]');
+  if (!tr) return;
+  const btn = tr.querySelector('.pbtn');
+  if (btn) { btn.textContent = '■'; btn.classList.add('on'); }
+  if (tr.classList.contains('run')) return;
+  tr.style.animationDuration = (pb.end - pb.pos0).toFixed(2) + 's';
+  tr.style.animationDelay = '-' + Math.max(0, ctx().currentTime - pb.at0).toFixed(2) + 's';
+  tr.classList.add('run');
 }
 function togglePlay() {
   const s = songs[cur]; if (!s) return;
-  if (pb) { ph = pb.pos0 + (ctx().currentTime - pb.at0); stopPB(); draw(); return; }
+  if (pb && pb.song === s) { ph = pb.pos0 + (ctx().currentTime - pb.at0); stopPB(); draw(); return; }
   if (ph < s.trimS || ph >= s.trimE - 0.05) ph = s.trimS;
   playFrom(ph);
 }
@@ -3820,11 +3880,12 @@ function stopExport() {
 function syncSongRow(s) {
   const tr = $('rows').querySelector('tr[data-i="' + songs.indexOf(s) + '"]');
   if (!tr) return;
-  tr.children[7].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
-  tr.children[8].textContent = s.dur ? clipsOf(s) : '·';
+  tr.querySelector('td.len').textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
+  tr.querySelector('td.cnt').textContent = s.dur ? clipsOf(s) : '·';
   const st = stateOf(s);
-  tr.children[9].firstChild.className = 'badge ' + st;
-  tr.children[9].firstChild.textContent = stateLabel(st);
+  const bd = tr.querySelector('td.st > span');
+  bd.className = 'badge ' + st;
+  bd.textContent = stateLabel(st);
 }
 async function exportMany(list, btn) {
   if (!list.length || busy) return;
