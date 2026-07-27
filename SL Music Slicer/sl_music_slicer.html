@@ -1582,18 +1582,26 @@ thead th.sorted .ar{opacity:1;color:var(--acc1)}
 tbody td{padding:0 8px;height:34px;border-bottom:1px solid rgba(255,255,255,.05);white-space:nowrap}
 tbody tr{cursor:pointer}
 tbody tr:hover td{background:rgba(255,255,255,.035)}
+/* Selected rows carry a soft tint, the row whose editor is open a stronger
+   one - both can be true at the same time. */
+tbody tr.sel td{background:rgba(255,60,172,.12)}
+tbody tr.sel td:first-child{box-shadow:inset 3px 0 0 var(--acc1)}
 tbody tr.active td{background:linear-gradient(90deg,rgba(255,60,172,.17),rgba(124,43,255,.06) 55%,transparent)}
-tbody tr.active td:first-child{box-shadow:inset 3px 0 0 var(--acc1)}
+tbody tr.active td:first-child{box-shadow:inset 3px 0 0 var(--acc3)}
 tbody tr.dup td{background:rgba(255,84,112,.13)}
+td.wv{cursor:zoom-in}
+tbody tr.active td.wv{cursor:zoom-out}
+button.solo{padding:2px 7px;font-size:12px;border-radius:8px;color:var(--dim);background:rgba(255,255,255,.05);box-shadow:none}
+button.solo:hover:not(:disabled){color:var(--good);border-color:var(--good);box-shadow:0 3px 14px rgba(0,229,160,.25)}
+button.danger{border-color:rgba(255,84,112,.45);color:#ffb9c4;background:rgba(255,84,112,.08)}
+button.danger:hover:not(:disabled){border-color:var(--bad);background:rgba(255,84,112,.16);box-shadow:0 4px 18px rgba(255,84,112,.3)}
+button.danger.arm{background:rgba(255,84,112,.28);border-color:var(--bad);color:#fff}
 td.t{width:100%;max-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 td.n{text-align:right;font-variant-numeric:tabular-nums;color:var(--dim)}
 td.wv{width:116px}
 td.wv canvas{display:block;width:106px;height:20px;opacity:.7}
 tbody tr:hover td.wv canvas,tbody tr.active td.wv canvas{opacity:1}
-th.cbx,td.cbx{width:30px}
 td.idx{font-size:11px;text-align:right;color:var(--dim);font-variant-numeric:tabular-nums}
-td .x{color:var(--dim);border:0;background:none;cursor:pointer;font-size:13px;padding:0 3px;box-shadow:none}
-td .x:hover{color:var(--bad);transform:none;box-shadow:none;border-color:transparent}
 input[type=checkbox]{accent-color:var(--acc1);width:14px;height:14px;cursor:pointer;vertical-align:middle}
 .secHead{display:flex;align-items:baseline;gap:8px;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin:2px 2px -6px;flex-shrink:0}
 .secHead::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--edge),transparent);align-self:center}
@@ -1636,7 +1644,6 @@ th.advCol,td.advCol{width:108px}
 .badge{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--dim)}
 .badge.done{background:rgba(0,229,160,.16);color:var(--good);box-shadow:0 0 12px rgba(0,229,160,.25)}
 .badge.edited{background:rgba(255,184,77,.16);color:var(--warn)}
-#clearAll.arm{color:var(--bad);border-color:var(--bad);background:rgba(255,84,112,.12)}
 #advBody{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 14px}
 #drop.hidden{display:none}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
@@ -2096,18 +2103,17 @@ body{animation:slt-page-in .28s ease-out both}
   <div class="tableWrap">
     <table>
       <thead><tr>
-        <th class="cbx"><input type="checkbox" id="tickAll" title="Tick everything the filter is currently showing"></th>
         <th class="n" data-s="idx">#<i class="ar">▼</i></th>
         <th data-s="title">Title<i class="ar">▼</i></th>
         <th class="advCol" data-s="bass" title="Extra bass for this song. Drag the slider, double-click to follow the global setting again.">Bass<i class="ar">▼</i></th>
         <th class="advCol" data-s="loud" title="Mastering loudness for this song. Drag the slider, double-click to follow the global setting again.">Loud<i class="ar">▼</i></th>
         <th class="advCol" data-s="fade" title="Edge fade for this song. Drag the slider, double-click to follow the global setting again.">Fade<i class="ar">▼</i></th>
         <th class="advCol" data-s="clip" title="Longest clip this song is cut into. Drag the slider, double-click for the standard 29.8 s.">Clip<i class="ar">▼</i></th>
-        <th style="width:116px">Wave</th>
+        <th style="width:116px" title="Click a row's wave to open the editor">Wave</th>
         <th class="n" data-s="len">Length<i class="ar">▼</i></th>
         <th class="n" data-s="clips">Clips<i class="ar">▼</i></th>
         <th data-s="status">Status<i class="ar">▼</i></th>
-        <th style="width:30px"></th>
+        <th style="width:44px"></th>
       </tr></thead>
       <tbody id="rows"></tbody>
     </table>
@@ -2129,13 +2135,14 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div class="actions">
     <div class="side">
-      <span class="stat" id="selInfo" title="Ticked songs / songs you can tick right now">0/0</span>
+      <span class="stat" id="selInfo" title="Selected songs / songs the filter is showing">0/0</span>
+      <button id="selAll" class="mini" title="Select or deselect everything the filter is showing (Ctrl+A)">Select all</button>
+      <button id="removeSel" class="danger" disabled title="Take the selected songs out of the list. Your files on disk are not touched.">🗑 Remove selected</button>
       <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
       <span class="stat" id="lastMsg" title="Click for the full log"></span>
     </div>
     <div class="mid">
       <button id="advBtn">⚙ Advanced</button>
-      <button id="clearAll" title="Take every song out of the list. Your files on disk are not touched - only this queue is emptied.">🗑 Clear list</button>
     </div>
     <div class="side right">
     <label id="flatZipRow" class="swRow" title="On: every song gets its own folder inside the ZIP. Off: all clips sit at the top level - handy for bulk-uploading everything in one go.">
@@ -2835,14 +2842,63 @@ function repaintSets() {
     }
   }
 }
+// Rows are selected by clicking them: plain click picks one, Ctrl adds or
+// removes, Shift takes everything between the last pick and this one.
+let selAnchor = -1;
+function pickRow(s, i, e) {
+  const rows = viewRows();
+  const pos = rows.findIndex(o => o.i === i);
+  if (e.shiftKey && selAnchor >= 0) {
+    const a = rows.findIndex(o => o.i === selAnchor);
+    if (a >= 0) {
+      ticked.clear();
+      const lo = Math.min(a, pos), hi = Math.max(a, pos);
+      for (let k = lo; k <= hi; k++) ticked.add(rows[k].s);
+    }
+  } else if (e.ctrlKey || e.metaKey) {
+    if (ticked.has(s)) ticked.delete(s); else ticked.add(s);
+    selAnchor = i;
+  } else {
+    const onlyThis = ticked.size === 1 && ticked.has(s);
+    ticked.clear();
+    if (!onlyThis) ticked.add(s);
+    selAnchor = onlyThis ? -1 : i;
+  }
+  paintRowSel();
+  paintSel();
+}
+function paintRowSel() {
+  for (const tr of Array.from($('rows').children)) {
+    if (tr.className.indexOf('det') !== -1) continue;
+    tr.classList.toggle('sel', ticked.has(songs[+tr.dataset.i]));
+  }
+}
+function selectAll() {
+  const rows = viewRows();
+  const all = rows.length > 0 && rows.every(o => ticked.has(o.s));
+  ticked.clear();
+  if (!all) for (const o of rows) ticked.add(o.s);
+  paintRowSel();
+  paintSel();
+}
 function paintSel() {
   for (const s of Array.from(ticked)) if (songs.indexOf(s) === -1) ticked.delete(s);
-  $('selInfo').innerHTML = '<b>' + ticked.size + '</b>/' + shown;
-  $('exportSel').disabled = !ticked.size || busy;
-  $('exportSel').textContent = '⬇ Export ticked' + (ticked.size ? ' · ' + ticked.size : '') + ' (ZIP)';
+  const n = ticked.size;
+  $('selInfo').innerHTML = '<b>' + n + '</b>/' + shown;
+  // With nothing selected the button exports everything, so there is always an
+  // obvious way out for someone who has not discovered selecting yet.
+  $('exportSel').disabled = busy || (!n && !songs.length);
+  $('exportSel').textContent = n
+    ? '⬇ Export selected · ' + n + ' (ZIP)'
+    : '⬇ Export ALL · ' + songs.length + (songs.length === 1 ? ' song' : ' songs') + ' (ZIP)';
+  $('selAll').textContent = (shown > 0 && n === shown) ? 'Select none' : 'Select all';
+  $('selAll').disabled = !shown;
+  if (!$('removeSel').classList.contains('arm')) $('removeSel').textContent = '🗑 Remove selected' + (n ? ' · ' + n : '');
+  $('removeSel').disabled = !n || busy;
+  if (!n) disarmRemove();
 }
 function renderList() {
-  disarmClear();
+  disarmRemove();
   document.body.classList.toggle('work', songs.length > 0);
   const box = $('rows');
   // Park the editor outside the table first: emptying the tbody would
@@ -2859,39 +2915,33 @@ function renderList() {
   for (const o of rows) {
     const s = o.s, i = o.i, st = stateOf(s);
     const tr = document.createElement('tr');
-    tr.className = (i === cur ? 'active ' : '') + (seen[s.title.toLowerCase()] > 1 ? 'dup' : '');
+    tr.className = (i === cur ? 'active ' : '') + (ticked.has(s) ? 'sel ' : '') + (seen[s.title.toLowerCase()] > 1 ? 'dup' : '');
     tr.dataset.i = i;
     tr.innerHTML =
-      '<td class="cbx"><input type="checkbox"></td>' +
       '<td class="idx">' + (i + 1) + '</td>' +
       '<td class="t"></td>' +
       '<td class="advCol set" data-k="bass"></td>' +
       '<td class="advCol set" data-k="loud"></td>' +
       '<td class="advCol set" data-k="fade"></td>' +
       '<td class="advCol set" data-k="clip"></td>' +
-      '<td class="wv"><canvas></canvas></td>' +
+      '<td class="wv" title="Open this song in the editor"><canvas></canvas></td>' +
       '<td class="n">' + (s.dur ? fmtMS(s.trimE - s.trimS) : '…') + '</td>' +
       '<td class="n">' + (s.dur ? clipsOf(s) : '·') + '</td>' +
       '<td><span class="badge ' + st + '">' + stateLabel(st) + '</span></td>' +
-      '<td><button class="x" title="Take this song out of the list">✕</button></td>';
+      '<td><button class="solo" title="Export just this song as a ZIP">⬇</button></td>';
     if (advOn) for (const cell of tr.querySelectorAll('td.set')) buildSet(cell, s);
-    const t = tr.children[2];
+    const t = tr.children[1];
     t.textContent = s.title || '(untitled)';
     t.title = (s.file ? s.file.name : s.title) + '  ·  double-click to rename';
     t.ondblclick = e => { e.stopPropagation(); startRename(i); };
-    const cb = tr.querySelector('input');
-    cb.checked = ticked.has(s);
-    // The whole cell is the target, not just the 14px box.
-    tr.children[0].onclick = e => {
+    // The wave opens the editor, everything else in the row selects.
+    tr.children[6].onclick = e => {
       e.stopPropagation();
-      if (e.target !== cb) cb.checked = !cb.checked;
-      if (cb.checked) ticked.add(s); else ticked.delete(s);
-      paintSel();
+      if (e.detail > 1) return;
+      if (i === cur) closeRow(); else open(i);
     };
-    tr.children[11].onclick = e => { e.stopPropagation(); if (e.detail > 1) return; removeSong(i); };
-    // The second click of a double-click must not toggle the row shut, or the
-    // rename would fight the table rebuild it just triggered.
-    tr.onclick = e => { if (e.detail > 1) return; if (i === cur) closeRow(); else open(i); };
+    tr.children[10].onclick = e => { e.stopPropagation(); if (e.detail > 1) return; exportSingle(s, e.target); };
+    tr.onclick = e => { if (e.detail > 1) return; pickRow(s, i, e); };
     box.appendChild(tr);
     drawMini(tr.querySelector('canvas'), s);
     if (i === cur) {
@@ -2909,7 +2959,6 @@ function renderList() {
   $('stat').innerHTML = songs.length
     ? '<b>' + songs.length + '</b> songs · <b>' + done + '</b> exported' + (rows.length !== songs.length ? ' · <b>' + rows.length + '</b> shown' : '')
     : '';
-  $('tickAll').checked = rows.length > 0 && rows.every(o => ticked.has(o.s));
   paintSel();
   queueSoon();
   placeLogo();
@@ -2984,12 +3033,6 @@ document.querySelectorAll('thead th[data-s]').forEach(th => {
     renderList();
   };
 });
-$('tickAll').onclick = () => {
-  const rows = viewRows();
-  if ($('tickAll').checked) rows.forEach(o => ticked.add(o.s));
-  else rows.forEach(o => ticked.delete(o.s));
-  renderList();
-};
 // The floating logo lives in the gap the toolbar leaves in the middle, so it
 // is measured against the real edges of both sides instead of the window.
 function placeLogo() {
@@ -3032,46 +3075,44 @@ document.addEventListener('click', e => {
   if (!$('advPop').contains(e.target) && e.target !== $('advBtn') && !$('advBtn').contains(e.target)) $('advPop').classList.remove('on');
   if (!$('logPop').contains(e.target) && e.target !== $('lastMsg')) $('logPop').classList.remove('on');
 });
-// Emptying the whole queue is one click away, so it asks once before it acts.
+// Throwing songs out is one click away, so it asks once before it acts.
 // The armed state falls back on its own if the click was a slip.
 let clrT = 0;
-function disarmClear() {
+function disarmRemove() {
   clearTimeout(clrT);
-  const b = $('clearAll');
+  const b = $('removeSel');
   b.classList.remove('arm');
-  b.textContent = '🗑 Clear list';
+  b.textContent = '🗑 Remove selected' + (ticked.size ? ' · ' + ticked.size : '');
 }
-$('clearAll').onclick = () => {
-  if (!songs.length) return;
-  const b = $('clearAll');
+$('selAll').onclick = selectAll;
+$('removeSel').onclick = () => {
+  if (!ticked.size) return;
+  const b = $('removeSel');
   if (!b.classList.contains('arm')) {
     b.classList.add('arm');
-    b.textContent = '🗑 Remove all ' + songs.length + ' songs?';
-    clrT = setTimeout(disarmClear, 5000);
+    b.textContent = '🗑 Remove ' + ticked.size + (ticked.size === 1 ? ' song?' : ' songs?');
+    clrT = setTimeout(disarmRemove, 5000);
     return;
   }
   stopPB();
-  songs = [];
-  lru.length = 0;
+  const gone = new Set(ticked);
+  const openSong = songs[cur];
+  songs = songs.filter(s => !gone.has(s));
+  for (const s of gone) { const li = lru.indexOf(s); if (li >= 0) lru.splice(li, 1); }
   ticked.clear();
-  cur = -1;
-  $('log').textContent = '';
-  $('lastMsg').textContent = '';
-  $('advPop').classList.remove('on');
-  $('logPop').classList.remove('on');
-  disarmClear();
+  selAnchor = -1;
+  cur = gone.has(openSong) ? -1 : songs.indexOf(openSong);
+  if (!songs.length) {
+    $('log').textContent = '';
+    $('lastMsg').textContent = '';
+    $('advPop').classList.remove('on');
+    $('logPop').classList.remove('on');
+  } else {
+    log('🗑 ' + gone.size + (gone.size === 1 ? ' song removed from the list' : ' songs removed from the list'));
+  }
+  disarmRemove();
   renderList();
 };
-function removeSong(i) {
-  stopPB();
-  const gone = songs.splice(i, 1)[0];
-  const li = lru.indexOf(gone);
-  if (li >= 0) lru.splice(li, 1);
-  ticked.delete(gone);
-  if (cur === i) cur = -1;
-  else if (cur > i) cur--;
-  renderList();
-}
 
 // ---------- waveform ----------
 function draw() {
@@ -3307,13 +3348,14 @@ $('title').addEventListener('input', () => {
   const s = songs[cur]; if (!s) return;
   s.title = clampBytes(sanitizeTitle($('title').value), TITLE_MAX);
   const tr = $('rows').querySelector('tr.active');
-  if (tr && !tr.contains($('title'))) tr.children[2].textContent = s.title || '(untitled)';
+  if (tr && !tr.contains($('title'))) tr.children[1].textContent = s.title || '(untitled)';
   updateInfo();
 });
 $('title').addEventListener('change', () => { const s = songs[cur]; if (s) { $('title').value = s.title; renderList(); } });
 
 window.addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
+  if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); selectAll(); return; }
   const s = songs[cur]; if (!s || !s.dur) return;
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
   else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -3458,27 +3500,31 @@ function prog(on, pct, txt) {
   $('pbar').firstElementChild.style.width = (pct || 0) + '%';
   $('ptxt').textContent = txt || '';
 }
-$('exportOne').onclick = async () => {
-  const s = songs[cur]; if (!s) return;
+// One song on its own, from the row button or from the open editor.
+async function exportSingle(s, btn) {
+  if (!s || busy) return;
   stopPB();
   busy = true;
   $('exportOne').disabled = true;
+  paintSel();
   try {
     prog(true, 0, 'rendering…');
     const res = await renderSong(s, p => prog(true, p * 100, 'slicing…'));
     download(makeZip(res.files.map(f => ({ name: s.title + '/' + f.name, data: f.data }))), s.title + '.zip');
-    s.status = 'done'; renderList();
+    s.status = 'done';
+    syncSongRow(s);
     let li = ' · mastered to ' + res.target.toFixed(1) + ' LUFS (gain ' + (res.gdb >= 0 ? '+' : '') + res.gdb.toFixed(1) + ' dB)';
     if (res.bass) li += ', bass +' + res.bass + ' dB';
     if (res.gr < -0.5) li += ', peaks tamed ' + res.gr.toFixed(1) + ' dB';
     log('✔ ' + s.title + ' → ' + s.title + '.zip (' + res.files.length + ' clips' + li + ')');
-    boom($('exportOne'));
+    if (btn) boom(btn);
   } catch (e) { log('✖ ' + s.title + ': ' + (e.message || e), true); }
   prog(false);
   busy = false;
   $('exportOne').disabled = false;
   renderList();
-};
+}
+$('exportOne').onclick = () => exportSingle(songs[cur], $('exportOne'));
 // "No folders in ZIP" toggle - flat Export-ALL for one-shot bulk
 // uploads. Clip names are collision-free without folders: they start
 // with the song title and duplicate titles are blocked by validate().
@@ -3616,7 +3662,7 @@ async function exportMany(list, btn) {
   busy = false;
   renderList();
 }
-$('exportSel').onclick = () => exportMany(songs.filter(s => ticked.has(s)), $('exportSel'));
+$('exportSel').onclick = () => exportMany(ticked.size ? songs.filter(s => ticked.has(s)) : songs.slice(), $('exportSel'));
 
 // ---------- file intake ----------
 $('drop').onclick = () => $('fileIn').click();
