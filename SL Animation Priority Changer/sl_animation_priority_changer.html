@@ -166,9 +166,14 @@ body.slt-themed > *:not(.slt-scanlines):not(.slt-nav):not(.slt-glow) {
   align-items: flex-end;
   gap: 8px;
   font-family: var(--slt-font);
+  /* The closed panel still takes up its full box, so the container reaches
+     far down the right edge. Without this it swallows every click on the
+     page underneath it - only the nav's own controls may be clickable. */
+  pointer-events: none;
 }
 
 .slt-nav-handle {
+  pointer-events: auto;
   display: inline-flex;
   align-items: center;
   gap: 7px;

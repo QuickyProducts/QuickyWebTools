@@ -1520,14 +1520,22 @@ header h1{font-size:clamp(28px,4.6vw,44px);line-height:1.15;font-weight:800;lett
    collapses to a slim title bar and the workspace takes the screen. */
 body.work header{margin:10px auto 0}
 body.work header .tagline,body.work header .lede{display:none}
-body.work header h1{font-size:28px}
-body.work header .title-row{margin-top:0;gap:14px}
-body.work .eq{height:20px}
+/* The logo leaves the layout and floats across the empty middle of the
+   toolbar and the table head, so it can be big without pushing anything
+   around. It never takes a click - that would block the rows underneath. */
+body.work header{
+  position:absolute;top:0;left:0;right:0;margin:0;padding:0;max-width:none;
+  height:92px;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;z-index:6;
+}
+body.work header{overflow:hidden}
+body.work header h1{font-size:clamp(20px,2.7vw,42px);white-space:nowrap}
+body.work header .title-row{margin-top:0;gap:16px}
+body.work .eq{height:26px}
 /* Work mode is a fixed app screen: toolbar, table, editor dock and action
    bar share exactly one viewport. Only the table scrolls. */
 @media(min-width:981px){
-body.work{height:100vh;overflow:hidden;display:flex;flex-direction:column}
-body.work header{flex-shrink:0;width:100%}
+body.work{height:100vh;overflow:hidden;display:flex;flex-direction:column;position:relative}
 body.work main{flex:1 1 auto;min-height:0;width:100%;max-width:1700px;padding:6px 20px 0;display:flex;flex-direction:column;gap:10px;overflow:hidden}
 body.work .tableWrap{flex:1 1 auto;min-height:90px}
 body.work #waveWrap{flex:1 1 auto;min-height:0}
@@ -2111,7 +2119,7 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div class="actions">
     <div class="side">
-      <span class="stat" id="selInfo">nothing ticked</span>
+      <span class="stat" id="selInfo" title="Ticked songs / songs you can tick right now">0/0</span>
       <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
       <span class="stat" id="lastMsg" title="Click for the full log"></span>
     </div>
@@ -2643,7 +2651,7 @@ function updateInfo() {
 // Search, state filter and sort only change WHICH rows are shown and in what
 // order; every row keeps its real index into songs, so nothing downstream has
 // to know the table is sorted.
-let query = '', filter = 'all', sortKey = 'idx', sortDir = 1, busy = false;
+let query = '', filter = 'all', sortKey = 'idx', sortDir = 1, busy = false, shown = 0;
 const ticked = new Set();
 const clipsOf = s => s.dur ? Math.max(1, Math.ceil((s.trimE - s.trimS) / s.maxLen)) : 0;
 function stateOf(s) { return s.status === 'done' ? 'done' : songTouched(s) ? 'edited' : 'pending'; }
@@ -2726,7 +2734,7 @@ function pumpWarm() {
 }
 function paintSel() {
   for (const s of Array.from(ticked)) if (songs.indexOf(s) === -1) ticked.delete(s);
-  $('selInfo').innerHTML = ticked.size ? '<b>' + ticked.size + '</b> ticked' : 'nothing ticked';
+  $('selInfo').innerHTML = '<b>' + ticked.size + '</b>/' + shown;
   $('exportSel').disabled = !ticked.size || busy;
   $('exportSel').textContent = '⬇ Export ticked' + (ticked.size ? ' · ' + ticked.size : '');
 }
@@ -2743,6 +2751,7 @@ function renderList() {
   const seen = {};
   for (const s of songs) { const k = s.title.toLowerCase(); seen[k] = (seen[k] || 0) + 1; }
   const rows = viewRows();
+  shown = rows.length;
   for (const o of rows) {
     const s = o.s, i = o.i, st = stateOf(s);
     const tr = document.createElement('tr');
@@ -2796,6 +2805,7 @@ function renderList() {
   $('tickAll').checked = rows.length > 0 && rows.every(o => ticked.has(o.s));
   paintSel();
   queueSoon();
+  placeLogo();
 }
 // Only the open row's own numbers change while you drag a trim handle, so that
 // path updates those cells instead of rebuilding the whole table.
@@ -2868,6 +2878,21 @@ $('tickAll').onclick = () => {
   else rows.forEach(o => ticked.delete(o.s));
   renderList();
 };
+// The floating logo lives in the gap the toolbar leaves in the middle, so it
+// is measured against the real edges of both sides instead of the window.
+function placeLogo() {
+  const h = document.querySelector('header');
+  if (!document.body.classList.contains('work') || innerWidth <= 980) {
+    h.style.left = h.style.right = h.style.visibility = '';
+    return;
+  }
+  const left = document.querySelector('.chips').getBoundingClientRect().right + 14;
+  const right = innerWidth - $('stat').getBoundingClientRect().left + 14;
+  h.style.left = Math.round(left) + 'px';
+  h.style.right = Math.round(right) + 'px';
+  h.style.visibility = (innerWidth - left - right) < 170 ? 'hidden' : '';
+}
+addEventListener('resize', placeLogo);
 document.querySelector('.tableWrap').addEventListener('scroll', queueSoon, { passive: true });
 $('addBtn').onclick = () => $('fileIn').click();
 $('advBtn').onclick = () => { $('logPop').classList.remove('on'); $('advPop').classList.toggle('on'); };
