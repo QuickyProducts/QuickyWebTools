@@ -2084,7 +2084,7 @@ body{animation:slt-page-in .28s ease-out both}
     <input type="search" id="q" placeholder="Search the queue…">
     <div class="chips">
       <span class="chip on" data-f="all">All</span>
-      <span class="chip" data-f="pending">Pending</span>
+      <span class="chip" data-f="ready">Ready</span>
       <span class="chip" data-f="edited">Edited</span>
       <span class="chip" data-f="done">Exported</span>
     </div>
@@ -2677,7 +2677,8 @@ function updateInfo() {
 let query = '', filter = 'all', sortKey = 'idx', sortDir = 1, busy = false, shown = 0;
 const ticked = new Set();
 const clipsOf = s => s.dur ? Math.max(1, Math.ceil((s.trimE - s.trimS) / s.maxLen)) : 0;
-function stateOf(s) { return s.status === 'done' ? 'done' : songTouched(s) ? 'edited' : 'pending'; }
+// "ready" means the song is in the queue untouched and can be exported as is.
+function stateOf(s) { return s.status === 'done' ? 'done' : songTouched(s) ? 'edited' : 'ready'; }
 function stateLabel(st) { return st === 'done' ? 'exported' : st; }
 function viewRows() {
   let v = songs.map((s, i) => ({ s: s, i: i }));
