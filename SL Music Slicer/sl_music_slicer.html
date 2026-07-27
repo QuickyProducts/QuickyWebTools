@@ -2102,6 +2102,7 @@ body{animation:slt-page-in .28s ease-out both}
         <th class="advCol" data-s="bass" title="Extra bass for this song. Drag the slider, double-click to follow the global setting again.">Bass<i class="ar">▼</i></th>
         <th class="advCol" data-s="loud" title="Mastering loudness for this song. Drag the slider, double-click to follow the global setting again.">Loud<i class="ar">▼</i></th>
         <th class="advCol" data-s="fade" title="Edge fade for this song. Drag the slider, double-click to follow the global setting again.">Fade<i class="ar">▼</i></th>
+        <th class="advCol" data-s="clip" title="Longest clip this song is cut into. Drag the slider, double-click for the standard 29.8 s.">Clip<i class="ar">▼</i></th>
         <th style="width:116px">Wave</th>
         <th class="n" data-s="len">Length<i class="ar">▼</i></th>
         <th class="n" data-s="clips">Clips<i class="ar">▼</i></th>
@@ -2121,8 +2122,6 @@ body{animation:slt-page-in .28s ease-out both}
       <button id="cutF" class="gone">🗑 ← delete front part</button>
       <button id="cutB" class="gone">delete back part → 🗑</button>
       <span class="grow"></span>
-      <span id="sbassRow" class="ctl"><span id="sbassTxt">Bass: off</span><input type="range" id="sbass" min="0" max="9" step="1" value="0"><button id="sbassRst" class="mini" title="use the global setting again">↺</button></span>
-      <span id="slenRow" class="ctl"><span id="slenTxt">Clip length: 29.8 s</span><input type="range" id="slen" min="5" max="29.8" step="0.1" value="29.8"><button id="slenRst" class="mini" title="back to the default length">↺</button></span>
       <button id="exportOne">⬇ Export this song (ZIP)</button>
     </div>
   </div>
@@ -2654,19 +2653,7 @@ function fillFields() {
   const s = songs[cur];
   $('title').value = s.title;
   cutMode(false);
-  paintSongBass();
-  paintSongLen();
   updateInfo();
-}
-function paintSongBass() {
-  const s = songs[cur];
-  if (!s) return;
-  const own = s.bass !== null && s.bass !== undefined;
-  const d = songBass(s);
-  $('sbass').value = d;
-  $('sbassRst').disabled = !own;
-  $('sbassTxt').textContent = 'Bass: ' + (d ? '+' + d + ' dB' : 'off') + (own ? '' : ' (global)');
-  paintReset();
 }
 function updateInfo() {
   paintReset();
@@ -2704,6 +2691,7 @@ function viewRows() {
     bass: o => songBass(o.s),
     loud: o => songLoud(o.s),
     fade: o => songFade(o.s),
+    clip: o => o.s.maxLen,
     status: o => stateOf(o.s)
   }[sortKey];
   v.sort((a, b) => { const x = key(a), y = key(b); return x > y ? sortDir : x < y ? -sortDir : a.i - b.i; });
@@ -2783,7 +2771,13 @@ function pumpWarm() {
 const SET = {
   bass: { get: s => s.bass, put: (s, v) => { s.bass = v; }, res: songBass, fmt: v => v ? '+' + v : 'off', min: 0, max: 9, step: 1 },
   loud: { get: s => s.loud, put: (s, v) => { s.loud = v; }, res: songLoud, fmt: v => v.toFixed(1), min: -12, max: -6, step: 0.5 },
-  fade: { get: s => s.fade, put: (s, v) => { s.fade = v; }, res: songFade, fmt: v => v + ' ms', min: 0, max: 12, step: 1 }
+  fade: { get: s => s.fade, put: (s, v) => { s.fade = v; }, res: songFade, fmt: v => v + ' ms', min: 0, max: 12, step: 1 },
+  // Clip length has no global counterpart: 29.8 s IS the default.
+  clip: {
+    get: s => (Math.abs(s.maxLen - 29.8) > 0.01 ? s.maxLen : null),
+    put: (s, v) => { s.maxLen = v === null ? 29.8 : v; },
+    res: s => s.maxLen, fmt: v => v.toFixed(1) + ' s', min: 5, max: 29.8, step: 0.1
+  }
 };
 function paintSet(cell, s) {
   const d = SET[cell.dataset.k];
@@ -2813,7 +2807,7 @@ function buildSet(cell, s) {
     d.put(s, +inp.value);
     paintSet(cell, s);
     syncSongRow(s);
-    if (songs[cur] === s) { paintSongBass(); updateInfo(); draw(); }
+    if (songs[cur] === s) { updateInfo(); draw(); }
     paintAdv();
   };
   cell.ondblclick = e => {
@@ -2873,6 +2867,7 @@ function renderList() {
       '<td class="advCol set" data-k="bass"></td>' +
       '<td class="advCol set" data-k="loud"></td>' +
       '<td class="advCol set" data-k="fade"></td>' +
+      '<td class="advCol set" data-k="clip"></td>' +
       '<td class="wv"><canvas></canvas></td>' +
       '<td class="n">' + (s.dur ? fmtMS(s.trimE - s.trimS) : '…') + '</td>' +
       '<td class="n">' + (s.dur ? clipsOf(s) : '·') + '</td>' +
@@ -2892,7 +2887,7 @@ function renderList() {
       if (cb.checked) ticked.add(s); else ticked.delete(s);
       paintSel();
     };
-    tr.children[10].onclick = e => { e.stopPropagation(); if (e.detail > 1) return; removeSong(i); };
+    tr.children[11].onclick = e => { e.stopPropagation(); if (e.detail > 1) return; removeSong(i); };
     // The second click of a double-click must not toggle the row shut, or the
     // rename would fight the table rebuild it just triggered.
     tr.onclick = e => { if (e.detail > 1) return; if (i === cur) closeRow(); else open(i); };
@@ -2903,7 +2898,7 @@ function renderList() {
       det.className = 'det';
       const cell = document.createElement('td');
       cell.className = 'detCell';
-      cell.colSpan = 11;
+      cell.colSpan = 12;
       det.appendChild(cell);
       box.appendChild(det);
       cell.appendChild($('dock'));
@@ -2929,11 +2924,11 @@ function syncRow() {
     if (inp) inp.value = SET[cell.dataset.k].res(s);
     paintSet(cell, s);
   }
-  tr.children[7].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
-  tr.children[8].textContent = s.dur ? clipsOf(s) : '·';
+  tr.children[8].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
+  tr.children[9].textContent = s.dur ? clipsOf(s) : '·';
   const st = stateOf(s);
-  tr.children[9].firstChild.className = 'badge ' + st;
-  tr.children[9].firstChild.textContent = stateLabel(st);
+  tr.children[10].firstChild.className = 'badge ' + st;
+  tr.children[10].firstChild.textContent = stateLabel(st);
 }
 function closeRow() {
   stopPB();
@@ -3301,7 +3296,7 @@ $('undo').onclick = () => {
   ph = 0;
   view = { v0: 0, v1: s.dur };
   cutMode(false);
-  paintSongBass(); paintSongLen(); paintAdv();
+  paintAdv();
   updateInfo(); renderList(); draw();
   log('↺ ' + s.title + ': back to the untouched song');
 };
@@ -3504,24 +3499,9 @@ try { const v = localStorage.getItem('ms-bass'); if (v !== null) $('bass').value
 paintBass();
 $('bass').oninput = () => {
   paintBass();
-  paintSongBass();
   paintAdv();
   repaintSets();
   try { localStorage.setItem('ms-bass', $('bass').value); } catch (e) {}
-};
-$('sbass').oninput = () => {
-  const s = songs[cur]; if (!s) return;
-  s.bass = +$('sbass').value;
-  paintSongBass();
-  paintAdv();
-  syncRow();
-};
-$('sbassRst').onclick = () => {
-  const s = songs[cur]; if (!s) return;
-  s.bass = null;
-  paintSongBass();
-  paintAdv();
-  syncRow();
 };
 
 // Mastering loudness. Only the target moves; the ceiling and the limiter stay
@@ -3562,32 +3542,12 @@ $('declick').oninput = () => {
   try { localStorage.setItem('ms-declick', $('declick').value); } catch (e) {}
 };
 
-function paintSongLen() {
-  const s = songs[cur]; if (!s) return;
-  const def = Math.abs(s.maxLen - 29.8) < 0.01;
-  $('slen').value = s.maxLen;
-  $('slenRst').disabled = def;
-  $('slenTxt').textContent = 'Clip length: ' + s.maxLen.toFixed(1) + ' s' + (def ? '' : ' (custom)');
-}
-$('slen').oninput = () => {
-  const s = songs[cur]; if (!s) return;
-  s.maxLen = +$('slen').value;
-  paintSongLen(); updateInfo(); draw(); paintAdv();
-};
-$('slenRst').onclick = () => {
-  const s = songs[cur]; if (!s) return;
-  s.maxLen = 29.8;
-  paintSongLen(); updateInfo(); draw(); paintAdv();
-};
-
 // Switching Advanced on adds the three tuning columns to the queue and shows
 // the same three as global settings inside the popover. Switching it off only
 // hides that UI, whatever is set stays in effect and the label says so.
 function paintAdv() {
   const on = $('adv').checked;
   document.body.classList.toggle('adv', on);
-  $('sbassRow').style.display = on ? '' : 'none';
-  $('slenRow').style.display = on ? '' : 'none';
   const act = [];
   if (bassDb() > 0) act.push('bass +' + bassDb() + ' dB');
   if (Math.abs(loudDb() - LOUD_DB) > 0.01) act.push('loudness ' + loudDb().toFixed(1));
@@ -3598,8 +3558,9 @@ function paintAdv() {
   $('advVal').textContent = act.length ? 'active: ' + act.join(', ') : 'all at defaults';
 }
 try {
-  const a = localStorage.getItem('ms-advanced');
-  $('adv').checked = a === null ? bassDb() > 0 : a === '1';
+  // Off unless it was switched on before. A set global value no longer forces
+  // the columns open - the popover summary is what reports that state.
+  $('adv').checked = localStorage.getItem('ms-advanced') === '1';
 } catch (e) {}
 paintAdv();
 $('adv').onchange = () => {
@@ -3607,14 +3568,26 @@ $('adv').onchange = () => {
   renderList();
   try { localStorage.setItem('ms-advanced', $('adv').checked ? '1' : '0'); } catch (e) {}
 };
+// A reload can hand the old switch positions back after the boot code ran,
+// so the stored state gets the last word.
+addEventListener('pageshow', () => {
+  try {
+    $('adv').checked = localStorage.getItem('ms-advanced') === '1';
+    $('flatZip').checked = localStorage.getItem('ms-flat-zip') === '0';
+  } catch (e) {}
+  paintAdv();
+  renderList();
+});
 
 // One batch run for both buttons: everything, or just the ticked rows.
 function syncSongRow(s) {
   const tr = $('rows').querySelector('tr[data-i="' + songs.indexOf(s) + '"]');
   if (!tr) return;
+  tr.children[8].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
+  tr.children[9].textContent = s.dur ? clipsOf(s) : '·';
   const st = stateOf(s);
-  tr.children[9].firstChild.className = 'badge ' + st;
-  tr.children[9].firstChild.textContent = stateLabel(st);
+  tr.children[10].firstChild.className = 'badge ' + st;
+  tr.children[10].firstChild.textContent = stateLabel(st);
 }
 async function exportMany(list, btn) {
   if (!list.length || busy) return;
