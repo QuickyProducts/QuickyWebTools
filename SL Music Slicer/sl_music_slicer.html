@@ -2141,6 +2141,7 @@ body{animation:slt-page-in .28s ease-out both}
       <button id="cutB" class="gone">delete back part → 🗑</button>
       <span class="grow"></span>
       <button id="exportOne">⬇ Export this song (ZIP)</button>
+      <button id="closeRow" title="Close the editor (Esc, or double-click the row)">✕ Close</button>
     </div>
   </div>
   <input type="text" id="title" spellcheck="false" maxlength="52" placeholder="Song title">
@@ -2987,6 +2988,12 @@ function renderList() {
     tr.onclick = e => { if (e.detail > 1) return; pickRow(s, i, e); };
     tr.onmousedown = e => dragStart(s, i, e);
     tr.onmouseover = () => dragOver(i);
+    // Double-click anywhere neutral in the row opens the editor and closes it
+    // again, so the little wave is not the only way in and out.
+    tr.ondblclick = e => {
+      if (e.target.closest('button, input, select, td.t, td.set, td.wv')) return;
+      if (i === cur) closeRow(); else open(i);
+    };
     box.appendChild(tr);
     drawMini(tr.querySelector('canvas'), s);
     if (i === cur) {
@@ -3401,6 +3408,7 @@ $('title').addEventListener('change', () => { const s = songs[cur]; if (s) { $('
 window.addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
   if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); selectAll(); return; }
+  if (e.key === 'Escape' && cur >= 0) { e.preventDefault(); closeRow(); return; }
   const s = songs[cur]; if (!s || !s.dur) return;
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); }
   else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
@@ -3570,6 +3578,7 @@ async function exportSingle(s, btn) {
   renderList();
 }
 $('exportOne').onclick = () => exportSingle(songs[cur], $('exportOne'));
+$('closeRow').onclick = () => closeRow();
 // "No folders in ZIP" toggle - flat Export-ALL for one-shot bulk
 // uploads. Clip names are collision-free without folders: they start
 // with the song title and duplicate titles are blocked by validate().
