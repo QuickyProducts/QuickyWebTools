@@ -1511,19 +1511,22 @@ main{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:18px 24px 40p
    instead of hugging the left edge. Progressive enhancement via :has
    (all current Chrome/Edge/Firefox/Safari support it). */
 main:has(#editor.hidden){grid-template-columns:1fr;max-width:520px}
-main:has(#editor.hidden) #queuePanel{position:static}
+main:has(#editor.hidden) #queuePanel{position:static;max-height:none}
 /* Start state: no songs loaded yet, so exporting makes no sense */
 main:has(#editor.hidden) #exportOne,
 main:has(#editor.hidden) #exportAll,
 main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #advBox{display:none}
-@media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static}}
+@media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static;max-height:none}#songList{max-height:50vh}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
-#queuePanel{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:16px}
+/* The whole queue column sticks and is capped to the viewport; the song list
+   is the only part that shrinks and scrolls, so export and settings always
+   stay in reach no matter how many songs are loaded. */
+#queuePanel{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto}
 #drop{border:2px dashed rgba(255,255,255,.18);border-radius:18px;padding:24px 14px;text-align:center;color:var(--dim);cursor:pointer;transition:.2s;background:rgba(255,255,255,.02)}
 #drop::before{content:"🎧";display:block;font-size:28px;margin-bottom:8px;filter:drop-shadow(0 0 14px rgba(255,60,172,.65))}
 #drop b{color:var(--txt);display:block;margin-bottom:4px;font-size:15px}
 #drop.over,#drop:hover{border-color:var(--acc1);color:var(--txt);background:rgba(255,60,172,.07);box-shadow:inset 0 0 34px rgba(255,60,172,.12);transform:scale(1.01)}
-#songList{display:flex;flex-direction:column;gap:7px;max-height:50vh;overflow-y:auto;padding-right:2px}
+#songList{display:flex;flex-direction:column;gap:7px;flex:0 1 auto;min-height:60px;overflow-y:auto;padding-right:2px}
 .song{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
 .song:hover{border-color:rgba(255,255,255,.28);transform:translateX(3px)}
 .song.active{border:1px solid transparent;background:linear-gradient(rgba(32,18,62,.9),rgba(32,18,62,.9)) padding-box,linear-gradient(90deg,var(--acc1),var(--acc2),var(--acc3)) border-box;box-shadow:0 0 20px rgba(124,43,255,.3)}
@@ -1553,7 +1556,6 @@ button.mini:hover{color:var(--txt);box-shadow:none;border-color:rgba(255,255,255
 button:disabled{opacity:.35;cursor:default;transform:none;box-shadow:none}
 #waveWrap{position:relative;background:var(--wv-bg);border:1px solid var(--edge);border-radius:15px;overflow:hidden}
 #wave{display:block;width:100%;height:240px;cursor:crosshair}
-#waveHint{position:absolute;right:10px;top:8px;font-size:11px;color:rgba(255,255,255,.28);pointer-events:none}
 #waveInfo{position:absolute;left:10px;top:7px;font-size:11px;font-weight:600;color:rgba(255,255,255,.6);pointer-events:none;font-variant-numeric:tabular-nums}
 #waveInfo.warn{color:var(--warn)}
 #waveInfo.bad{color:var(--bad);font-weight:800}
@@ -2009,7 +2011,7 @@ body{animation:slt-page-in .28s ease-out both}
       </div>
     </div>
     <div class="panel">
-      <div id="waveWrap"><canvas id="wave"></canvas><div id="waveHint">wheel: zoom · shift+wheel: pan · dbl-click: fit</div><div id="waveInfo"></div></div>
+      <div id="waveWrap"><canvas id="wave"></canvas><div id="waveInfo"></div></div>
       <div class="row" style="margin-top:12px">
         <button id="play" class="primary" style="width:96px">▶ Play</button>
         <button id="cut" title="click the wave to place the playhead, then cut">✂ Cut</button>
