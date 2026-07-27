@@ -1519,16 +1519,21 @@ body:has(#editor:not(.hidden)) .eq{transform:scale(.55);height:18px}
 @media(min-width:981px){
 body:has(#editor:not(.hidden)){height:100vh;overflow:hidden;display:flex;flex-direction:column}
 body:has(#editor:not(.hidden)) header{flex-shrink:0;width:100%}
-body:has(#editor:not(.hidden)) main{flex:1 1 auto;min-height:0;width:100%;grid-template-rows:minmax(0,1fr);padding:14px 24px 14px;overflow:hidden}
+body:has(#editor:not(.hidden)) main{flex:1 1 auto;min-height:0;width:100%;max-width:1600px;grid-template-rows:minmax(0,1fr);padding:14px 24px 14px;overflow:hidden}
 body:has(#editor:not(.hidden)) #queuePanel{position:static;max-height:100%}
 body:has(#editor:not(.hidden)) #rightCol{min-height:0}
 body:has(#editor:not(.hidden)) #editor{flex:1 1 auto;min-height:0;overflow-y:auto;padding-right:2px}
+/* The waveform takes whatever height is left instead of leaving a hole
+   between it and the export panel. */
+body:has(#editor:not(.hidden)) #editor>.panel{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+body:has(#editor:not(.hidden)) #waveWrap{flex:1 1 auto;min-height:200px}
+body:has(#editor:not(.hidden)) #wave{height:100%}
 body:has(#editor:not(.hidden)) #exportPanel{flex-shrink:0}
 body:has(#editor:not(.hidden)) #logPanel{flex-shrink:0}
 body:has(#editor:not(.hidden)) .slt-footer{flex-shrink:0}
 }
 @keyframes hue{to{background-position:300% 0}}
-main{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:18px 24px 40px;max-width:1200px;margin:0 auto}
+main{display:grid;grid-template-columns:250px 1fr;gap:16px;padding:18px 24px 40px;max-width:1200px;margin:0 auto}
 /* Start state (no song loaded yet): the editor is hidden, so collapse
    the grid to one centered column - the drop zone sits in the middle
    instead of hugging the left edge. Progressive enhancement via :has
@@ -1597,7 +1602,7 @@ button.go:hover{box-shadow:0 6px 28px rgba(0,229,160,.5)}
 button.mini{padding:3px 8px;font-size:11px;font-weight:500;border-radius:8px;color:var(--dim);background:rgba(255,255,255,.04)}
 button.mini:hover{color:var(--txt);box-shadow:none;border-color:rgba(255,255,255,.3)}
 button:disabled{opacity:.35;cursor:default;transform:none;box-shadow:none}
-#waveWrap{position:relative;background:var(--wv-bg);border:1px solid var(--edge);border-radius:15px;overflow:hidden}
+#waveWrap{position:relative;background:var(--wv-bg);border:1px solid var(--edge);border-radius:15px;overflow:hidden;min-height:200px}
 #wave{display:block;width:100%;height:240px;cursor:crosshair}
 #waveInfo{position:absolute;left:10px;top:7px;font-size:11px;font-weight:600;color:rgba(255,255,255,.6);pointer-events:none;font-variant-numeric:tabular-nums}
 #waveInfo.warn{color:var(--warn)}
@@ -2026,7 +2031,7 @@ body{animation:slt-page-in .28s ease-out both}
     <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus" multiple hidden>
     <div class="secHead">Songs<span class="cnt" id="songCount"></span></div>
     <div id="songList"></div>
-    <button id="clearAll" class="mini" title="Take every song out of the list. Your files on disk are not touched - only this queue is emptied.">✕ Clear the list</button>
+    <button id="clearAll" class="mini" title="Take every song out of the list. Your files on disk are not touched - only this queue is emptied.">✕ Clear list</button>
   </div>
   <div id="rightCol">
   <div id="editor" class="hidden">
@@ -2606,7 +2611,7 @@ function disarmClear() {
   clearTimeout(clrT);
   const b = $('clearAll');
   b.classList.remove('arm');
-  b.textContent = '✕ Clear the list';
+  b.textContent = '✕ Clear list';
 }
 $('clearAll').onclick = () => {
   if (!songs.length) return;
@@ -2640,7 +2645,7 @@ function removeSong(i) {
 function draw() {
   const c = $('wave'), s = songs[cur];
   if (!s) return;
-  const dpr = devicePixelRatio || 1, W = c.clientWidth || 800, H = 240;
+  const dpr = devicePixelRatio || 1, W = c.clientWidth || 800, H = c.clientHeight || 240;
   if (c.width !== Math.round(W * dpr) || c.height !== H * dpr) { c.width = Math.round(W * dpr); c.height = H * dpr; }
   const g = c.getContext('2d');
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -3179,7 +3184,9 @@ for (const ev of ['dragover', 'dragleave', 'drop']) {
     if (ev === 'drop' && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
   });
 }
-new ResizeObserver(() => { if (cur >= 0) draw(); }).observe(document.querySelector('main'));
+// Watch the wave box itself: it also changes height when the advanced rows
+// appear, which a listener on <main> would never notice.
+new ResizeObserver(() => { if (cur >= 0) draw(); }).observe($('waveWrap'));
 
 // ---------- fx ----------
 const fxC = $('fx'), fxG = fxC.getContext('2d');
