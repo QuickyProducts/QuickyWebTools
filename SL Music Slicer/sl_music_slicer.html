@@ -1545,7 +1545,7 @@ body.work .slt-footer{flex-shrink:0;margin:6px auto 10px}
 main{max-width:520px;margin:0 auto;padding:18px 24px 40px}
 /* Start state: nothing but the drop zone exists yet. */
 body:not(.work) #bar,body:not(.work) .tableWrap,body:not(.work) #dock,
-body:not(.work) .actions,body:not(.work) #advPop,body:not(.work) #zipPop,body:not(.work) #logPop{display:none}
+body:not(.work) .actions,body:not(.work) #advPop,body:not(.work) #zipPop,body:not(.work) #logPop,body:not(.work) #tips{display:none}
 body.work #drop{display:none}
 @media(max-width:980px){body.work .tableWrap{max-height:52vh}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
@@ -1656,9 +1656,14 @@ th.advCol,td.advCol{width:108px}
 /* The panel rise animation leaves a 16px offset on elements that start out
    hidden, which would push these popovers over their own button. */
 #advPop,#zipPop,#logPop{animation:none}
+/* The first-visit guide: shown once, reachable again through the ? button. */
+#tips{position:fixed;left:50%;transform:translateX(-50%);bottom:64px;width:min(560px,92vw);z-index:25;display:none;animation:none}
+#tips.on{display:block}
+#tips p{margin:9px 2px;font-size:13px;line-height:1.5;color:var(--dim)}
+#tips p b{color:var(--txt)}
 /* Popovers float over the busy table, so they get a solid backing instead of
    the panel's glass - text on top of song rows is unreadable. */
-#advPop,#zipPop,#logPop{
+#tips,#advPop,#zipPop,#logPop{
   background:linear-gradient(160deg,rgba(38,24,68,.99),rgba(21,13,40,.99));
   border-color:rgba(255,255,255,.22);
   box-shadow:0 18px 60px rgba(0,0,0,.66),0 0 0 1px rgba(0,0,0,.5);
@@ -2116,6 +2121,7 @@ body{animation:slt-page-in .28s ease-out both}
   <div id="bar">
     <button id="addBtn" class="primary">＋ Add songs</button>
     <input type="search" id="q" placeholder="Search the queue…">
+    <button id="helpBtn" class="mini" title="How this works">?</button>
     <span class="grow"></span>
   </div>
 
@@ -2207,6 +2213,14 @@ body{animation:slt-page-in .28s ease-out both}
     </div>
   </div>
   <div class="panel" id="logPop"><div id="log"></div></div>
+
+  <div class="panel" id="tips">
+    <div class="secHead">Three things and you know the tool</div>
+    <p><b>Click a song</b> to select it, click it again to let it go, or hold the button and drag across several.</p>
+    <p><b>Double-click a song</b> to open its editor and cut it. The little wave in the row opens it too, Esc closes it.</p>
+    <p>Then <b>Export</b> at the bottom right: the songs you picked, or ALL of them in one go.</p>
+    <div class="row"><span class="grow"></span><button id="tipsOk" class="primary">Got it</button></div>
+  </div>
 </main>
 <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
 <script>
@@ -3038,6 +3052,7 @@ function renderList() {
   paintSel();
   queueSoon();
   placeLogo();
+  maybeTips();
 }
 // Only the open row's own numbers change while you drag a trim handle, so that
 // path updates those cells instead of rebuilding the whole table.
@@ -3155,6 +3170,27 @@ function togglePop(btn, pop, want) {
   placePop(btn, pop, want);
   pop.classList.add('on');
 }
+// The guide shows itself once, on the first queue somebody ever loads.
+function placeTips() {
+  const a = document.querySelector('.actions').getBoundingClientRect();
+  $('tips').style.bottom = Math.round(innerHeight - a.top + 12) + 'px';
+}
+function showTips(on) {
+  if (on) placeTips();
+  $('tips').classList.toggle('on', on);
+}
+function maybeTips() {
+  if (!songs.length || $('tips').classList.contains('on')) return;
+  let seen = true;
+  try { seen = localStorage.getItem('ms-tips') === 'seen'; } catch (e) {}
+  if (!seen) showTips(true);
+}
+$('tipsOk').onclick = () => {
+  showTips(false);
+  try { localStorage.setItem('ms-tips', 'seen'); } catch (e) {}
+};
+$('helpBtn').onclick = () => showTips(!$('tips').classList.contains('on'));
+addEventListener('resize', () => { if ($('tips').classList.contains('on')) placeTips(); });
 $('advBtn').onclick = () => togglePop($('advBtn'), $('advPop'), 560);
 $('zipBtn').onclick = () => togglePop($('zipBtn'), $('zipPop'), 320);
 $('lastMsg').onclick = () => {
