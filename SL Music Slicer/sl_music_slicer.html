@@ -2550,7 +2550,10 @@ async function ensureDecoded(s) {
       s.buffer = buf;
       s.dur = buf.duration;
       if (!s.trimE || s.trimE > s.dur) s.trimE = s.dur;
-      if (!s.peaks) s.peaks = buildPeaks(buf);
+      // A song that only ever got the quick 8 kHz curve gets the exact one now
+      // that the real decode is here - this is what the editor draws and what
+      // the preview loudness is measured from.
+      if (!s.peaks || s.peaks.rough) s.peaks = buildPeaks(buf);
       s._dec = null;
       touchLRU(s);
       return buf;
@@ -2563,15 +2566,20 @@ async function ensureDecoded(s) {
 }
 
 // Waveforms in the list only need the SHAPE of a song, so the background pass
-// decodes into a 22 kHz mono context instead of the full rate: measured on a
-// three minute stereo track that is 274 ms instead of 508 ms, it never
-// allocates the ~70 MB full-rate buffer, and peak and RMS come out identical.
-// Opening, playing and exporting still use ensureDecoded at full quality.
-const PEAK_SR = 22050;
+// decodes into an 8 kHz mono context instead of the full rate: measured on a
+// three minute stereo track that is 168 ms instead of 508 ms, and it never
+// allocates the ~70 MB full-rate buffer. Going below 8 kHz buys nothing, the
+// cost sits in parsing the file, not in the output rate. The moment a song is
+// opened its curve is rebuilt at full rate (see ensureDecoded), so the editor
+// and the preview loudness stay exact.
+const PEAK_SR = 8000;
 async function warmPeaks(s) {
   if (s.peaks) return;
   const buf = await new OfflineAudioContext(1, 1, PEAK_SR).decodeAudioData(await s.file.arrayBuffer());
-  if (!s.peaks) s.peaks = buildPeaks(buf);
+  if (!s.peaks) {
+    s.peaks = buildPeaks(buf);
+    s.peaks.rough = true;
+  }
   if (!s.dur) {
     s.dur = buf.duration;
     if (!s.trimE || s.trimE > s.dur) s.trimE = s.dur;
@@ -2719,6 +2727,9 @@ function open(i) {
     if (songs[cur] !== s) return;
     if (fresh) { view = { v0: 0, v1: s.dur }; ph = s.trimS; fillFields(); }
     draw();
+    // The row's little wave was drawn from the quick curve, redraw it now.
+    const c = $('rows').querySelector('tr.active canvas');
+    if (c) drawMini(c, s);
   }).catch(e => log('decode failed: ' + s.file.name + ' - ' + e, true));
 }
 function fillFields() {
