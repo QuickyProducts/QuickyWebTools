@@ -1524,9 +1524,9 @@ body.work header .tagline,body.work header .lede{display:none}
    toolbar and the table head, so it can be big without pushing anything
    around. It never takes a click - that would block the rows underneath. */
 body.work header{
-  position:absolute;top:0;left:0;right:0;margin:0;padding:0;max-width:none;
+  position:absolute;top:0;left:0;right:0;margin:0;padding:0 0 9px;max-width:none;
   display:flex;align-items:center;justify-content:center;overflow:hidden;
-  pointer-events:none;z-index:6;
+  pointer-events:none;z-index:6;box-sizing:border-box;
 }
 /* line-height 1 would cut the descender of the y off against the table. */
 body.work header h1{font-size:clamp(18px,2.4vw,36px);line-height:1.2;white-space:nowrap}
@@ -2138,9 +2138,11 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div class="actions">
     <div class="side">
-      <span class="stat" id="selInfo" title="Selected songs / songs currently listed. Click a row to select it, click it again to remove it, or drag across several.">0/0</span>
-      <button id="selAll" class="mini" title="Select or deselect every song currently listed (Ctrl+A)">Select all</button>
-      <button id="removeSel" class="danger" disabled title="Take the selected songs out of the list. Your files on disk are not touched.">🗑 Remove selected</button>
+      <span class="expLbl">Remove</span>
+      <span class="pillBtn danger">
+        <button id="removeSel" disabled title="Take the selected songs out of the list. Your files on disk are not touched.">🗑 0 Selected</button>
+        <button id="removeAll" title="Empty the whole list. Your files on disk are not touched.">🗑 ALL</button>
+      </span>
       <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
       <span class="stat" id="lastMsg" title="Click for the full log"></span>
     </div>
@@ -2853,7 +2855,7 @@ function repaintSets() {
 // Every click adds one more song to the selection and clicking it again takes
 // it back out - no modifier needed. Shift still grabs a whole range, and
 // dragging across rows sweeps them up as you go.
-let selAnchor = -1, dragSel = null, skipClick = false;
+let selAnchor = -1, dragSel = null, skipClick = false, armed = null;
 function pickRow(s, i, e) {
   if (skipClick) { skipClick = false; return; }
   const rows = viewRows();
@@ -2917,20 +2919,16 @@ function selectAll() {
 function paintSel() {
   for (const s of Array.from(ticked)) if (songs.indexOf(s) === -1) ticked.delete(s);
   const n = ticked.size;
-  $('selInfo').innerHTML = '<b>' + n + '</b>/' + shown;
-  // Both targets sit side by side; whichever fits the current selection is the
-  // green one, so there is always one obvious button to press.
+  // Both pills offer the same two targets; whichever fits the current
+  // selection is the lit one, so there is always one obvious button.
   $('exportSel').disabled = !n || busy;
   $('exportSel').textContent = '⬇ ' + n + ' Selected';
   $('exportSel').classList.toggle('go', !!n && !busy);
   $('exportAll').disabled = !songs.length || busy;
   $('exportAll').textContent = '⬇ ALL';
   $('exportAll').classList.toggle('go', !n && !!songs.length && !busy);
-  $('selAll').textContent = (shown > 0 && n === shown) ? 'Select none' : 'Select all';
-  $('selAll').disabled = !shown;
-  if (!$('removeSel').classList.contains('arm')) $('removeSel').textContent = '🗑 Remove selected' + (n ? ' · ' + n : '');
-  $('removeSel').disabled = !n || busy;
-  if (!n) disarmRemove();
+  if (armed === 'sel' && !n) armed = null;
+  labelRemove();
 }
 function renderList() {
   disarmRemove();
@@ -3072,11 +3070,13 @@ function placeLogo() {
     h.style.left = h.style.right = h.style.height = h.style.visibility = '';
     return;
   }
-  const left = $('q').getBoundingClientRect().right + 14;
-  // On the right only the shared nav badge is parked, so keep clear of that.
-  const right = 96;
-  h.style.left = Math.round(left) + 'px';
-  h.style.right = Math.round(right) + 'px';
+  // Equal insets on both sides keep the logo centred on the WINDOW, and the
+  // larger of the two reserved zones (search field left, nav badge right)
+  // decides how much room it may take.
+  const pad = Math.round(Math.max($('q').getBoundingClientRect().right + 14, 96));
+  const left = pad, right = pad;
+  h.style.left = left + 'px';
+  h.style.right = right + 'px';
   // Never reach down into the table: the band ends where the queue begins.
   h.style.height = Math.max(38, Math.round(document.querySelector('.tableWrap').getBoundingClientRect().top) - 2) + 'px';
   h.style.visibility = (innerWidth - left - right) < 170 ? 'hidden' : '';
@@ -3107,31 +3107,37 @@ document.addEventListener('click', e => {
   if (!$('advPop').contains(e.target) && e.target !== $('advBtn') && !$('advBtn').contains(e.target)) $('advPop').classList.remove('on');
   if (!$('logPop').contains(e.target) && e.target !== $('lastMsg')) $('logPop').classList.remove('on');
 });
-// Throwing songs out is one click away, so it asks once before it acts.
-// The armed state falls back on its own if the click was a slip.
+// Throwing songs out is one click away, so each half asks once before it
+// acts. The armed state falls back on its own if the click was a slip.
 let clrT = 0;
+function labelRemove() {
+  const n = ticked.size;
+  $('removeSel').textContent = armed === 'sel' ? '🗑 Sure?' : '🗑 ' + n + ' Selected';
+  $('removeAll').textContent = armed === 'all' ? '🗑 Sure?' : '🗑 ALL';
+  $('removeSel').classList.toggle('arm', armed === 'sel');
+  $('removeAll').classList.toggle('arm', armed === 'all');
+  $('removeSel').disabled = !n || busy;
+  $('removeAll').disabled = !songs.length || busy;
+}
 function disarmRemove() {
   clearTimeout(clrT);
-  const b = $('removeSel');
-  b.classList.remove('arm');
-  b.textContent = '🗑 Remove selected' + (ticked.size ? ' · ' + ticked.size : '');
+  armed = null;
+  labelRemove();
 }
-$('selAll').onclick = selectAll;
-$('removeSel').onclick = () => {
-  if (!ticked.size) return;
-  const b = $('removeSel');
-  if (!b.classList.contains('arm')) {
-    b.classList.add('arm');
-    b.textContent = '🗑 Remove ' + ticked.size + (ticked.size === 1 ? ' song?' : ' songs?');
+function askRemove(which, list) {
+  if (!list.length || busy) return;
+  if (armed !== which) {
+    clearTimeout(clrT);
+    armed = which;
+    labelRemove();
     clrT = setTimeout(disarmRemove, 5000);
     return;
   }
   stopPB();
-  const gone = new Set(ticked);
+  const gone = new Set(list);
   const openSong = songs[cur];
   songs = songs.filter(s => !gone.has(s));
-  for (const s of gone) { const li = lru.indexOf(s); if (li >= 0) lru.splice(li, 1); }
-  ticked.clear();
+  for (const s of gone) { const li = lru.indexOf(s); if (li >= 0) lru.splice(li, 1); ticked.delete(s); }
   selAnchor = -1;
   cur = gone.has(openSong) ? -1 : songs.indexOf(openSong);
   if (!songs.length) {
@@ -3144,7 +3150,9 @@ $('removeSel').onclick = () => {
   }
   disarmRemove();
   renderList();
-};
+}
+$('removeSel').onclick = () => askRemove('sel', songs.filter(s => ticked.has(s)));
+$('removeAll').onclick = () => askRemove('all', songs.slice());
 
 // ---------- waveform ----------
 function draw() {
