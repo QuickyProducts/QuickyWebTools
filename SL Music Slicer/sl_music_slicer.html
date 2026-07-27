@@ -1524,6 +1524,7 @@ body:has(#editor:not(.hidden)) #queuePanel{position:static;max-height:100%}
 body:has(#editor:not(.hidden)) #rightCol{min-height:0}
 body:has(#editor:not(.hidden)) #editor{flex:1 1 auto;min-height:0;overflow-y:auto;padding-right:2px}
 body:has(#editor:not(.hidden)) #exportPanel{flex-shrink:0}
+body:has(#editor:not(.hidden)) #logPanel{flex-shrink:0}
 body:has(#editor:not(.hidden)) .slt-footer{flex-shrink:0}
 }
 @keyframes hue{to{background-position:300% 0}}
@@ -1535,7 +1536,7 @@ main{display:grid;grid-template-columns:300px 1fr;gap:16px;padding:18px 24px 40p
 main:has(#editor.hidden){grid-template-columns:1fr;max-width:520px}
 main:has(#editor.hidden) #queuePanel{position:static;max-height:none}
 /* Start state: no songs loaded yet, so exporting makes no sense */
-main:has(#editor.hidden) #exportPanel,main:has(#editor.hidden) .secHead{display:none}
+main:has(#editor.hidden) #exportPanel,main:has(#editor.hidden) #logPanel,main:has(#editor.hidden) .secHead{display:none}
 @media(max-width:980px){main{grid-template-columns:1fr}#queuePanel{position:static;max-height:none}#songList{max-height:50vh}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
 /* The whole queue column sticks and is capped to the viewport; the song list
@@ -1571,6 +1572,8 @@ main:has(#editor:not(.hidden)) #drop.over{box-shadow:inset 0 0 20px rgba(255,60,
 .badge.done{background:rgba(0,229,160,.16);color:var(--good);box-shadow:0 0 12px rgba(0,229,160,.25)}
 #editor{display:flex;flex-direction:column;gap:14px;min-width:0}
 #rightCol{min-width:0;display:flex;flex-direction:column;gap:14px}
+/* The log only earns its space once it has something to say. */
+#logPanel:has(#log:empty){display:none}
 #exportPanel{display:flex;flex-direction:column;gap:10px}
 #exportBar{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 #exportBar #exportAll{flex:1 1 auto}
@@ -2025,11 +2028,6 @@ body{animation:slt-page-in .28s ease-out both}
   <div id="rightCol">
   <div id="editor" class="hidden">
     <div class="panel">
-      <div class="row">
-        <input type="text" id="title" spellcheck="false" maxlength="52" placeholder="Song title, e.g. Haddaway - What Is Love (Extended)">
-      </div>
-    </div>
-    <div class="panel">
       <div id="waveWrap"><canvas id="wave"></canvas><div id="waveInfo"></div></div>
       <div class="row" style="margin-top:12px">
         <button id="play" class="primary" style="width:96px">▶ Play</button>
@@ -2048,9 +2046,12 @@ body{animation:slt-page-in .28s ease-out both}
         <button id="slenRst" title="back to the default length" style="padding:4px 10px">↺</button>
       </div>
     </div>
-    <div class="panel"><div id="log"></div></div>
   </div>
   <div class="panel" id="exportPanel">
+    <div class="secHead">Song title</div>
+    <div class="row">
+      <input type="text" id="title" spellcheck="false" maxlength="52" placeholder="Song title, e.g. Haddaway - What Is Love (Extended)">
+    </div>
     <div class="secHead">Export</div>
     <div id="exportBar">
       <label id="flatZipRow" class="swRow" title="Off: every song gets its own folder inside the ZIP. On: all clips sit at the top level - handy for bulk-uploading everything in one go.">
@@ -2084,6 +2085,7 @@ body{animation:slt-page-in .28s ease-out both}
       </div>
     </div>
   </div>
+  <div class="panel" id="logPanel"><div id="log"></div></div>
   </div>
 </main>
 <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
