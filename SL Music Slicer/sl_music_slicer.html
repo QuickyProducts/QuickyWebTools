@@ -1528,7 +1528,8 @@ body.work header{
   display:flex;align-items:center;justify-content:center;overflow:hidden;
   pointer-events:none;z-index:6;
 }
-body.work header h1{font-size:clamp(20px,2.7vw,42px);line-height:1;white-space:nowrap}
+/* line-height 1 would cut the descender of the y off against the table. */
+body.work header h1{font-size:clamp(18px,2.4vw,36px);line-height:1.2;white-space:nowrap}
 body.work header .title-row{margin-top:0;gap:16px}
 body.work .eq{height:26px}
 /* Work mode is a fixed app screen: toolbar, table, editor dock and action
@@ -2096,10 +2097,9 @@ body{animation:slt-page-in .28s ease-out both}
   <input type="file" id="fileIn" accept="audio/*,.mp3,.wav,.flac,.ogg,.oga,.m4a,.aac,.opus" multiple hidden>
 
   <div id="bar">
+    <button id="addBtn" class="primary">＋ Add songs</button>
     <input type="search" id="q" placeholder="Search the queue…">
     <span class="grow"></span>
-    <span class="stat" id="stat"></span>
-    <button id="addBtn" class="primary">＋ Add songs</button>
   </div>
 
   <div class="tableWrap">
@@ -2773,6 +2773,8 @@ function pumpWarm() {
       warming = false;
       const c = tr.querySelector('canvas');
       if (c && c.isConnected) drawMini(c, s);
+      // Length and clip count were unknown until now, so fill them in.
+      syncSongRow(s);
       if (songs[cur] === s) updateInfo();
       pumpWarm();
     }).catch(() => { warming = false; pumpWarm(); });
@@ -2996,10 +2998,6 @@ function renderList() {
       cell.appendChild($('dock'));
     }
   }
-  const done = songs.filter(s => s.status === 'done').length;
-  $('stat').innerHTML = songs.length
-    ? '<b>' + songs.length + '</b> songs · <b>' + done + '</b> exported' + (rows.length !== songs.length ? ' · <b>' + rows.length + '</b> shown' : '')
-    : '';
   paintSel();
   queueSoon();
   placeLogo();
@@ -3015,11 +3013,11 @@ function syncRow() {
     if (inp) inp.value = SET[cell.dataset.k].res(s);
     paintSet(cell, s);
   }
-  tr.children[8].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
-  tr.children[9].textContent = s.dur ? clipsOf(s) : '·';
+  tr.children[7].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
+  tr.children[8].textContent = s.dur ? clipsOf(s) : '·';
   const st = stateOf(s);
-  tr.children[10].firstChild.className = 'badge ' + st;
-  tr.children[10].firstChild.textContent = stateLabel(st);
+  tr.children[9].firstChild.className = 'badge ' + st;
+  tr.children[9].firstChild.textContent = stateLabel(st);
 }
 function closeRow() {
   stopPB();
@@ -3075,7 +3073,8 @@ function placeLogo() {
     return;
   }
   const left = $('q').getBoundingClientRect().right + 14;
-  const right = innerWidth - $('stat').getBoundingClientRect().left + 14;
+  // On the right only the shared nav badge is parked, so keep clear of that.
+  const right = 96;
   h.style.left = Math.round(left) + 'px';
   h.style.right = Math.round(right) + 'px';
   // Never reach down into the table: the band ends where the queue begins.
@@ -3665,11 +3664,11 @@ addEventListener('pageshow', () => {
 function syncSongRow(s) {
   const tr = $('rows').querySelector('tr[data-i="' + songs.indexOf(s) + '"]');
   if (!tr) return;
-  tr.children[8].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
-  tr.children[9].textContent = s.dur ? clipsOf(s) : '·';
+  tr.children[7].textContent = s.dur ? fmtMS(s.trimE - s.trimS) : '…';
+  tr.children[8].textContent = s.dur ? clipsOf(s) : '·';
   const st = stateOf(s);
-  tr.children[10].firstChild.className = 'badge ' + st;
-  tr.children[10].firstChild.textContent = stateLabel(st);
+  tr.children[9].firstChild.className = 'badge ' + st;
+  tr.children[9].firstChild.textContent = stateLabel(st);
 }
 async function exportMany(list, btn) {
   if (!list.length || busy) return;
