@@ -1525,11 +1525,10 @@ body.work header .tagline,body.work header .lede{display:none}
    around. It never takes a click - that would block the rows underneath. */
 body.work header{
   position:absolute;top:0;left:0;right:0;margin:0;padding:0;max-width:none;
-  height:92px;display:flex;align-items:center;justify-content:center;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;
   pointer-events:none;z-index:6;
 }
-body.work header{overflow:hidden}
-body.work header h1{font-size:clamp(20px,2.7vw,42px);white-space:nowrap}
+body.work header h1{font-size:clamp(20px,2.7vw,42px);line-height:1;white-space:nowrap}
 body.work header .title-row{margin-top:0;gap:16px}
 body.work .eq{height:26px}
 /* Work mode is a fixed app screen: toolbar, table, editor dock and action
@@ -1614,6 +1613,7 @@ td.detCell #dock{border:0;border-radius:0;background:transparent;box-shadow:none
 .actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex-shrink:0}
 .actions .side{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:10px}
 .actions .side.right{justify-content:flex-end}
+.actions .mid{display:flex;align-items:center;gap:10px;flex-shrink:0}
 #advPop{position:fixed;left:20px;bottom:56px;width:min(720px,92vw);z-index:20;display:none}
 #logPop{position:fixed;right:20px;bottom:56px;width:min(560px,92vw);z-index:20;display:none}
 #advPop.on,#logPop.on{display:block}
@@ -2081,7 +2081,6 @@ body{animation:slt-page-in .28s ease-out both}
     <span class="grow"></span>
     <span class="stat" id="stat"></span>
     <button id="addBtn" class="primary">＋ Add songs</button>
-    <button id="clearAll" class="mini" title="Take every song out of the list. Your files on disk are not touched - only this queue is emptied.">✕ Clear list</button>
   </div>
 
   <div class="tableWrap">
@@ -2123,7 +2122,10 @@ body{animation:slt-page-in .28s ease-out both}
       <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
       <span class="stat" id="lastMsg" title="Click for the full log"></span>
     </div>
-    <button id="advBtn">⚙ Advanced</button>
+    <div class="mid">
+      <button id="advBtn">⚙ Advanced</button>
+      <button id="clearAll" title="Take every song out of the list. Your files on disk are not touched - only this queue is emptied.">🗑 Clear list</button>
+    </div>
     <div class="side right">
     <label id="flatZipRow" class="swRow" title="On: every song gets its own folder inside the ZIP. Off: all clips sit at the top level - handy for bulk-uploading everything in one go.">
       <span class="fz-txt"><b>Export in folders?</b></span>
@@ -2883,13 +2885,15 @@ $('tickAll').onclick = () => {
 function placeLogo() {
   const h = document.querySelector('header');
   if (!document.body.classList.contains('work') || innerWidth <= 980) {
-    h.style.left = h.style.right = h.style.visibility = '';
+    h.style.left = h.style.right = h.style.height = h.style.visibility = '';
     return;
   }
   const left = document.querySelector('.chips').getBoundingClientRect().right + 14;
   const right = innerWidth - $('stat').getBoundingClientRect().left + 14;
   h.style.left = Math.round(left) + 'px';
   h.style.right = Math.round(right) + 'px';
+  // Never reach down into the table: the band ends where the queue begins.
+  h.style.height = Math.max(38, Math.round(document.querySelector('.tableWrap').getBoundingClientRect().top) - 2) + 'px';
   h.style.visibility = (innerWidth - left - right) < 170 ? 'hidden' : '';
 }
 addEventListener('resize', placeLogo);
@@ -2908,14 +2912,14 @@ function disarmClear() {
   clearTimeout(clrT);
   const b = $('clearAll');
   b.classList.remove('arm');
-  b.textContent = '✕ Clear list';
+  b.textContent = '🗑 Clear list';
 }
 $('clearAll').onclick = () => {
   if (!songs.length) return;
   const b = $('clearAll');
   if (!b.classList.contains('arm')) {
     b.classList.add('arm');
-    b.textContent = '✕ Remove all ' + songs.length + ' songs?';
+    b.textContent = '🗑 Remove all ' + songs.length + ' songs?';
     clrT = setTimeout(disarmClear, 5000);
     return;
   }
