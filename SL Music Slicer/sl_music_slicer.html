@@ -2783,7 +2783,7 @@ function renderList() {
     const t = tr.children[2];
     t.textContent = s.title || '(untitled)';
     t.title = (s.file ? s.file.name : s.title) + '  ·  double-click to rename';
-    t.ondblclick = e => { e.stopPropagation(); startRename(i, t); };
+    t.ondblclick = e => { e.stopPropagation(); startRename(i); };
     const cb = tr.querySelector('input');
     cb.checked = ticked.has(s);
     // The whole cell is the target, not just the 14px box.
@@ -2793,8 +2793,10 @@ function renderList() {
       if (cb.checked) ticked.add(s); else ticked.delete(s);
       paintSel();
     };
-    tr.children[8].onclick = e => { e.stopPropagation(); removeSong(i); };
-    tr.onclick = () => { if (i === cur) closeRow(); else open(i); };
+    tr.children[8].onclick = e => { e.stopPropagation(); if (e.detail > 1) return; removeSong(i); };
+    // The second click of a double-click must not toggle the row shut, or the
+    // rename would fight the table rebuild it just triggered.
+    tr.onclick = e => { if (e.detail > 1) return; if (i === cur) closeRow(); else open(i); };
     box.appendChild(tr);
     drawMini(tr.querySelector('canvas'), s);
     if (i === cur) {
@@ -2840,14 +2842,15 @@ function closeRow() {
 }
 // Renaming happens in the row itself: the one #title input moves into the
 // title cell and back out again, so the editor never repeats the song name.
-function startRename(i, cell) {
-  if (cur !== i) {
-    // open() rebuilds the table, so the cell handed in here is gone by now.
-    open(i);
-    cell = $('rows').querySelector('tr.active td.t');
-    if (!cell) return;
-  }
+function startRename(i) {
+  if (cur !== i) open(i);
+  // Always take the cell that is on screen RIGHT NOW: opening the row rebuilds
+  // the table, and the double-click itself is delivered to the node that was
+  // under the pointer before that rebuild, which is already detached.
+  const cell = $('rows').querySelector('tr.active td.t');
   const inp = $('title');
+  if (!cell) return;
+  if (!inp) { log('⚠ The rename field is missing, please reload the page', true); return; }
   cell.textContent = '';
   cell.appendChild(inp);
   inp.value = songs[i].title;
@@ -2857,7 +2860,7 @@ function startRename(i, cell) {
 function endRename() {
   const inp = $('title');
   const home = document.querySelector('main');
-  if (inp.parentElement === home) return;
+  if (!inp || inp.parentElement === home) return;
   home.appendChild(inp);
   renderList();
 }
