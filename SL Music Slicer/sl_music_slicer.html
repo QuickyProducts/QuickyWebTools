@@ -1581,6 +1581,8 @@ thead th.sorted{color:var(--txt)}
 thead th.sorted .ar{opacity:1;color:var(--acc1)}
 tbody td{padding:0 8px;height:34px;border-bottom:1px solid rgba(255,255,255,.05);white-space:nowrap}
 tbody tr{cursor:pointer}
+/* Dragging across rows must sweep the selection, not smear text over it. */
+#rows{user-select:none;-webkit-user-select:none}
 tbody tr:hover td{background:rgba(255,255,255,.035)}
 /* Selected rows carry a soft tint, the row whose editor is open a stronger
    one - both can be true at the same time. */
@@ -2145,7 +2147,7 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div class="actions">
     <div class="side">
-      <span class="stat" id="selInfo" title="Selected songs / songs the filter is showing">0/0</span>
+      <span class="stat" id="selInfo" title="Selected songs / songs the filter is showing. Click a row to select it, click it again to remove it, or drag across several.">0/0</span>
       <button id="selAll" class="mini" title="Select or deselect everything the filter is showing (Ctrl+A)">Select all</button>
       <button id="removeSel" class="danger" disabled title="Take the selected songs out of the list. Your files on disk are not touched.">🗑 Remove selected</button>
       <div id="progress"><div id="pbar"><div></div></div><span id="ptxt"></span></div>
@@ -2856,31 +2858,53 @@ function repaintSets() {
     }
   }
 }
-// Rows are selected by clicking them: plain click picks one, Ctrl adds or
-// removes, Shift takes everything between the last pick and this one.
-let selAnchor = -1;
+// Every click adds one more song to the selection and clicking it again takes
+// it back out - no modifier needed. Shift still grabs a whole range, and
+// dragging across rows sweeps them up as you go.
+let selAnchor = -1, dragSel = null, skipClick = false;
 function pickRow(s, i, e) {
+  if (skipClick) { skipClick = false; return; }
   const rows = viewRows();
   const pos = rows.findIndex(o => o.i === i);
   if (e.shiftKey && selAnchor >= 0) {
     const a = rows.findIndex(o => o.i === selAnchor);
     if (a >= 0) {
-      ticked.clear();
       const lo = Math.min(a, pos), hi = Math.max(a, pos);
       for (let k = lo; k <= hi; k++) ticked.add(rows[k].s);
     }
-  } else if (e.ctrlKey || e.metaKey) {
+  } else {
     if (ticked.has(s)) ticked.delete(s); else ticked.add(s);
     selAnchor = i;
-  } else {
-    const onlyThis = ticked.size === 1 && ticked.has(s);
-    ticked.clear();
-    if (!onlyThis) ticked.add(s);
-    selAnchor = onlyThis ? -1 : i;
   }
   paintRowSel();
   paintSel();
 }
+// Press on a row and drag: everything the pointer passes joins the selection.
+function dragStart(s, i, e) {
+  if (e.button !== 0) return;
+  if (e.target.closest('button, input, select, td.wv')) return;
+  dragSel = { start: i, base: new Set(ticked), moved: false };
+}
+function dragOver(i) {
+  if (!dragSel) return;
+  const rows = viewRows();
+  const a = rows.findIndex(o => o.i === dragSel.start);
+  const b = rows.findIndex(o => o.i === i);
+  if (a < 0 || b < 0) return;
+  if (a !== b) dragSel.moved = true;
+  ticked.clear();
+  for (const x of dragSel.base) ticked.add(x);
+  const lo = Math.min(a, b), hi = Math.max(a, b);
+  for (let k = lo; k <= hi; k++) ticked.add(rows[k].s);
+  selAnchor = i;
+  paintRowSel();
+  paintSel();
+}
+addEventListener('mouseup', () => {
+  if (!dragSel) return;
+  skipClick = dragSel.moved;
+  dragSel = null;
+});
 function paintRowSel() {
   for (const tr of Array.from($('rows').children)) {
     if (tr.className.indexOf('det') !== -1) continue;
@@ -2958,6 +2982,8 @@ function renderList() {
     };
     tr.children[10].onclick = e => { e.stopPropagation(); if (e.detail > 1) return; exportSingle(s, e.target); };
     tr.onclick = e => { if (e.detail > 1) return; pickRow(s, i, e); };
+    tr.onmousedown = e => dragStart(s, i, e);
+    tr.onmouseover = () => dragOver(i);
     box.appendChild(tr);
     drawMini(tr.querySelector('canvas'), s);
     if (i === cur) {
