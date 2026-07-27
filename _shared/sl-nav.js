@@ -100,16 +100,13 @@
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
 
-  // Mouse-follow glow layer. Purely decorative: skipped for
-  // reduced-motion users and coarse (touch) pointers.
+  // Mouse-follow glow layer. Purely decorative: skipped on coarse (touch)
+  // pointers, where there is no cursor to follow.
   function mountGlow() {
     if (!document.body.classList.contains('slt-themed')) return;
-    var noMotion = false, coarse = false;
-    try {
-      noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      coarse = window.matchMedia('(pointer: coarse)').matches;
-    } catch (e) {}
-    if (noMotion || coarse) return;
+    var coarse = false;
+    try { coarse = window.matchMedia('(pointer: coarse)').matches; } catch (e) {}
+    if (coarse) return;
     var glow = document.createElement('div');
     glow.className = 'slt-glow';
     glow.setAttribute('aria-hidden', 'true');

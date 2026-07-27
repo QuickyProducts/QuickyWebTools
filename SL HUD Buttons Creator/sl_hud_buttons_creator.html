@@ -30,7 +30,6 @@
      - frosted-glass panels (backdrop blur + 1px light edge + 18px radius)
      - animated pink→purple→cyan gradient headlines
      - system font stack - no embedded webfonts, maximum readability
-     - full prefers-reduced-motion support
 
    The selector contract from v1 is preserved verbatim: every class,
    element rule, and CSS custom property keeps its old name so all
@@ -1463,22 +1462,12 @@ body.slt-themed .mode-btn {
 
 
 /* =====================================================================
-   Motion accessibility - kill every animation/transition for users who
-   ask for reduced motion. The aurora blobs freeze in place, the title
-   gradient stops cycling, panels appear instantly.
+   Motion. The blanket prefers-reduced-motion switch that used to sit here
+   was removed on the author's request: it silenced every animation in
+   every tool, including ones that carry information rather than decoration
+   (a progress fill, for one), and there was no way to keep those alive.
+   The motion here is slow and small by design, so nothing races.
    ===================================================================== */
-@media (prefers-reduced-motion: reduce) {
-  body.slt-themed *,
-  body.slt-themed *::before,
-  body.slt-themed *::after,
-  body.slt-themed::before,
-  body.slt-themed::after {
-    animation: none !important;
-    transition: none !important;
-  }
-  body.slt-themed { animation: none !important; opacity: 1 !important; }
-  .slt-glow { display: none !important; }
-}
 
 </style>
 <!-- SHARED-CSS:END -->
@@ -1658,16 +1647,13 @@ body.slt-themed .mode-btn {
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
 
-  // Mouse-follow glow layer. Purely decorative: skipped for
-  // reduced-motion users and coarse (touch) pointers.
+  // Mouse-follow glow layer. Purely decorative: skipped on coarse (touch)
+  // pointers, where there is no cursor to follow.
   function mountGlow() {
     if (!document.body.classList.contains('slt-themed')) return;
-    var noMotion = false, coarse = false;
-    try {
-      noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      coarse = window.matchMedia('(pointer: coarse)').matches;
-    } catch (e) {}
-    if (noMotion || coarse) return;
+    var coarse = false;
+    try { coarse = window.matchMedia('(pointer: coarse)').matches; } catch (e) {}
+    if (coarse) return;
     var glow = document.createElement('div');
     glow.className = 'slt-glow';
     glow.setAttribute('aria-hidden', 'true');

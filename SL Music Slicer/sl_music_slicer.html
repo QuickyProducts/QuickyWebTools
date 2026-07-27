@@ -28,7 +28,6 @@
      - frosted-glass panels (backdrop blur + 1px light edge + 18px radius)
      - animated pink→purple→cyan gradient headlines
      - system font stack - no embedded webfonts, maximum readability
-     - full prefers-reduced-motion support
 
    The selector contract from v1 is preserved verbatim: every class,
    element rule, and CSS custom property keeps its old name so all
@@ -1461,22 +1460,12 @@ body.slt-themed .mode-btn {
 
 
 /* =====================================================================
-   Motion accessibility - kill every animation/transition for users who
-   ask for reduced motion. The aurora blobs freeze in place, the title
-   gradient stops cycling, panels appear instantly.
+   Motion. The blanket prefers-reduced-motion switch that used to sit here
+   was removed on the author's request: it silenced every animation in
+   every tool, including ones that carry information rather than decoration
+   (a progress fill, for one), and there was no way to keep those alive.
+   The motion here is slow and small by design, so nothing races.
    ===================================================================== */
-@media (prefers-reduced-motion: reduce) {
-  body.slt-themed *,
-  body.slt-themed *::before,
-  body.slt-themed *::after,
-  body.slt-themed::before,
-  body.slt-themed::after {
-    animation: none !important;
-    transition: none !important;
-  }
-  body.slt-themed { animation: none !important; opacity: 1 !important; }
-  .slt-glow { display: none !important; }
-}
 
 </style>
 <!-- SHARED-CSS:END -->
@@ -1644,10 +1633,8 @@ tbody tr.run .fill{
   display:block;position:absolute;left:0;top:0;bottom:0;width:0;z-index:-1;pointer-events:none;
   background:linear-gradient(90deg,rgba(43,210,255,.22),rgba(255,60,172,.24));
   box-shadow:inset -1px 0 0 rgba(255,255,255,.45),0 0 14px rgba(255,60,172,.3);
-  /* The shared stylesheet stops every animation under reduced motion. This one
-     is not decoration, it is the only display of how far the song has got, so
-     it overrides that on purpose. */
-  animation:rowrun var(--dur,30s) var(--delay,0s) linear forwards !important;
+  /* Length and start offset arrive as custom properties, set per row. */
+  animation:rowrun var(--dur,30s) var(--delay,0s) linear forwards;
 }
 /* Two bands of light drift through the fill at different speeds. They are
    repeating gradients that start and end on the same transparent stop and are
@@ -1657,7 +1644,7 @@ tbody tr.run .fill::after{
   background:
     repeating-linear-gradient(90deg,rgba(255,255,255,0) 0 34px,rgba(255,255,255,.11) 60px,rgba(255,255,255,0) 120px),
     repeating-linear-gradient(90deg,rgba(43,210,255,0) 0 52px,rgba(43,210,255,.13) 100px,rgba(43,210,255,0) 180px);
-  animation:rowflow 3.4s linear infinite !important;
+  animation:rowflow 3.4s linear infinite;
 }
 input[type=checkbox]{accent-color:var(--acc1);width:14px;height:14px;cursor:pointer;vertical-align:middle}
 .secHead{display:flex;align-items:baseline;gap:8px;font-size:10px;font-weight:800;letter-spacing:2.5px;text-transform:uppercase;color:var(--dim);margin:2px 2px -6px;flex-shrink:0}
@@ -1926,16 +1913,13 @@ body{animation:slt-page-in .28s ease-out both}
   // tools, and adds one decorative extra: a subtle mouse-follow glow.
   // ---------------------------------------------------------------------
 
-  // Mouse-follow glow layer. Purely decorative: skipped for
-  // reduced-motion users and coarse (touch) pointers.
+  // Mouse-follow glow layer. Purely decorative: skipped on coarse (touch)
+  // pointers, where there is no cursor to follow.
   function mountGlow() {
     if (!document.body.classList.contains('slt-themed')) return;
-    var noMotion = false, coarse = false;
-    try {
-      noMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      coarse = window.matchMedia('(pointer: coarse)').matches;
-    } catch (e) {}
-    if (noMotion || coarse) return;
+    var coarse = false;
+    try { coarse = window.matchMedia('(pointer: coarse)').matches; } catch (e) {}
+    if (coarse) return;
     var glow = document.createElement('div');
     glow.className = 'slt-glow';
     glow.setAttribute('aria-hidden', 'true');
@@ -3534,9 +3518,7 @@ function paintRun() {
   if (tr.classList.contains('run')) return;
   const fill = tr.querySelector('.fill');
   if (fill) {
-    // Custom properties, not animationDuration: the rule itself is !important
-    // (see the CSS) and an inline plain declaration would lose against it.
-    fill.style.setProperty('--dur', (pb.end - pb.pos0).toFixed(2) + 's');
+    fill.style.setProperty('--dur',(pb.end - pb.pos0).toFixed(2) + 's');
     fill.style.setProperty('--delay', '-' + Math.max(0, ctx().currentTime - pb.at0).toFixed(2) + 's');
   }
   tr.classList.add('run');
