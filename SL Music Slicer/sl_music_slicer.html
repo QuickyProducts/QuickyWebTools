@@ -1589,8 +1589,6 @@ tbody tr.active td:first-child{box-shadow:inset 3px 0 0 var(--acc3)}
 tbody tr.dup td{background:rgba(255,84,112,.13)}
 td.wv{cursor:zoom-in}
 tbody tr.active td.wv{cursor:zoom-out}
-button.solo{padding:2px 7px;font-size:12px;border-radius:8px;color:var(--dim);background:rgba(255,255,255,.05);box-shadow:none}
-button.solo:hover:not(:disabled){color:var(--good);border-color:var(--good);box-shadow:0 3px 14px rgba(0,229,160,.25)}
 /* Export offers both targets side by side; the one that fits the current
    selection is the green one. */
 .expLbl{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--dim)}
@@ -2134,7 +2132,6 @@ body{animation:slt-page-in .28s ease-out both}
         <th class="n" data-s="len">Length<i class="ar">▼</i></th>
         <th class="n" data-s="clips">Clips<i class="ar">▼</i></th>
         <th data-s="status">Status<i class="ar">▼</i></th>
-        <th style="width:44px"></th>
       </tr></thead>
       <tbody id="rows"></tbody>
     </table>
@@ -2996,8 +2993,7 @@ function renderList() {
       '<td class="wv" title="Open this song in the editor"><canvas></canvas></td>' +
       '<td class="n">' + (s.dur ? fmtMS(s.trimE - s.trimS) : '…') + '</td>' +
       '<td class="n">' + (s.dur ? clipsOf(s) : '·') + '</td>' +
-      '<td><span class="badge ' + st + '">' + stateLabel(st) + '</span></td>' +
-      '<td><button class="solo" title="Export just this song as a ZIP">⬇</button></td>';
+      '<td><span class="badge ' + st + '">' + stateLabel(st) + '</span></td>';
     if (advOn) for (const cell of tr.querySelectorAll('td.set')) buildSet(cell, s);
     const t = tr.children[1];
     t.textContent = s.title || '(untitled)';
@@ -3008,12 +3004,6 @@ function renderList() {
       e.stopPropagation();
       if (e.detail > 1) return;
       if (i === cur) closeRow(); else open(i);
-    };
-    tr.children[10].onclick = e => {
-      e.stopPropagation();
-      if (e.detail > 1) return;
-      if (busy) return stopExport();
-      exportSingle(s, e.target);
     };
     tr.onclick = e => { if (e.detail > 1) return; pickRow(s, i, e); };
     tr.onmousedown = e => dragStart(s, i, e);
@@ -3031,7 +3021,7 @@ function renderList() {
       det.className = 'det';
       const cell = document.createElement('td');
       cell.className = 'detCell';
-      cell.colSpan = 12;
+      cell.colSpan = 10;
       det.appendChild(cell);
       box.appendChild(det);
       cell.appendChild($('dock'));
@@ -3750,7 +3740,7 @@ function armCancel(btn) {
   cancelBtn = btn || null;
   if (!cancelBtn) return;
   cancelBtn.dataset.label = cancelBtn.textContent;
-  cancelBtn.textContent = cancelBtn.classList.contains('solo') ? '✕' : '✕ Cancel';
+  cancelBtn.textContent = '✕ Cancel';
   cancelBtn.classList.add('cancel');
   cancelBtn.disabled = false;
 }
@@ -3765,7 +3755,7 @@ function disarmCancel() {
 function stopExport() {
   if (!busy) return;
   cancelReq = true;
-  if (cancelBtn) cancelBtn.textContent = cancelBtn.classList.contains('solo') ? '…' : '… stopping';
+  if (cancelBtn) cancelBtn.textContent = '… stopping';
 }
 // One batch run for both buttons: everything, or just the ticked rows.
 function syncSongRow(s) {
