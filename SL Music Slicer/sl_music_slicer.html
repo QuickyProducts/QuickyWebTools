@@ -2879,11 +2879,12 @@ function pickRow(s, i, e) {
   paintRowSel();
   paintSel();
 }
-// Press on a row and drag: everything the pointer passes joins the selection.
+// Press on a row and drag: everything the pointer passes joins the selection -
+// or leaves it, if the row you started on was already selected.
 function dragStart(s, i, e) {
   if (e.button !== 0) return;
   if (e.target.closest('button, input, select, td.wv')) return;
-  dragSel = { start: i, base: new Set(ticked), moved: false };
+  dragSel = { start: i, base: new Set(ticked), add: !ticked.has(s), moved: false };
 }
 function dragOver(i) {
   if (!dragSel) return;
@@ -2895,7 +2896,9 @@ function dragOver(i) {
   ticked.clear();
   for (const x of dragSel.base) ticked.add(x);
   const lo = Math.min(a, b), hi = Math.max(a, b);
-  for (let k = lo; k <= hi; k++) ticked.add(rows[k].s);
+  for (let k = lo; k <= hi; k++) {
+    if (dragSel.add) ticked.add(rows[k].s); else ticked.delete(rows[k].s);
+  }
   selAnchor = i;
   paintRowSel();
   paintSel();
