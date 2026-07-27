@@ -1722,7 +1722,10 @@ th.advCol,td.advCol{width:108px}
 .badge{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--dim)}
 .badge.done{background:rgba(0,229,160,.16);color:var(--good);box-shadow:0 0 12px rgba(0,229,160,.25)}
 .badge.edited{background:rgba(255,184,77,.16);color:var(--warn)}
-#advBody{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:0 14px}
+/* One row per setting. Two columns fit the box but not the wording: every
+   label broke over two lines and the value below it ended up squeezed under
+   the slider. Full width, name left, slider right, nothing wraps. */
+#advBody{display:block}
 #drop.hidden{display:none}
 .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 input[type=text]{background:rgba(0,0,0,.35);border:1px solid var(--edge);border-radius:11px;color:var(--txt);padding:9px 12px;font-size:14px;transition:border-color .15s,box-shadow .15s}
@@ -1799,7 +1802,9 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 #advBox:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
 #advBox:has(#adv:checked){border-color:rgba(255,60,172,.35)}
 #advBox .swRow,#advBox .swRow:hover,#advBox .swRow:has(input:checked){border:none;background:transparent;box-shadow:none}
-#advBox #bassRow,#advBox #loudRow,#advBox #fadeRow{border:none;border-top:1px solid var(--edge);border-radius:0;background:transparent;margin-top:0}
+/* Inside the box the rows lose their own frame, so they also lose its inset -
+   name, value and the switch below all start on the same line. */
+#advBox #bassRow,#advBox #loudRow,#advBox #fadeRow{border:none;border-top:1px solid var(--edge);border-radius:0;background:transparent;margin-top:0;padding:9px 4px}
 #advBox #bassRow:hover,#advBox #loudRow:hover,#advBox #fadeRow:hover{box-shadow:none}
 #advBox .on .fz-txt small{color:var(--acc2)}
 /* The ZIP toggle is an option OF export, not a sibling of the song rows:
@@ -1815,7 +1820,8 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 #bassRow .fz-txt,#loudRow .fz-txt,#fadeRow .fz-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
 #bassRow .fz-txt b,#loudRow .fz-txt b,#fadeRow .fz-txt b{font-size:12.5px;font-weight:600;color:var(--txt)}
 #bassRow .fz-txt small,#loudRow .fz-txt small,#fadeRow .fz-txt small{font-size:10.5px;color:var(--dim)}
-#bassRow input[type=range],#loudRow input[type=range],#fadeRow input[type=range]{flex:0 0 120px;width:120px;accent-color:var(--acc2)}
+#bassRow input[type=range],#loudRow input[type=range],#fadeRow input[type=range]{flex:0 0 180px;width:180px;accent-color:var(--acc2)}
+#bassRow .fz-txt,#loudRow .fz-txt,#fadeRow .fz-txt{white-space:nowrap}
 /* Unified tool footer (local copy - this tool doesn't use slt-themed) */
 .slt-footer{position:relative;z-index:1;text-align:center;margin:38px auto 14px;font-size:11.5px;letter-spacing:.3px;color:var(--dim)}
 .slt-footer a{color:var(--acc1);text-decoration:none}
@@ -2240,15 +2246,15 @@ body{animation:slt-page-in .28s ease-out both}
       <div class="secHead">Global settings<span class="cnt">apply to every song that has no value of its own</span></div>
       <div id="advBody">
         <label id="bassRow" title="Lifts everything below about 100 Hz before the loudness stage, so the clips end up with more weight at the same volume. Applies to preview and export alike.">
-          <span class="fz-txt"><b>Bass boost (Global)</b><small id="bassVal">off</small></span>
+          <span class="fz-txt"><b>Bass boost</b><small id="bassVal">off</small></span>
           <input type="range" autocomplete="off" id="bass" min="0" max="9" step="1" value="0">
         </label>
         <label id="loudRow" title="How loud the finished clips are mastered. Louder settings do not raise the peak, they squeeze the quiet parts up against the limiter, so the track gains presence and loses dynamics. Above about -9 the limiter starts working audibly on dense music.">
-          <span class="fz-txt"><b>Loudness (Global)</b><small id="loudVal">normal</small></span>
+          <span class="fz-txt"><b>Loudness</b><small id="loudVal">normal</small></span>
           <input type="range" autocomplete="off" id="loud" min="-12" max="-6" step="0.5" value="-10.5">
         </label>
         <label id="fadeRow" title="Every clip edge gets a short fade so the splice between clips never ticks. Longer is safer for harsh electronic material, shorter keeps attacks crisp. 3 ms is the tested default; 0 switches the protection off.">
-          <span class="fz-txt"><b>Edge fade (De-click)</b><small id="fadeVal">3 ms (default)</small></span>
+          <span class="fz-txt"><b>Edge fade</b><small id="fadeVal">3 ms (default)</small></span>
           <input type="range" autocomplete="off" id="declick" min="0" max="12" step="1" value="3">
         </label>
       </div>
