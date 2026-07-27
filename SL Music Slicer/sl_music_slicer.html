@@ -1487,7 +1487,9 @@ body.slt-themed .mode-btn {
   --wv-start:#00e5a0;--wv-end:#ff5470;--wv-play:#ffffff;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--txt);font:14px/1.5 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;min-height:100vh;overflow-x:hidden}
+/* overflow-x:clip, NOT hidden: hidden turns body into a scroll container and
+   silently kills every position:sticky on the page; clip only cuts overflow. */
+body{background:var(--bg);color:var(--txt);font:14px/1.5 "Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;min-height:100vh;overflow-x:clip}
 body::before,body::after{content:"";position:fixed;z-index:-1;border-radius:50%;filter:blur(110px);opacity:.45;pointer-events:none}
 body::before{width:55vw;height:55vw;background:radial-gradient(circle,#5b2ba8,transparent 65%);top:-18vw;left:-12vw;animation:drift 26s ease-in-out infinite alternate}
 body::after{width:46vw;height:46vw;background:radial-gradient(circle,#b41f7e,transparent 65%);bottom:-16vw;right:-10vw;animation:drift 30s -15s ease-in-out infinite alternate-reverse}
@@ -1521,12 +1523,13 @@ main:has(#editor.hidden) #flatZipRow,main:has(#editor.hidden) #advBox{display:no
 /* The whole queue column sticks and is capped to the viewport; the song list
    is the only part that shrinks and scrolls, so export and settings always
    stay in reach no matter how many songs are loaded. */
-#queuePanel{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:16px;max-height:calc(100vh - 32px);overflow-y:auto}
+#queuePanel{display:flex;flex-direction:column;gap:12px;align-self:start;position:sticky;top:16px;max-height:calc(100vh - 32px)}
+#queuePanel>*{flex-shrink:0}
 #drop{border:2px dashed rgba(255,255,255,.18);border-radius:18px;padding:24px 14px;text-align:center;color:var(--dim);cursor:pointer;transition:.2s;background:rgba(255,255,255,.02)}
 #drop::before{content:"🎧";display:block;font-size:28px;margin-bottom:8px;filter:drop-shadow(0 0 14px rgba(255,60,172,.65))}
 #drop b{color:var(--txt);display:block;margin-bottom:4px;font-size:15px}
 #drop.over,#drop:hover{border-color:var(--acc1);color:var(--txt);background:rgba(255,60,172,.07);box-shadow:inset 0 0 34px rgba(255,60,172,.12);transform:scale(1.01)}
-#songList{display:flex;flex-direction:column;gap:7px;flex:0 1 auto;min-height:60px;overflow-y:auto;padding-right:2px}
+#songList{display:flex;flex-direction:column;gap:7px;flex:0 1 auto;min-height:60px;max-height:50vh;overflow-y:auto;padding-right:2px}
 .song{display:flex;align-items:center;gap:8px;padding:9px 11px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);cursor:pointer;transition:transform .15s,border-color .15s,box-shadow .15s}
 .song:hover{border-color:rgba(255,255,255,.28);transform:translateX(3px)}
 .song.active{border:1px solid transparent;background:linear-gradient(rgba(32,18,62,.9),rgba(32,18,62,.9)) padding-box,linear-gradient(90deg,var(--acc1),var(--acc2),var(--acc3)) border-box;box-shadow:0 0 20px rgba(124,43,255,.3)}
