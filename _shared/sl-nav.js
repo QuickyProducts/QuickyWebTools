@@ -65,15 +65,6 @@
       wip: true,   // shown with an amber WIP badge in the nav
     },
     {
-      id: 'sl-hud',
-      name: 'HUD Buttons Creator',
-      subtitle: 'buttons grid → mesh',
-      folder: 'SL HUD Buttons Creator',
-      file: 'sl_hud_buttons_creator.html',
-      badge: 'HD',
-      wip: true,   // shown with an amber WIP badge in the nav
-    },
-    {
       id: 'alpha-maker',
       name: 'Alpha Maker',
       subtitle: 'body alpha mask painter',

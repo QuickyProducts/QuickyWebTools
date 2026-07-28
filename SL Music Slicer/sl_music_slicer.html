@@ -983,7 +983,7 @@ body.slt-themed .thumb.marked {
   outline-offset: 2px !important;
 }
 
-/* ---- Per-button list rows (HUD tool) ---------------------------------- */
+/* ---- Per-button list rows ---------------------------------------------- */
 body.slt-themed .btn-row {
   background: var(--slt-glass) !important;
   border: 1px solid var(--slt-edge) !important;
@@ -993,29 +993,6 @@ body.slt-themed .btn-row .idx {
   color: var(--slt-dim) !important;
   font-family: var(--slt-mono) !important;
   font-weight: 600 !important;
-}
-
-/* ---- Info / tip box ---------------------------------------------------- */
-body.slt-themed .info-box {
-  background: rgba(43, 210, 255, 0.05) !important;
-  border: 1px solid rgba(43, 210, 255, 0.22) !important;
-  border-left: 3px solid var(--slt-cyan) !important;
-  color: var(--slt-dim) !important;
-  border-radius: 11px !important;
-  font-family: var(--slt-font) !important;
-}
-body.slt-themed .info-box b {
-  color: var(--slt-cyan) !important;
-  font-family: var(--slt-font) !important;
-  text-shadow: none !important;
-}
-body.slt-themed .info-box code {
-  color: var(--slt-gold) !important;
-  background: rgba(255, 207, 94, 0.08) !important;
-  border: 1px solid rgba(255, 207, 94, 0.22) !important;
-  border-radius: 6px !important;
-  padding: 1px 5px !important;
-  font-family: var(--slt-mono) !important;
 }
 
 /* ---- Toggle row -------------------------------------------------------- */
@@ -1380,7 +1357,7 @@ body.slt-themed .hint {
   line-height: 1.5;
 }
 
-/* ---- Form layout (3D Text + HUD Buttons) ---- */
+/* ---- Form layout (3D Text) ---- */
 body.slt-themed .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -1689,7 +1666,7 @@ td.detCell #dock{border:0;border-radius:0;background:transparent;box-shadow:none
 .actions .side{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:10px}
 .actions .side.right{justify-content:flex-end}
 .actions .mid{display:flex;align-items:center;gap:10px;flex-shrink:0}
-#advPop{position:fixed;left:20px;bottom:56px;width:min(560px,92vw);z-index:20;display:none}
+#advPop{position:fixed;left:20px;bottom:56px;width:min(382px,92vw);z-index:20;display:none}
 /* The three tuning columns only exist while Advanced is on. */
 body:not(.adv) .advCol{display:none}
 td.set{white-space:nowrap}
@@ -1805,10 +1782,13 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 /* Inside the box the rows lose their own frame, so they also lose its inset -
    name, value, heading and the switch below all start on the same line. */
 #advBox .secHead{margin-left:4px;margin-right:4px}
+/* No rule line next to this heading: it runs at mid cap height and reads as
+   striking through the last letter. The box already frames the section. */
+#advBox .secHead::after{display:none}
 /* The sliders follow their names at a fixed distance instead of being pushed
    to the far edge, which left a stretch of nothing in between. */
-#advBox #bassRow,#advBox #loudRow,#advBox #fadeRow{justify-content:flex-start}
-#advBox #bassRow .fz-txt,#advBox #loudRow .fz-txt,#advBox #fadeRow .fz-txt{flex:0 0 152px}
+#advBox #bassRow,#advBox #loudRow,#advBox #fadeRow,#advBox #advRow{justify-content:flex-start}
+#advBox #bassRow .fz-txt,#advBox #loudRow .fz-txt,#advBox #fadeRow .fz-txt,#advBox #advRow .fz-txt{flex:0 0 152px}
 #advBox #bassRow,#advBox #loudRow,#advBox #fadeRow{border:none;border-top:1px solid var(--edge);border-radius:0;background:transparent;margin-top:0;padding:9px 4px}
 #advBox #bassRow:hover,#advBox #loudRow:hover,#advBox #fadeRow:hover{box-shadow:none}
 #advBox .on .fz-txt small{color:var(--acc2)}
@@ -1904,15 +1884,6 @@ body{animation:slt-page-in .28s ease-out both}
       folder: 'SL 3D Text Creator',
       file: 'sl_3d_text_creator.html',
       badge: 'TX',
-      wip: true,   // shown with an amber WIP badge in the nav
-    },
-    {
-      id: 'sl-hud',
-      name: 'HUD Buttons Creator',
-      subtitle: 'buttons grid → mesh',
-      folder: 'SL HUD Buttons Creator',
-      file: 'sl_hud_buttons_creator.html',
-      badge: 'HD',
       wip: true,   // shown with an amber WIP badge in the nav
     },
     {
@@ -3268,7 +3239,7 @@ function placePop(btn, pop, want) {
   pop.style.left = Math.round(Math.max(12, Math.min(b.left + b.width / 2 - w / 2, innerWidth - w - 12))) + 'px';
   pop.style.bottom = Math.round(innerHeight - b.top + 10) + 'px';
 }
-function placeAdvPop() { placePop($('advBtn'), $('advPop'), 560); }
+function placeAdvPop() { placePop($('advBtn'), $('advPop'), 382); }
 function togglePop(btn, pop, want) {
   const on = pop.classList.contains('on');
   for (const id of ['advPop', 'zipPop', 'logPop']) $(id).classList.remove('on');
@@ -3297,7 +3268,7 @@ $('tipsOk').onclick = () => {
 };
 $('helpBtn').onclick = () => showTips(!$('tips').classList.contains('on'));
 addEventListener('resize', () => { if ($('tips').classList.contains('on')) placeTips(); });
-$('advBtn').onclick = () => togglePop($('advBtn'), $('advPop'), 560);
+$('advBtn').onclick = () => togglePop($('advBtn'), $('advPop'), 382);
 $('zipBtn').onclick = () => togglePop($('zipBtn'), $('zipPop'), 320);
 $('lastMsg').onclick = () => {
   if (!$('log').children.length) return;

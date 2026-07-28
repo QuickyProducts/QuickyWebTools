@@ -23,7 +23,6 @@ Or jump straight into a tool:
 | | Tool | What it does | |
 | :---: | --- | --- | --- |
 | **TX** | 3D Text Creator | Type a word, pick a font, download a 3D mesh ready to upload. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%203D%20Text%20Creator/sl_3d_text_creator.html) |
-| **HD** | HUD Buttons Creator | Build HUD button layouts and export them as one mesh. | [**Launch**](https://quickyproducts.github.io/QuickyWebTools/SL%20HUD%20Buttons%20Creator/sl_hud_buttons_creator.html) |
 
 Inside any tool, the little round button in the **top-right corner**
 (with the same two letters as in the table) lets you hop between all

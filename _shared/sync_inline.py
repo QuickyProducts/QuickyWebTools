@@ -67,7 +67,6 @@ TOOLS = [
     {"path": "SL Animation Priority Changer/sl_animation_priority_changer.html",  "three": True,  "picker_fonts": False},
     {"path": "SL Sprite Sheet Maker/sl_sprite_sheet_maker.html",                  "three": False, "picker_fonts": False},
     {"path": "SL 3D Text Creator/sl_3d_text_creator.html",                        "three": True,  "picker_fonts": True},
-    {"path": "SL HUD Buttons Creator/sl_hud_buttons_creator.html",                "three": False, "picker_fonts": False},
     {"path": "SL Alpha Maker/sl_alpha_maker.html",                                "three": False, "picker_fonts": False},
     {"path": "SL Music Slicer/sl_music_slicer.html",                              "three": False, "picker_fonts": False},
 ]
