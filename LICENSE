@@ -3,8 +3,8 @@ Required Notice: Copyright © 2026 Ya. All rights reserved.
 This LICENSE applies ONLY to the application code in this repository
 that was written by Ya - that is: the UI, the SL .anim binary parser
 and writer, the sprite-sheet pipeline, the 3D-text glyph extraction
-and Collada (.dae) writer, the HUD-buttons mesh builder, the alpha-
-mask editor, the build scripts under _shared/, and all custom styles.
+and Collada (.dae) writer, the alpha-mask editor, the music slicer,
+the build scripts under _shared/, and all custom styles.
 
 The application code is licensed under the **PolyForm Noncommercial
 License 1.0.0**, reproduced verbatim below.
