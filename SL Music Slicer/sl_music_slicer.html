@@ -1563,16 +1563,11 @@ tbody tr.active td.wv{cursor:zoom-out}
 .pillBtn button+button{border-left:1px solid var(--edge)}
 .pillBtn button:hover:not(:disabled){transform:none;box-shadow:none;background:rgba(255,255,255,.08)}
 /* Third seat in the export pill: not an action but a switch for how the ZIP is
-   put together. It says which of the two it is in a word, so nobody has to
-   decode an icon or open anything to find out. */
-.pillBtn button.zipm{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;color:var(--dim)}
-.pillBtn button.zipm span{font-size:13px;line-height:1;filter:grayscale(1);opacity:.6}
-.pillBtn button.zipm i{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.6px}
-.pillBtn button.zipm.lit{background:rgba(255,60,172,.16);color:var(--txt);box-shadow:inset 0 0 0 1px rgba(255,60,172,.35)}
-.pillBtn button.zipm.lit span{filter:none;opacity:1}
-/* On a narrow window the action bar has no room for the word; the icon and its
-   tooltip carry the state there rather than pushing the pill off the edge. */
-@media (max-width:1150px){.pillBtn button.zipm i{display:none}.pillBtn button.zipm{padding:8px 11px}}
+   put together. Just the folder icon, lit when it is on - the word for the
+   current state stands in the label in front of the pill. */
+.pillBtn button.zipm{padding:8px 12px;font-size:13px;line-height:1;filter:grayscale(1);opacity:.55}
+.pillBtn button.zipm.lit{filter:none;opacity:1;background:rgba(255,60,172,.16);box-shadow:inset 0 0 0 1px rgba(255,60,172,.35)}
+.expLbl b{font-weight:800;color:var(--txt)}
 .pillBtn button.go{background:linear-gradient(135deg,#00e5a0,#00b3e6);color:#03121a;font-weight:800}
 .pillBtn button.go:hover:not(:disabled){background:linear-gradient(135deg,#00f5ad,#00c2f7);box-shadow:0 0 22px rgba(0,229,160,.45)}
 .pillBtn button:disabled{opacity:.4}
@@ -2206,11 +2201,11 @@ body{animation:slt-page-in .28s ease-out both}
         <button id="removeSel" disabled title="Take the selected songs out of the list. Your files on disk are not touched.">🗑 0 Selected</button>
         <button id="removeAll" title="Empty the whole list. Your files on disk are not touched.">🗑 ALL</button>
       </span>
-      <span class="expLbl">Export</span>
+      <span class="expLbl">Export · <b id="zipLbl">loose</b></span>
       <span class="pillBtn">
         <button id="exportSel" title="Export only the songs you selected, as one ZIP" disabled>⬇ Selected</button>
         <button id="exportAll" title="Export every song in the list, as one ZIP">⬇ ALL</button>
-        <button id="zipMode" class="zipm" aria-pressed="false"><span>🗂</span><i id="zipLbl">Loose</i></button>
+        <button id="zipMode" class="zipm" aria-pressed="false">🗂</button>
       </span>
     </div>
   </div>
@@ -3799,7 +3794,7 @@ function paintZip() {
   b.title = folders
     ? 'Each song gets its own folder inside the ZIP. Click for one flat pile of clips.'
     : 'All clips sit loose at the top level of the ZIP, handy for uploading everything in one go. Click to give each song its own folder.';
-  $('zipLbl').textContent = folders ? 'Folders' : 'Loose';
+  $('zipLbl').textContent = folders ? 'in folders' : 'loose';
 }
 readFolders();
 paintZip();
