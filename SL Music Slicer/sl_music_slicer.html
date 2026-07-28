@@ -1803,7 +1803,12 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 #advBox:has(#adv:checked){border-color:rgba(255,60,172,.35)}
 #advBox .swRow,#advBox .swRow:hover,#advBox .swRow:has(input:checked){border:none;background:transparent;box-shadow:none}
 /* Inside the box the rows lose their own frame, so they also lose its inset -
-   name, value and the switch below all start on the same line. */
+   name, value, heading and the switch below all start on the same line. */
+#advBox .secHead{margin-left:4px;margin-right:4px}
+/* The sliders follow their names at a fixed distance instead of being pushed
+   to the far edge, which left a stretch of nothing in between. */
+#advBox #bassRow,#advBox #loudRow,#advBox #fadeRow{justify-content:flex-start}
+#advBox #bassRow .fz-txt,#advBox #loudRow .fz-txt,#advBox #fadeRow .fz-txt{flex:0 0 152px}
 #advBox #bassRow,#advBox #loudRow,#advBox #fadeRow{border:none;border-top:1px solid var(--edge);border-radius:0;background:transparent;margin-top:0;padding:9px 4px}
 #advBox #bassRow:hover,#advBox #loudRow:hover,#advBox #fadeRow:hover{box-shadow:none}
 #advBox .on .fz-txt small{color:var(--acc2)}
@@ -2243,7 +2248,7 @@ body{animation:slt-page-in .28s ease-out both}
 
   <div class="panel" id="advPop">
     <div id="advBox">
-      <div class="secHead">Global settings<span class="cnt">apply to every song that has no value of its own</span></div>
+      <div class="secHead">Global settings</div>
       <div id="advBody">
         <label id="bassRow" title="Lifts everything below about 100 Hz before the loudness stage, so the clips end up with more weight at the same volume. Applies to preview and export alike.">
           <span class="fz-txt"><b>Bass boost</b><small id="bassVal">off</small></span>
@@ -2268,11 +2273,12 @@ body{animation:slt-page-in .28s ease-out both}
   <div class="panel" id="logPop"><div id="log"></div></div>
 
   <div class="panel" id="tips">
-    <div class="secHead">Four things and you know the tool</div>
+    <div class="secHead">Five things and you know the tool</div>
     <p><b>Click a song</b> to select it, click it again to let it go, or hold the button and drag across several.</p>
     <p><b>Double-click a song</b> to rename it - that name is what your clips are called in Second Life.</p>
     <p><b>Click the little wave</b> of a song to open its editor and cut it. Esc closes the editor again.</p>
     <p>Then <b>Export</b> at the bottom right: the songs you picked, or ALL of them in one go.</p>
+    <p><b>Advanced</b> at the bottom left is for the sound: bass, loudness and edge fade. What you set there counts for every song that has no value of its own, and the same panel can put those three into the list as columns, one value per song.</p>
     <div class="row"><span class="grow"></span><button id="tipsOk" class="primary">Got it</button></div>
   </div>
 
