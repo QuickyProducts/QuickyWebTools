@@ -1511,7 +1511,7 @@ body.work .slt-footer{flex-shrink:0;margin:6px auto 10px}
 main{max-width:520px;margin:0 auto;padding:18px 24px 40px}
 /* Start state: nothing but the drop zone exists yet. */
 body:not(.work) #bar,body:not(.work) .tableWrap,body:not(.work) #dock,
-body:not(.work) .actions,body:not(.work) #advPop,body:not(.work) #zipPop,body:not(.work) #logPop,body:not(.work) #tips{display:none}
+body:not(.work) .actions,body:not(.work) #advPop,body:not(.work) #logPop,body:not(.work) #tips{display:none}
 body.work #drop{display:none}
 @media(max-width:980px){body.work .tableWrap{max-height:52vh}}
 .panel{background:linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.015)),rgba(17,10,34,.55);border:1px solid var(--edge);border-radius:18px;padding:14px;backdrop-filter:blur(18px) saturate(1.3);-webkit-backdrop-filter:blur(18px) saturate(1.3);box-shadow:0 10px 40px rgba(0,0,0,.35)}
@@ -1557,11 +1557,22 @@ td.wv{cursor:zoom-in}
 tbody tr.active td.wv{cursor:zoom-out}
 /* Export offers both targets side by side; the one that fits the current
    selection is the green one. */
-.expLbl{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--dim)}
+.expLbl{font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--dim);white-space:nowrap}
 .pillBtn{display:inline-flex;border:1px solid var(--edge);border-radius:999px;overflow:hidden;background:var(--glass)}
 .pillBtn button{border:0;border-radius:0;background:transparent;box-shadow:none;padding:8px 15px;font-variant-numeric:tabular-nums}
 .pillBtn button+button{border-left:1px solid var(--edge)}
 .pillBtn button:hover:not(:disabled){transform:none;box-shadow:none;background:rgba(255,255,255,.08)}
+/* Third seat in the export pill: not an action but a switch for how the ZIP is
+   put together. It says which of the two it is in a word, so nobody has to
+   decode an icon or open anything to find out. */
+.pillBtn button.zipm{display:inline-flex;align-items:center;gap:6px;padding:8px 13px;color:var(--dim)}
+.pillBtn button.zipm span{font-size:13px;line-height:1;filter:grayscale(1);opacity:.6}
+.pillBtn button.zipm i{font-style:normal;font-size:11px;font-weight:700;letter-spacing:.6px}
+.pillBtn button.zipm.lit{background:rgba(255,60,172,.16);color:var(--txt);box-shadow:inset 0 0 0 1px rgba(255,60,172,.35)}
+.pillBtn button.zipm.lit span{filter:none;opacity:1}
+/* On a narrow window the action bar has no room for the word; the icon and its
+   tooltip carry the state there rather than pushing the pill off the edge. */
+@media (max-width:1150px){.pillBtn button.zipm i{display:none}.pillBtn button.zipm{padding:8px 11px}}
 .pillBtn button.go{background:linear-gradient(135deg,#00e5a0,#00b3e6);color:#03121a;font-weight:800}
 .pillBtn button.go:hover:not(:disabled){background:linear-gradient(135deg,#00f5ad,#00c2f7);box-shadow:0 0 22px rgba(0,229,160,.45)}
 .pillBtn button:disabled{opacity:.4}
@@ -1675,11 +1686,10 @@ td.set .v{display:inline-block;min-width:36px;margin-left:6px;font-size:11px;col
 td.set.own .v{color:var(--acc3);font-weight:700}
 th.advCol,td.advCol{width:108px}
 #logPop{position:fixed;right:20px;bottom:56px;width:min(560px,92vw);z-index:20;display:none}
-#zipPop{position:fixed;left:20px;bottom:56px;width:min(320px,92vw);z-index:20;display:none}
-#advPop.on,#zipPop.on,#logPop.on{display:block}
+#advPop.on,#logPop.on{display:block}
 /* The panel rise animation leaves a 16px offset on elements that start out
    hidden, which would push these popovers over their own button. */
-#advPop,#zipPop,#logPop{animation:none}
+#advPop,#logPop{animation:none}
 /* The first-visit guide: shown once, reachable again through the ? button. */
 #tips{position:fixed;left:50%;transform:translateX(-50%);bottom:64px;width:min(560px,92vw);z-index:25;display:none;animation:none}
 #tips.on{display:block}
@@ -1687,7 +1697,7 @@ th.advCol,td.advCol{width:108px}
 #tips p b{color:var(--txt)}
 /* Popovers float over the busy table, so they get a solid backing instead of
    the panel's glass - text on top of song rows is unreadable. */
-#tips,#advPop,#zipPop,#logPop{
+#tips,#advPop,#logPop{
   background:linear-gradient(160deg,rgba(38,24,68,.99),rgba(21,13,40,.99));
   border-color:rgba(255,255,255,.22);
   box-shadow:0 18px 60px rgba(0,0,0,.66),0 0 0 1px rgba(0,0,0,.5);
@@ -1695,7 +1705,6 @@ th.advCol,td.advCol{width:108px}
 #lastMsg{max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
 #lastMsg:hover{color:var(--txt)}
 #lastMsg:empty{display:none}
-#flatZipRow .fz-txt b{font-weight:600}
 .badge{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:rgba(255,255,255,.08);color:var(--dim)}
 .badge.done{background:rgba(0,229,160,.16);color:var(--good);box-shadow:0 0 12px rgba(0,229,160,.25)}
 .badge.edited{background:rgba(255,184,77,.16);color:var(--warn)}
@@ -1761,8 +1770,8 @@ body.playing #play{animation:playpulse 1.5s ease-in-out infinite}
 @keyframes playpulse{50%{box-shadow:0 0 30px rgba(255,60,172,.8)}}
 #waveWrap{transition:box-shadow .4s,border-color .4s}
 body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43,210,255,.1);border-color:rgba(255,60,172,.35)}
-/* "No folders in ZIP" toggle - glass row matching the .song rows,
-   with a sliding switch instead of a bare checkbox. */
+/* Setting row - glass box matching the .song rows, with a sliding switch
+   instead of a bare checkbox. */
 .swRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);cursor:pointer;user-select:none;transition:border-color .15s,box-shadow .15s}
 .swRow:hover{border-color:rgba(255,255,255,.28);box-shadow:0 4px 18px rgba(124,43,255,.18)}
 .swRow .fz-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
@@ -1795,11 +1804,6 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 #advBox #bassRow,#advBox #loudRow,#advBox #fadeRow{border:none;border-top:1px solid var(--edge);border-radius:0;background:transparent;margin-top:0;padding:9px 4px}
 #advBox #bassRow:hover,#advBox #loudRow:hover,#advBox #fadeRow:hover{box-shadow:none}
 #advBox .on .fz-txt small{color:var(--acc2)}
-/* The ZIP toggle is an option OF export, not a sibling of the song rows:
-   strip its glass box so only songs look like songs. */
-#flatZipRow{border:none;background:transparent;padding:5px 4px;border-radius:8px}
-#flatZipRow:hover{box-shadow:none;background:rgba(255,255,255,.04)}
-#flatZipRow:has(input:checked){border-color:transparent}
 #advBox #advRow{margin-top:8px;border-top:1px solid var(--edge);border-radius:0;padding:10px 4px 2px}
 #advRow:has(input:focus-visible){outline:2px solid var(--acc3);outline-offset:2px;border-radius:13px}
 #bassRow,#loudRow,#fadeRow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;margin-top:8px;border:1px solid var(--edge);border-radius:13px;background:var(--glass);user-select:none;transition:border-color .15s,box-shadow .15s}
@@ -2206,18 +2210,9 @@ body{animation:slt-page-in .28s ease-out both}
       <span class="pillBtn">
         <button id="exportSel" title="Export only the songs you selected, as one ZIP" disabled>⬇ Selected</button>
         <button id="exportAll" title="Export every song in the list, as one ZIP">⬇ ALL</button>
+        <button id="zipMode" class="zipm" aria-pressed="false"><span>🗂</span><i id="zipLbl">Loose</i></button>
       </span>
-      <button id="zipBtn" class="mini" title="How the ZIP is put together">⚙</button>
     </div>
-  </div>
-
-  <div class="panel" id="zipPop">
-    <div class="secHead">ZIP options</div>
-    <label id="flatZipRow" class="swRow" title="On: every song gets its own folder inside the ZIP. Off: all clips sit at the top level - handy for bulk-uploading everything in one go.">
-      <span class="fz-txt"><b>Export in folders?</b><small>one folder per song instead of all clips loose</small></span>
-      <input type="checkbox" id="flatZip" autocomplete="off">
-      <i class="sw" aria-hidden="true"></i>
-    </label>
   </div>
 
   <div class="panel" id="advPop">
@@ -2251,7 +2246,7 @@ body{animation:slt-page-in .28s ease-out both}
     <p><b>Click a song</b> to select it, click it again to let it go, or hold the button and drag across several.</p>
     <p><b>Double-click a song</b> to rename it - that name is what your clips are called in Second Life.</p>
     <p><b>Click the little wave</b> of a song to open its editor and cut it. Esc closes the editor again.</p>
-    <p>Then <b>Export</b> at the bottom right: the songs you picked, or ALL of them in one go.</p>
+    <p>Then <b>Export</b> at the bottom right: the songs you picked, or ALL of them in one go. The third button in that pill decides how the ZIP is packed, one folder per song or all clips loose.</p>
     <p><b>Advanced</b> at the bottom left is for the sound: bass, loudness and edge fade. What you set there counts for every song that has no value of its own, and the same panel can put those three into the list as columns, one value per song.</p>
     <div class="row"><span class="grow"></span><button id="tipsOk" class="primary">Got it</button></div>
   </div>
@@ -3245,7 +3240,7 @@ function placePop(btn, pop, want) {
 function placeAdvPop() { placePop($('advBtn'), $('advPop'), 382); }
 function togglePop(btn, pop, want) {
   const on = pop.classList.contains('on');
-  for (const id of ['advPop', 'zipPop', 'logPop']) $(id).classList.remove('on');
+  for (const id of ['advPop', 'logPop']) $(id).classList.remove('on');
   if (on) return;
   placePop(btn, pop, want);
   pop.classList.add('on');
@@ -3272,14 +3267,13 @@ $('tipsOk').onclick = () => {
 $('helpBtn').onclick = () => showTips(!$('tips').classList.contains('on'));
 addEventListener('resize', () => { if ($('tips').classList.contains('on')) placeTips(); });
 $('advBtn').onclick = () => togglePop($('advBtn'), $('advPop'), 382);
-$('zipBtn').onclick = () => togglePop($('zipBtn'), $('zipPop'), 320);
 $('lastMsg').onclick = () => {
   if (!$('log').children.length) return;
   togglePop($('lastMsg'), $('logPop'), 560);
 };
 // Clicking anywhere else puts a popover away again.
 document.addEventListener('click', e => {
-  const pairs = [['advPop', 'advBtn'], ['zipPop', 'zipBtn'], ['logPop', 'lastMsg']];
+  const pairs = [['advPop', 'advBtn'], ['logPop', 'lastMsg']];
   for (const [pop, btn] of pairs) {
     if (!$(pop).contains(e.target) && !$(btn).contains(e.target) && e.target !== $(btn)) $(pop).classList.remove('on');
   }
@@ -3322,7 +3316,7 @@ function askRemove(which, list) {
   if (!songs.length) {
     $('log').textContent = '';
     $('lastMsg').textContent = '';
-    for (const id of ['advPop', 'zipPop', 'logPop']) $(id).classList.remove('on');
+    for (const id of ['advPop', 'logPop']) $(id).classList.remove('on');
   } else {
     log('🗑 ' + gone.size + (gone.size === 1 ? ' song removed from the list' : ' songs removed from the list'));
   }
@@ -3792,11 +3786,27 @@ $('closeRow').onclick = () => closeRow();
 // uploads. Clip names are collision-free without folders: they start
 // with the song title and duplicate titles are blocked by validate().
 // State persists across sessions.
-// The switch asks "Export in folders?", the stored flag still means "flat".
-// Default is OFF: all clips land at the top level, folders are opt-in.
-try { $('flatZip').checked = localStorage.getItem('ms-flat-zip') === '0'; } catch (e) {}
-$('flatZip').onchange = () => {
-  try { localStorage.setItem('ms-flat-zip', $('flatZip').checked ? '0' : '1'); } catch (e) {}
+// The stored flag still means "flat", the switch reads as "folders".
+// Default is off: all clips land at the top level, folders are opt-in.
+let folders = false;
+function readFolders() {
+  try { folders = localStorage.getItem('ms-flat-zip') === '0'; } catch (e) { folders = false; }
+}
+function paintZip() {
+  const b = $('zipMode');
+  b.classList.toggle('lit', folders);
+  b.setAttribute('aria-pressed', folders ? 'true' : 'false');
+  b.title = folders
+    ? 'Each song gets its own folder inside the ZIP. Click for one flat pile of clips.'
+    : 'All clips sit loose at the top level of the ZIP, handy for uploading everything in one go. Click to give each song its own folder.';
+  $('zipLbl').textContent = folders ? 'Folders' : 'Loose';
+}
+readFolders();
+paintZip();
+$('zipMode').onclick = () => {
+  folders = !folders;
+  try { localStorage.setItem('ms-flat-zip', folders ? '0' : '1'); } catch (e) {}
+  paintZip();
 };
 
 // Bass boost applies to every song, preview and export alike. State persists.
@@ -3883,9 +3893,10 @@ $('adv').onchange = () => {
 addEventListener('pageshow', () => {
   try {
     $('adv').checked = localStorage.getItem('ms-advanced') === '1';
-    $('flatZip').checked = localStorage.getItem('ms-flat-zip') === '0';
+    readFolders();
   } catch (e) {}
   paintAdv();
+  paintZip();
   renderList();
 });
 
@@ -3933,7 +3944,7 @@ async function exportMany(list, btn) {
   $('exportSel').disabled = true;
   $('exportAll').disabled = true;
   armCancel(btn);
-  const flat = !$('flatZip').checked;
+  const flat = !folders;
   const all = []; let done = 0, fail = 0, clips = 0;
   const was = new Map();
   for (const s of list) {
