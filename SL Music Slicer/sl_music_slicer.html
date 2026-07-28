@@ -2201,7 +2201,7 @@ body{animation:slt-page-in .28s ease-out both}
         <button id="removeSel" disabled title="Take the selected songs out of the list. Your files on disk are not touched.">🗑 0 Selected</button>
         <button id="removeAll" title="Empty the whole list. Your files on disk are not touched.">🗑 ALL</button>
       </span>
-      <span class="expLbl">Export · <b id="zipLbl">loose</b></span>
+      <span class="expLbl">Export · <b id="zipLbl">files only</b></span>
       <span class="pillBtn">
         <button id="exportSel" title="Export only the songs you selected, as one ZIP" disabled>⬇ Selected</button>
         <button id="exportAll" title="Export every song in the list, as one ZIP">⬇ ALL</button>
@@ -3794,7 +3794,7 @@ function paintZip() {
   b.title = folders
     ? 'Each song gets its own folder inside the ZIP. Click for one flat pile of clips.'
     : 'All clips sit loose at the top level of the ZIP, handy for uploading everything in one go. Click to give each song its own folder.';
-  $('zipLbl').textContent = folders ? 'in folders' : 'loose';
+  $('zipLbl').textContent = folders ? 'in folders' : 'files only';
 }
 readFolders();
 paintZip();
