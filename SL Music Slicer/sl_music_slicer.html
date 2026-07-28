@@ -3757,7 +3757,8 @@ async function exportSingle(s, btn) {
       if (cancelReq) throw CANCEL;
       prog(true, p * 100, 'slicing…');
     });
-    download(makeZip(res.files.map(f => ({ name: s.title + '/' + f.name, data: f.data }))), s.title + '.zip');
+    const pre = folders ? s.title + '/' : '';
+    download(makeZip(res.files.map(f => ({ name: pre + f.name, data: f.data }))), s.title + '.zip');
     s.status = 'done';
     syncSongRow(s);
     let li = ' · mastered to ' + res.target.toFixed(1) + ' LUFS (gain ' + (res.gdb >= 0 ? '+' : '') + res.gdb.toFixed(1) + ' dB)';
