@@ -1572,7 +1572,12 @@ tbody tr.active td.wv{cursor:zoom-out}
 .pillBtn button.go:hover:not(:disabled){background:linear-gradient(135deg,#00f5ad,#00c2f7);box-shadow:0 0 22px rgba(0,229,160,.45)}
 .pillBtn button:disabled{opacity:.4}
 /* While an export runs, the button that started it becomes the stop button. */
-button.cancel,.pillBtn button.cancel{background:linear-gradient(135deg,#ff5470,#c31b3c);border-color:transparent;color:#fff;font-weight:800;opacity:1}
+button.cancel,.pillBtn button.cancel{background:linear-gradient(135deg,#ff5470,#c31b3c);border-color:transparent;color:#fff;font-weight:800;opacity:1;position:relative;overflow:hidden;isolation:isolate}
+/* How far the export has got, drawn inside the button that runs it. */
+button.cancel::before{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);z-index:-1;
+  background:rgba(255,255,255,.26);transition:width .2s;
+}
 button.cancel:hover:not(:disabled),.pillBtn button.cancel:hover:not(:disabled){background:linear-gradient(135deg,#ff6b84,#d82348);box-shadow:0 0 22px rgba(255,84,112,.5)}
 /* The remove pill mirrors the export pill: the half that matches the current
    selection lights up, in red instead of green. */
@@ -1583,7 +1588,22 @@ button.cancel:hover:not(:disabled),.pillBtn button.cancel:hover:not(:disabled){b
 .pillBtn.danger button.lit{background:linear-gradient(135deg,#ff5470,#c31b3c);color:#fff;font-weight:800}
 .pillBtn.danger button.lit:hover:not(:disabled){background:linear-gradient(135deg,#ff6b84,#d82348);box-shadow:0 0 20px rgba(255,84,112,.45)}
 .pillBtn.danger button.arm{background:linear-gradient(135deg,#ff2d55,#8d0f2a);color:#fff;font-weight:800;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
-td.t{width:100%;max-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+td.t{width:100%;max-width:0;overflow:hidden;text-overflow:ellipsis;font-weight:600;padding:0 4px}
+/* The title is a real field at all times. It carries a faint frame so the list
+   shows on sight that these names can be typed over, brightens under the
+   pointer, and turns into a proper input once the caret is in it. */
+/* The field is as wide as the name in it and grows while you type: a row of
+   equally long boxes would suggest the list is a form, not a list of songs.
+   field-sizing does it exactly where it exists, the size attribute set in JS
+   carries the rest. */
+input.tin{
+  width:auto;max-width:100%;field-sizing:content;padding:4px 7px;font:inherit;font-weight:600;font-size:13px;color:var(--txt);
+  background:rgba(0,0,0,.22);border:1px solid rgba(255,255,255,.13);border-radius:9px;cursor:text;
+  transition:background .13s,border-color .13s,box-shadow .13s;
+}
+input.tin:hover{background:rgba(0,0,0,.34);border-color:rgba(255,255,255,.26)}
+input.tin:focus{outline:none;background:rgba(0,0,0,.42);border-color:var(--acc3);box-shadow:0 0 0 3px rgba(43,210,255,.16)}
+tbody tr.dup input.tin{color:#ffd7de}
 td.n{text-align:right;font-variant-numeric:tabular-nums;color:var(--dim)}
 td.wv{width:116px}
 td.wv canvas{display:block;width:106px;height:20px;opacity:.7}
@@ -2184,8 +2204,6 @@ body{animation:slt-page-in .28s ease-out both}
       <button id="closeRow" title="Close the editor (Esc, or click the little wave again)">✕ Close</button>
     </div>
   </div>
-  <input type="text" id="title" spellcheck="false" maxlength="52" placeholder="Song title">
-
   <div class="actions">
     <div class="side">
       <button id="advBtn">⚙ Advanced</button>
@@ -2239,7 +2257,7 @@ body{animation:slt-page-in .28s ease-out both}
   <div class="panel" id="tips">
     <div class="secHead">Five things and you know the tool</div>
     <p><b>Click a song</b> to select it, click it again to let it go, or hold the button and drag across several.</p>
-    <p><b>Double-click a song</b> to rename it - that name is what your clips are called in Second Life.</p>
+    <p><b>Click into a title</b> and type to rename it - that name is what your clips are called in Second Life.</p>
     <p><b>Click the little wave</b> of a song to open its editor and cut it. Esc closes the editor again.</p>
     <p>Then <b>Export</b> at the bottom right: the songs you picked, or ALL of them in one go. The third button in that pill decides how the ZIP is packed, one folder per song or all clips loose.</p>
     <p><b>Advanced</b> at the bottom left is for the sound: bass, loudness and edge fade. What you set there counts for every song that has no value of its own, and the same panel can put those three into the list as columns, one value per song.</p>
@@ -2509,7 +2527,7 @@ function applyTags(s, tg) {
   s.title = name;
   s._auto = name;
   renderList();
-  if (songs[cur] === s) { $('title').value = s.title; updateInfo(); }
+  if (songs[cur] === s) updateInfo();
 }
 function fmtMS(t) { const s = Math.round(t); return Math.floor(s / 60) + ':' + p2(s % 60); }
 function durStr(samples) {
@@ -3049,11 +3067,11 @@ function renderList() {
   // otherwise destroy it along with the rows.
   const home = document.querySelector('main');
   if ($('dock').parentElement !== home) home.appendChild($('dock'));
-  // A rename in progress must survive the rebuild, otherwise a tag that
-  // arrives in the background would throw the user out of the name field.
-  const wasNaming = $('title').parentElement !== home ? renameIdx : -1;
-  if ($('title').parentElement !== home) home.appendChild($('title'));
-  renameIdx = -1;
+  // Typing must survive the rebuild: a tag arriving in the background would
+  // otherwise throw the user out of the name field mid-word.
+  const act = document.activeElement;
+  const naming = act && act.classList && act.classList.contains('tin')
+    ? { i: +act.dataset.i, a: act.selectionStart, b: act.selectionEnd } : null;
   box.innerHTML = '';
   const seen = {};
   for (const s of songs) { const k = s.title.toLowerCase(); seen[k] = (seen[k] || 0) + 1; }
@@ -3084,9 +3102,7 @@ function renderList() {
       e.stopPropagation();
       if (pb && pb.song === s) stopPB(); else playSong(s, s.trimS);
     };
-    const t = tr.querySelector('td.t');
-    t.textContent = s.title || '(untitled)';
-    t.title = (s.file ? s.file.name : s.title) + '  ·  double-click to rename';
+    buildTitle(tr.querySelector('td.t'), s, i);
     // The wave opens the editor, everything else in the row selects.
     tr.querySelector('td.wv').onclick = e => {
       e.stopPropagation();
@@ -3096,12 +3112,6 @@ function renderList() {
     tr.onclick = e => { if (e.detail > 1) return; pickRow(s, i, e); };
     tr.onmousedown = e => dragStart(s, i, e);
     tr.onmouseover = () => dragOver(i);
-    // Double-click anywhere neutral in the row renames it. The editor has its
-    // own way in, the little wave, so the two never fight over one gesture.
-    tr.ondblclick = e => {
-      if (e.target.closest('button, input, select, td.set, td.wv')) return;
-      startRename(i);
-    };
     box.appendChild(tr);
     drawMini(tr.querySelector('canvas'), s);
     if (i === cur) {
@@ -3117,7 +3127,10 @@ function renderList() {
   }
   paintSel();
   paintRun();
-  if (wasNaming >= 0) startRename(wasNaming);
+  if (naming) {
+    const back = box.querySelector('tr[data-i="' + naming.i + '"] .tin');
+    if (back) { back.focus(); try { back.setSelectionRange(naming.a, naming.b); } catch (e) {} }
+  }
   queueSoon();
   placeLogo();
   maybeTips();
@@ -3145,36 +3158,38 @@ function closeRow() {
   cur = -1;
   renderList();
 }
-// Renaming happens in the row itself and has nothing to do with the editor:
-// the one #title input moves into the title cell and back out again.
-let renameIdx = -1;
-function startRename(i) {
-  const cell = $('rows').querySelector('tr[data-i="' + i + '"] td.t');
-  const inp = $('title');
-  if (!cell || !songs[i]) return;
-  if (!inp) { log('⚠ The rename field is missing, please reload the page', true); return; }
-  if (inp.parentElement === cell) return;
-  endRename();
-  renameIdx = i;
-  cell.textContent = '';
+// Every title is a live field. Nothing has to be opened or double-clicked
+// first: click into the name and type. The field looks like a field, so the
+// list says by itself that these names can be changed.
+function buildTitle(cell, s, i) {
+  const inp = document.createElement('input');
+  inp.type = 'text';
+  inp.className = 'tin';
+  inp.value = s.title;
+  inp.spellcheck = false;
+  inp.autocomplete = 'off';
+  inp.title = s.file ? s.file.name : s.title;
+  inp.dataset.i = i;
+  // A click here means "put the caret in", never "select the row" or "drag
+  // across rows", so the row handlers must not see it.
+  inp.onmousedown = e => e.stopPropagation();
+  inp.onclick = e => e.stopPropagation();
+  inp.ondblclick = e => e.stopPropagation();
+  const fit = () => { inp.size = Math.max(3, inp.value.length + 1); };
+  fit();
+  inp.oninput = () => {
+    s.title = clampBytes(sanitizeTitle(inp.value), TITLE_MAX);
+    fit();
+    paintDups();
+    if (songs[cur] === s) updateInfo();
+  };
+  // Typing may have been cut short by the byte limit or stripped of characters
+  // a filename cannot carry, so the field shows what was actually kept.
+  inp.onchange = () => { inp.value = s.title; fit(); };
+  inp.onkeydown = e => {
+    if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); inp.blur(); }
+  };
   cell.appendChild(inp);
-  inp.value = songs[i].title;
-  inp.focus();
-  inp.select();
-}
-// Leaving the field must NOT rebuild the table: the blur happens on mousedown,
-// and a rebuild between mousedown and mouseup swallows that very click - which
-// is why the Close button needed two presses after renaming.
-function endRename() {
-  const inp = $('title');
-  const home = document.querySelector('main');
-  if (!inp || inp.parentElement === home) { renameIdx = -1; return; }
-  const cell = inp.parentElement;
-  const s = songs[renameIdx];
-  home.appendChild(inp);
-  cell.textContent = s ? (s.title || '(untitled)') : '';
-  renameIdx = -1;
-  paintDups();
 }
 // Two songs with the same title collide on export, so they stay marked.
 function paintDups() {
@@ -3186,10 +3201,6 @@ function paintDups() {
     tr.classList.toggle('dup', !!s && seen[s.title.toLowerCase()] > 1);
   }
 }
-$('title').addEventListener('blur', endRename);
-$('title').addEventListener('keydown', e => {
-  if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); endRename(); }
-});
 $('q').oninput = () => { query = $('q').value.trim().toLowerCase(); renderList(); };
 document.querySelectorAll('thead th[data-s]').forEach(th => {
   th.onclick = () => {
@@ -3585,15 +3596,6 @@ $('undo').onclick = () => {
   log('↺ ' + s.title + ': back to the untouched song');
 };
 
-// ---------- fields ----------
-$('title').addEventListener('input', () => {
-  const s = songs[renameIdx]; if (!s) return;
-  s.title = clampBytes(sanitizeTitle($('title').value), TITLE_MAX);
-  if (renameIdx === cur) updateInfo();
-});
-// Same reason as endRename: no rebuild while the pointer is mid-click.
-$('title').addEventListener('change', () => { const s = songs[renameIdx]; if (s) $('title').value = s.title; });
-
 window.addEventListener('keydown', e => {
   if (/INPUT|TEXTAREA/.test(e.target.tagName)) return;
   if ((e.ctrlKey || e.metaKey) && (e.key === 'a' || e.key === 'A')) { e.preventDefault(); selectAll(); return; }
@@ -3686,7 +3688,6 @@ async function renderSong(s, onprog) {
   if (fixed !== s.title) {
     s.title = fixed;
     renderList();
-    if (songs[cur] === s) $('title').value = fixed;
     log('ℹ title auto-shortened to fit the SL name limit: "' + fixed + '"');
   }
   const err = validate(s); if (err) throw err;
@@ -3741,6 +3742,11 @@ function prog(on, pct, txt) {
   $('progress').className = on ? 'on' : '';
   $('pbar').firstElementChild.style.width = (pct || 0) + '%';
   $('ptxt').textContent = txt || '';
+  // The same number again inside the button that started it: during an export
+  // that button is where the eye is, not the bar at the other end of the row.
+  for (const b of document.querySelectorAll('button.cancel')) {
+    b.style.setProperty('--p', (on ? (pct || 0) : 0) + '%');
+  }
 }
 // One song on its own, from the row button or from the open editor.
 async function exportSingle(s, btn) {
