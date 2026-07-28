@@ -1781,9 +1781,12 @@ body.playing #waveWrap{box-shadow:0 0 30px rgba(255,60,172,.16),0 0 90px rgba(43
 #advBox .swRow,#advBox .swRow:hover,#advBox .swRow:has(input:checked){border:none;background:transparent;box-shadow:none}
 /* Inside the box the rows lose their own frame, so they also lose its inset -
    name, value, heading and the switch below all start on the same line. */
-#advBox .secHead{margin-left:4px;margin-right:4px}
-/* No rule line next to this heading: it runs at mid cap height and reads as
-   striking through the last letter. The box already frames the section. */
+/* The shared heading style ends on a -6px bottom margin, which is meant to pull
+   a following panel up under it. Here what follows is a row with a top border,
+   and that border landed straight across the lettering. */
+#advBox .secHead{margin:2px 4px 7px}
+/* No rule line beside this heading either: it runs at mid cap height and reads
+   as striking the words through. The box already frames the section. */
 #advBox .secHead::after{display:none}
 /* The sliders follow their names at a fixed distance instead of being pushed
    to the far edge, which left a stretch of nothing in between. */
