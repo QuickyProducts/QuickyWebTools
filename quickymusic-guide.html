@@ -108,32 +108,39 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
     <h2>The menu (touch it)</h2>
     <p>The dialog shows what just played, what plays now (with the song length) and what comes next - an <b>∞</b> in front of a title means repeat is active. The footer line shows volume, song count and free storage.</p>
     <div class="rows" style="margin-top:16px">
-      <div class="row"><span class="btn play">► Play</span><span><b>Start shuffle play.</b> Every song plays once, then the player stops - unless repeat is on. While music is playing the same button shows <b>■ Stop</b>.</span></div>
+      <div class="row"><span class="btn play">► Play</span><span><b>Start shuffle play.</b> Every song plays once, then the player stops - unless repeat is on. While music is playing the same button shows <b>■ Stop</b>. Stop also clears the Up Next wishes.</span></div>
       <div class="row"><span class="btn">» Skip</span><span>Jump to the next song.</span></div>
       <div class="row"><span class="btn">✘ Close</span><span>Close your menu session so the next person can use the player right away.</span></div>
-      <div class="row"><span class="btn">♪ Volume</span><span>Opens the volume menu: one button per level, <b>10%</b> to <b>100%</b>.</span></div>
-      <div class="row"><span class="btn">∞ Repeat</span><span>Cycles the repeat mode: <b>current song</b> → <b>all songs</b> → <b>off</b>. The ∞ marks in the menu show which one is active.</span></div>
-      <div class="row"><span class="btn">≡ List</span><span>Show all songs in chat. Click a title to play it. Each line also has <b>✚</b> (queue it as the next song), <b>✘</b> (delete it, asks first) and <b>⇪</b> (export just that song).</span></div>
-      <div class="row"><span class="btn">⌕ Search</span><span>Type part of a title - one match plays right away, several come back as a clickable list, none and the search box reopens.</span></div>
-      <div class="row"><span class="btn gold">⚡ Extras</span><span>Owner only. Holds the module buttons: <b>Anims</b> (chapter below), <b>FX</b> - glowing notes drifting off the speaker while music plays (<b>Pink</b>, <b>Blue</b> or <b>Mix</b>), <b>Export</b> (chapter below), <b>Swing</b> on the dangling speaker, and <b>Visual</b> - a floating song display with title and timeline (pick styles and colors for each part). Only installed modules show up.</span></div>
-      <div class="row"><span class="btn gold">⌂ Access</span><span>Owner only. Who may use the menu: <b>Owner</b>, <b>Group</b> or <b>Public</b>.</span></div>
+      <div class="row"><span class="btn">♪ Volume</span><span>Owner only. <b>−10% / +10%</b> steps plus direct <b>25 / 50 / 75 / 100</b>. This menu also holds <b>Boost</b>.</span></div>
+      <div class="row"><span class="btn gold">☐ Boost</span><span>Owner only, inside Volume. Plays the music from every sound prim of the speaker at once - <b>much louder</b> than SL's normal 100%. A change takes effect with the next clip. Heads-up: how tightly the voices line up depends on region and viewer lag, not on the speaker - if it ever sounds off, turn Boost off and it is gone.</span></div>
+      <div class="row"><span class="btn">∞ Repeat</span><span>Owner only. Cycles: <b>off</b> → <b>∞ song</b> → <b>∞ list</b>. The ∞ marks in the menu show which one is active.</span></div>
+      <div class="row"><span class="btn">≡ List</span><span>Show all songs in chat. On your lines: <b>►</b> plays that one song (and stops after it), <b>✚</b> adds it to Up Next, <b>✘</b> deletes it (asks first). Guests see one big <b>✚ title</b> link per song that adds a wish.</span></div>
+      <div class="row"><span class="btn">⌕ Search</span><span>Type part of a title - matches come back as clickable list lines, none and the search box reopens.</span></div>
+      <div class="row"><span class="btn gold">⚙ Settings</span><span>Owner only. Everything configurable in one place: <b>Access</b> (who may use the menu: Owner, Group or Public), <b>Library</b> (chapter below), plus one entry per installed module - <b>Anims</b> (chapter below), <b>Visualizer</b> (floating title, timeline styles, note colors and the Up Next line) and <b>Speaker</b> (sway on the dangle speaker).</span></div>
     </div>
-    <div class="note">With Group or Public access, whoever touches the player gets the menu for 60 seconds (every click extends it). Others see who is using it; only the owner can take over early. Guests get the playback controls but cannot delete, export or open Extras.</div>
+    <div class="note">With Group or Public access, whoever touches the player gets the menu for 60 seconds (every click extends it). Others see who is using it; only the owner can take over early. Guests get <b>✘ Close</b>, <b>≡ List</b> and <b>⌕ Search</b> - they can add song wishes, nothing else.</div>
   </section>
 
   <section>
-    <h2>Export (Extras)</h2>
-    <p>The <b>⇪</b> on a list line exports that song. In <b>Extras → Export</b> you choose how:</p>
+    <h2>Up Next (song wishes)</h2>
+    <p>While music is playing, anyone with menu access can add a song wish with <b>✚</b>. Wishes play in order before the shuffle continues.</p>
+    <div class="note">The menu's <b>» Next:</b> line and the Visualizer's floating text show what is coming and who picked it. A song that is already waiting cannot be added twice, and after a song was wished, three other songs have to be wished before it can come around again - so nobody can hog the speaker. Wishes exist only while music runs: <b>■ Stop</b> clears them (the owner is told how many were dropped).</div>
+  </section>
+
+  <section>
+    <h2>Library (Settings)</h2>
+    <p>Owner only, under <b>⚙ Settings → Library</b>. Three buttons, one job each:</p>
     <div class="rows" style="margin-top:16px">
-      <div class="row"><span class="btn gold">Link</span><span>Chat shows the song title plus links to a temporary web page with the notecard name and content - copy from there.</span></div>
-      <div class="row"><span class="btn gold">Chat</span><span>The full notecard content arrives as chat blocks (25 clips each) - paste them in order into one notecard.</span></div>
+      <div class="row"><span class="btn gold">⇪ Export</span><span>Prints the song list in chat - click a song to export it as a Mewsic/Nyanko-style notecard.</span></div>
+      <div class="row"><span class="btn gold">⇄ Web page</span><span>Shows how an export arrives and switches it: <b>Web page</b> (chat links to a temporary page with the notecard name and content - copy from there) or <b>Chat</b> (the content arrives as chat blocks of 25 clips - paste them in order into one notecard).</span></div>
+      <div class="row"><span class="btn gold">⌦ Wipe all</span><span>Removes every song at once. Asks first (<b>⌦ WIPE IT</b>) and cannot be undone. Scripts and animations stay untouched. Single songs are deleted with their <b>✘</b> in ≡ List.</span></div>
     </div>
-    <div class="note">The result is a Mewsic/Nyanko-style notecard: first line like <span class="pill">30:21</span>, then one clip UUID per line. Any QuickyMusic player imports it automatically when you drop the notecard in.</div>
+    <div class="note">An exported notecard looks like: first line <span class="pill">30:21</span>, then one clip UUID per line. Any QuickyMusic player imports it automatically when you drop the notecard in.</div>
   </section>
 
   <section>
     <h2>Animations (optional)</h2>
-    <p>Drop any animations into the player's Contents, then touch and open <b>⚡ Extras</b>, <b>Anims</b>:</p>
+    <p>Drop any animations into the player's Contents, then touch and open <b>⚙ Settings</b>, <b>Anims</b>:</p>
     <div class="rows" style="margin-top:16px">
       <div class="row"><span class="btn gold">Hold</span><span>Plays the whole time you wear the player (a hold pose). Opens a picker with the animations inside - pick one, or <b>Clear</b> to remove it.</span></div>
       <div class="row"><span class="btn gold">Play</span><span>Plays only while music is playing (a performance). Same picker.</span></div>
@@ -150,7 +157,9 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
     <p><b>It says "needs full-perm clips - use notecard import instead"?</b>
     Clips you received without full permissions cannot be registered directly. Ask the sender for an exported notecard instead - dropped into the player, it imports without needing any clips.</p>
     <p><b>Others cannot use the menu?</b>
-    That is the Access setting (owner menu, ⌂ Access): Owner, Group or Public. And while one person uses the menu, it is reserved for them for 60 seconds - ✘ Close releases it early.</p>
+    That is the Access setting (⚙ Settings → Access): Owner, Group or Public. And while one person uses the menu, it is reserved for them for 60 seconds - ✘ Close releases it early. Note that guests only ever get List, Search and song wishes; playback, volume and repeat stay with the owner.</p>
+    <p><b>The queued wishes disappeared?</b>
+    Wishes exist only while music is playing. Pressing ■ Stop clears Up Next completely (the owner is told how many were dropped), and while the player is silent the ✚ links politely refuse.</p>
     <p><b>My menu stopped reacting?</b>
     Your 60-second session ended. Just touch the player again for a fresh menu.</p>
     <p><b>How much music fits in one player?</b>
@@ -158,7 +167,7 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
     <p><b>How long can a song be?</b>
     Songs up to about 8 hours are supported. The slicer switches to 3-digit part numbers past 99 clips - nothing else changes for you. Storage cost is roughly 4.6 kB per hour of song. Long songs need full-perm clips; without full perm, use the notecard import instead (drop an exported notecard into the player and it registers by itself).</p>
     <p><b>How do I move my songs to another player?</b>
-    Export each song with the ⇪ on its List line, paste the result into a notecard named like the title, and drop that notecard into the other player. (Extras → Export only sets HOW the export arrives: web page link or chat blocks.)</p>
+    Open ⚙ Settings → Library → ⇪ Export, click the song, paste the result into a notecard named like the title, and drop that notecard into the other player. (The ⇄ button there only sets HOW the export arrives: web page link or chat blocks.)</p>
     <p><b>What music am I allowed to upload?</b>
     Only music you hold the rights to - your own works, licensed tracks or royalty-free material. Uploading copyrighted songs violates the Second Life Terms of Service, and the responsibility for every upload and every shared notecard lies with the person who uploads or shares it.</p>
   </section>
