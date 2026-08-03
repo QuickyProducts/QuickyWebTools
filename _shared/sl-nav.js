@@ -48,6 +48,14 @@
       badge: 'AP',
     },
     {
+      id: 'shape-combiner',
+      name: 'Shape Combiner',
+      subtitle: 'head shape + body shape',
+      folder: 'SL Shape Combiner',
+      file: 'sl_shape_combiner.html',
+      badge: 'SC',
+    },
+    {
       id: 'sprite-sheet',
       name: 'Sprite Sheet Maker',
       subtitle: 'gif → sprite sheet',

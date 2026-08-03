@@ -581,7 +581,7 @@ body.slt-themed input[type="range"] {
    (Load / Export / Combine) → pink→purple gradient pill with a sheen
    sweep. Subtle variants: .secondary/.btn-secondary/.small and the
    toggle-pad classes below. */
-body.slt-themed button:not(.layout-btn):not(.deco-btn):not(.mode-btn):not(.preset-btn):not(.navbtn):not(.thumb-x):not(.aspect-sel):not(.apply-all):not(.clear-bar):not(.warn):not(.slt-nav-handle):not(.slt-nav-btn):not(.marquee-btn) {
+body.slt-themed button:not(.layout-btn):not(.deco-btn):not(.mode-btn):not(.preset-btn):not(.navbtn):not(.thumb-x):not(.aspect-sel):not(.apply-all):not(.clear-bar):not(.warn):not(.slt-nav-handle):not(.slt-nav-btn):not(.marquee-btn):not(.clear) {
   font-family: var(--slt-font) !important;
   font-weight: 700 !important;
   letter-spacing: 0.3px !important;

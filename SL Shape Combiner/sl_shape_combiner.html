@@ -1,13 +1,13 @@
 <!doctype html>
 <!--
   ====================================================================
-  SL Animation Combiner
+  SL Shape Combiner
   Required Notice: Copyright © 2026 Ya.
 
-  Application code in this file (UI, .anim binary parser / writer,
-  loop-window alignment + keyframe remap logic, styles) is licensed
-  under the PolyForm Noncommercial License 1.0.0. See the LICENSE
-  file at the repo root for terms.
+  Application code in this file (UI, shape XML parser / writer,
+  slider-group merge logic, styles) is licensed under the PolyForm
+  Noncommercial License 1.0.0. See the LICENSE file at the repo root
+  for terms.
   Terms: https://polyformproject.org/licenses/noncommercial/1.0.0
 
   This tool bundles no third-party libraries or fonts; the shared
@@ -19,7 +19,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>SL Animation Combiner</title>
+<title>SL Shape Combiner</title>
 <!-- SHARED-CSS:BEGIN - auto-inlined from _shared/sl-nav.css by _shared/sync_inline.py. Do not hand-edit; edit the source and re-run the script. -->
 <style>
 /* =====================================================================
@@ -1448,14 +1448,14 @@ body.slt-themed .mode-btn {
 
 </style>
 <!-- SHARED-CSS:END -->
-<script>window.SLT_CURRENT = 'anim-combiner';</script>
+<script>window.SLT_CURRENT = 'shape-combiner';</script>
 <style>
   /* =====================================================================
      Tool-local styles - layout & spacing only ("Aurora Glass" v2).
      Colors, fonts, glass panels, buttons, drop zones, status pills and
      details/summary chrome all come from the SHARED-CSS block above.
-     The #jointsCard rules use the container id to out-rank the shared
-     default-button styling for this tool's tiny A/B/OFF toggles.
+     The #groupsCard rules use the container id to out-rank the shared
+     default-button styling for this tool's A/B toggles.
      ===================================================================== */
 
   body { padding: 24px 16px 60px; }
@@ -1490,140 +1490,48 @@ body.slt-themed .mode-btn {
   .role { font-weight: 700; font-size: 13.5px; color: var(--slt-txt); line-height: 1.25; }
   .role small { display: block; color: var(--slt-dim); font-weight: 500; font-size: 11.5px; margin-top: 3px; }
 
-  /* Border + colors come from the shared .drop rules - layout only here. */
-  .drop { display: block; padding: 22px 14px; text-align: center; cursor: pointer; }
+  .drop { display: block; padding: 22px 14px; text-align: center; cursor: pointer; position: relative; }
+  .drop.loaded strong { color: var(--slt-cyan); }
+  .card .drop button.clear {
+    display: none;
+    position: absolute !important;
+    top: 8px !important; right: 8px !important; left: auto !important;
+    align-items: center; justify-content: center;
+    width: 24px !important; height: 24px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: rgba(0,0,0,.35) !important;
+    background-image: none !important;
+    color: var(--slt-dim) !important;
+    border: 1px solid var(--slt-edge) !important;
+    border-radius: 8px !important;
+    box-shadow: none !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+  }
+  .card .drop.loaded button.clear { display: flex !important; }
+  .card .drop button.clear:hover {
+    transform: none !important;
+    color: var(--slt-bad) !important;
+    border-color: var(--slt-bad) !important;
+  }
   .drop strong { display: block; margin-bottom: 6px; font-size: 13px; }
   .drop small { font-size: 11px; }
   .drop input[type=file] { display: none; }
 
-  .meta {
-    margin-top: 12px;
-    padding: 10px 12px;
-    display: none;
-    font-size: 12.5px;
-    line-height: 1.55;
-    color: var(--slt-dim);
-    background: rgba(0,0,0,.3);
-    border-left: 3px solid var(--slt-magenta);
-    border-radius: 0 11px 11px 0;
-  }
-  .meta.shown { display: block; }
-  .meta b { color: var(--slt-txt); font-weight: 700; }
-  .meta span.field { color: var(--slt-cyan); }
-
-  /* ---- Collapsible sections (glass look from shared details rules) ---- */
-  body.slt-themed details.options { margin-top: 20px; padding: 14px 18px !important; }
-  .options summary::-webkit-details-marker { display: none; }
-  .options[open] summary { margin-bottom: 14px; }
-
-  .opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 720px) { .opt-grid { grid-template-columns: 1fr; } }
-
-  .field { display: block; }
+  /* ---- Actions / status ---- */
+  .actions { margin-top: 22px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+  button.primary { font-size: 15px; padding: 12px 28px; }
+  .field { display: block; min-width: 240px; }
   .field-label {
     font-size: 11px; font-weight: 700;
     letter-spacing: 1px; text-transform: uppercase;
     color: var(--slt-dim);
     margin-bottom: 6px;
   }
-  input[type=text], select { width: 100%; padding: 8px 12px; font-size: 13.5px; }
-
-  /* ---- Joint Control (this tool only) ---- */
-  .joint-toolbar {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    margin-bottom: 14px;
-    font-size: 12px;
-    color: var(--slt-dim);
-  }
-  .joint-toolbar .tb-label {
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-    color: var(--slt-dim);
-  }
-  /* Small glass buttons; the id out-ranks the shared primary-button rule. */
-  #jointsCard button.mini {
-    background: var(--slt-glass) !important;
-    color: var(--slt-txt) !important;
-    border: 1px solid var(--slt-edge) !important;
-    border-radius: 9px !important;
-    box-shadow: none !important;
-    font-size: 11px;
-    font-weight: 600 !important;
-    letter-spacing: .4px !important;
-    padding: 4px 12px;
-  }
-  #jointsCard button.mini:hover:not(:disabled) {
-    transform: none !important;
-    border-color: var(--slt-purple) !important;
-    box-shadow: 0 4px 18px rgba(124,43,255,.28) !important;
-  }
-  .jgroup summary {
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-    -webkit-user-select: none;
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  }
-  .jgroup summary::-webkit-details-marker { display: none; }
-  .jgroup summary::before { content: "▸"; color: var(--slt-cyan); }
-  .jgroup[open] summary::before { content: "▾"; }
-  .jgroup-name {
-    flex: 1;
-    font-size: 12px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-    color: var(--slt-gold);
-  }
-  .jgroup-count { font-size: 12px; color: var(--slt-dim); }
-  .jgroup-btns { display: inline-flex; gap: 6px; }
-  .jgroup-body {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 2px 14px;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px dashed var(--slt-edge);
-  }
-  .jrow {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 8px;
-    padding: 2px 0;
-    font-size: 13px;
-  }
-  .jrow .jname {
-    color: var(--slt-dim);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .jseg {
-    display: inline-flex;
-    border: 1px solid var(--slt-edge);
-    border-radius: 9px;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  #jointsCard .jseg button {
-    background: rgba(0,0,0,.3) !important;
-    color: var(--slt-dim) !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    font-size: 11px;
-    font-weight: 600 !important;
-    letter-spacing: .4px !important;
-    padding: 3px 9px;
-  }
-  #jointsCard .jseg button + button { border-left: 1px solid var(--slt-edge) !important; }
-  #jointsCard .jseg button:hover:not(:disabled) {
-    transform: none !important;
-    filter: brightness(1.25);
-    box-shadow: none !important;
-  }
-  #jointsCard .jseg button.on-A   { background: rgba(43,210,255,.18)  !important; color: var(--slt-cyan) !important; }
-  #jointsCard .jseg button.on-B   { background: rgba(255,60,172,.20)  !important; color: var(--slt-pink) !important; }
-  #jointsCard .jseg button.on-off { background: rgba(255,84,112,.16)  !important; color: var(--slt-bad)  !important; }
-
-  /* ---- Actions / status ---- */
-  .actions { margin-top: 22px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
-  button.primary { font-size: 15px; padding: 12px 28px; }
+  .fname { display: flex; align-items: center; gap: 8px; }
+  .fname input[type=text] { flex: 1; min-width: 0; padding: 8px 12px; font-size: 13.5px; }
+  .fname .ext { font-size: 13.5px; font-weight: 700; color: var(--slt-dim); }
 
   .status { font-size: 13px; padding: 7px 12px; }
   .status:empty { display: none; }
@@ -1960,515 +1868,172 @@ body.slt-themed .mode-btn {
 
 <div class="wrap">
   <header class="slt-titlebar">
-    <div class="slt-subtitle">Merge two animations into one</div>
-    <h1 class="slt-title">SL Animation Combiner</h1>
-    <p class="slt-lede">Drop two animations in, click Combine, download the merged result. If both files move the same body part, the tool picks the right one for you. Everything stays on your computer - nothing is uploaded.</p>
+    <div class="slt-subtitle">Head shape + body shape → one</div>
+    <h1 class="slt-title">SL Shape Combiner</h1>
+    <p class="slt-lede">Drop two exported shape XML files in - the one whose face you want and the one whose body you want. The tool builds one shape from both, ready to import back into your viewer. Everything stays on your computer - nothing is uploaded.</p>
   </header>
 
   <div class="row">
     <div class="card">
       <div class="card-head">
-        <div class="badge">A</div>
-        <div class="role">Animation A<small>e.g. a dance, walk, or pose</small></div>
+        <div class="badge">H</div>
+        <div class="role">Head Shape<small>provides head, eyes, ears, nose, mouth, chin</small></div>
       </div>
       <label class="drop" id="dropA">
+        <button type="button" class="clear" title="Remove this file">✕</button>
         <strong>Choose a file or drop it here</strong>
-        <small>.anim file</small>
-        <input type="file" id="fileA" accept=".anim,application/octet-stream">
+        <small>shape .xml export</small>
+        <input type="file" id="fileA" accept=".xml,text/xml">
       </label>
-      <div class="meta" id="metaA"></div>
     </div>
 
     <div class="card">
       <div class="card-head">
         <div class="badge">B</div>
-        <div class="role">Animation B<small>e.g. a hand pose or head movement</small></div>
+        <div class="role">Body Shape<small>provides body, torso, legs - and is the base file</small></div>
       </div>
       <label class="drop" id="dropB">
+        <button type="button" class="clear" title="Remove this file">✕</button>
         <strong>Choose a file or drop it here</strong>
-        <small>.anim file</small>
-        <input type="file" id="fileB" accept=".anim,application/octet-stream">
+        <small>shape .xml export</small>
+        <input type="file" id="fileB" accept=".xml,text/xml">
       </label>
-      <div class="meta" id="metaB"></div>
     </div>
   </div>
 
-  <div class="meta" id="summary"></div>
-
-  <details class="options" id="jointsCard" style="display:none">
-    <summary>Fine-tune (optional): pick which animation controls each body part</summary>
-    <div class="joint-toolbar">
-      <span class="tb-label">Quick set:</span>
-      <button class="mini" data-allset="auto">AUTO</button>
-      <button class="mini" data-allset="A">ALL A</button>
-      <button class="mini" data-allset="B">ALL B</button>
-      <span id="selCount"></span>
-    </div>
-    <div id="jointGroups"></div>
-  </details>
-
-  <details class="options">
-    <summary>Advanced Options</summary>
-    <div class="opt-grid">
-      <label class="field">
-        <div class="field-label">Take duration &amp; loop from</div>
-        <select id="optDuration">
-          <option value="auto" selected>Auto - the longer file (recommended)</option>
-          <option value="a">Animation A</option>
-          <option value="b">Animation B</option>
-        </select>
-      </label>
-      <label class="field">
-        <div class="field-label">Motion timing (for the shorter file)</div>
-        <select id="optTiming">
-          <option value="tile" selected>Tile - repeat at normal speed (recommended)</option>
-          <option value="stretch">Stretch - slow down to play exactly once</option>
-          <option value="raw">Raw - keep timings untouched (expert)</option>
-        </select>
-      </label>
-      <label class="field">
-        <div class="field-label">Output filename</div>
-        <input type="text" id="optOutname" placeholder="combo.anim" />
-      </label>
-      <label class="field">
-        <div class="field-label">Base priority</div>
-        <input type="text" id="optPriority" placeholder="auto (max of both)" />
-      </label>
-    </div>
-  </details>
 
   <div class="actions">
     <button class="primary" id="btnGo" disabled>▶ Combine</button>
+    <label class="field">
+      <div class="field-label">Output filename</div>
+      <div class="fname">
+        <input type="text" id="optOutname" placeholder="combo_shape" />
+        <span class="ext">.xml</span>
+      </div>
+    </label>
     <span class="status" id="status"></span>
   </div>
 
   <details class="help">
     <summary>How does it work?</summary>
-    <p>Every animation moves a set of body parts. When you combine two files, some parts may be moved by both. The tool then keeps the stronger one (the one with the higher priority) - exactly what SL would do if you played both animations at the same time. If both are equally strong, Animation B wins.</p>
-    <p><b>Frozen parts are removed for you.</b> Many animations lock body parts in place without really using them - for example a hip that is frozen still, which would stop your AO from swaying. The tool spots those and leaves them out. Want one back? Open the fine-tune panel and set it to A or B by hand.</p>
-    <p><b>Different lengths?</b> No problem. The combined animation takes its length from the longer file. The shorter file's motion simply repeats at its normal speed until the end ("Tile", the default). In Advanced Options you can instead slow it down so it plays exactly once ("Stretch"), or copy it unchanged ("Raw" - only useful when both files are equally long).</p>
-    <p class="hint">Each body part keeps its original priority, so your animations layer in-world just like before.</p>
+    <p>Export both shapes from your viewer (Firestorm: wear the shape, then <b>Appearance → Edit Shape → Export XML</b>, or right-click the worn shape). Each export lists every slider as a numeric parameter. This tool knows which parameter belongs to which slider group - Head, Eyes, Nose, Torso, Legs and so on - and builds a new file that takes each group from the shape you picked.</p>
+    <p><b>The body shape is the base.</b> The output file is a copy of the body shape where every group set to Head gets the head file's slider values. Anything that is not a shape slider (skin or wearable parameters that some exports carry along) stays untouched from the body file.</p>
+    <p><b>The split is automatic:</b> Body, Torso and Legs (height, thickness, arms, chest, belly, hips, butt, feet ...) come from the body file, everything else (head, eyes, ears, nose, mouth, chin) from the head file.</p>
+    <p class="hint">Import the result in Firestorm via Inventory → right-click a folder → New Body Parts → New Shape, wear it, then Edit Shape → Import XML. The slider database was extracted from the viewer's avatar_lad.xml (239 parameters in 9 groups).</p>
   </details>
 
   <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
 </div>
 
 <script>
-const td = new TextDecoder();
-
-function readAnim(buf) {
-  const dv = new DataView(buf);
-  let pos = 0;
-  const h = {};
-  h.version      = dv.getUint16(pos, true); pos += 2;
-  h.subVersion   = dv.getUint16(pos, true); pos += 2;
-  h.basePriority = dv.getInt32(pos, true);  pos += 4;
-  h.duration     = dv.getFloat32(pos, true); pos += 4;
-  let end = pos;
-  while (dv.getUint8(end) !== 0) end++;
-  h.emoteName    = new Uint8Array(buf, pos, end - pos);
-  pos = end + 1;
-  h.loopIn       = dv.getFloat32(pos, true); pos += 4;
-  h.loopOut      = dv.getFloat32(pos, true); pos += 4;
-  h.loop         = dv.getInt32(pos, true);   pos += 4;
-  h.easeIn       = dv.getFloat32(pos, true); pos += 4;
-  h.easeOut      = dv.getFloat32(pos, true); pos += 4;
-  h.handPose     = dv.getUint32(pos, true);  pos += 4;
-  const numJoints = dv.getUint32(pos, true); pos += 4;
-  h.joints = [];
-  h.jointsByName = {};
-  for (let i = 0; i < numJoints; i++) {
-    let ne = pos;
-    while (dv.getUint8(ne) !== 0) ne++;
-    const name = td.decode(new Uint8Array(buf, pos, ne - pos));
-    pos = ne + 1;
-    const priority = dv.getInt32(pos, true); pos += 4;
-    const numRot   = dv.getInt32(pos, true); pos += 4;
-    const rotKeys = [];
-    for (let k = 0; k < numRot; k++) {
-      rotKeys.push([dv.getUint16(pos,true), dv.getUint16(pos+2,true), dv.getUint16(pos+4,true), dv.getUint16(pos+6,true)]);
-      pos += 8;
-    }
-    const numPos = dv.getInt32(pos, true); pos += 4;
-    const posKeys = [];
-    for (let k = 0; k < numPos; k++) {
-      posKeys.push([dv.getUint16(pos,true), dv.getUint16(pos+2,true), dv.getUint16(pos+4,true), dv.getUint16(pos+6,true)]);
-      pos += 8;
-    }
-    const j = { name, priority, rotKeys, posKeys };
-    h.joints.push(j);
-    h.jointsByName[name] = j;
-  }
-  h.numConstraints = dv.getInt32(pos, true);
-  return h;
-}
-
-function strBytes(s) { return new TextEncoder().encode(s); }
-
-function writeAnim(header, joints) {
-  let size = 0;
-  size += 2 + 2 + 4 + 4;
-  size += header.emoteName.length + 1;
-  size += 4 + 4 + 4 + 4 + 4;
-  size += 4 + 4;
-  for (const j of joints) {
-    size += strBytes(j.name).length + 1;
-    size += 4 + 4 + j.rotKeys.length * 8;
-    size += 4 + j.posKeys.length * 8;
-  }
-  size += 4;
-  const ab = new ArrayBuffer(size);
-  const dv = new DataView(ab);
-  const u8 = new Uint8Array(ab);
-  let pos = 0;
-  dv.setUint16(pos, header.version, true); pos += 2;
-  dv.setUint16(pos, header.subVersion, true); pos += 2;
-  dv.setInt32(pos,  header.basePriority, true); pos += 4;
-  dv.setFloat32(pos, header.duration, true); pos += 4;
-  u8.set(header.emoteName, pos); pos += header.emoteName.length;
-  u8[pos++] = 0;
-  dv.setFloat32(pos, header.loopIn, true); pos += 4;
-  dv.setFloat32(pos, header.loopOut, true); pos += 4;
-  dv.setInt32(pos,  header.loop, true); pos += 4;
-  dv.setFloat32(pos, header.easeIn, true); pos += 4;
-  dv.setFloat32(pos, header.easeOut, true); pos += 4;
-  dv.setUint32(pos, header.handPose, true); pos += 4;
-  dv.setUint32(pos, joints.length, true); pos += 4;
-  for (const j of joints) {
-    const nb = strBytes(j.name);
-    u8.set(nb, pos); pos += nb.length; u8[pos++] = 0;
-    dv.setInt32(pos, j.priority, true); pos += 4;
-    dv.setInt32(pos, j.rotKeys.length, true); pos += 4;
-    for (const k of j.rotKeys) {
-      dv.setUint16(pos,k[0],true); dv.setUint16(pos+2,k[1],true);
-      dv.setUint16(pos+4,k[2],true); dv.setUint16(pos+6,k[3],true);
-      pos += 8;
-    }
-    dv.setInt32(pos, j.posKeys.length, true); pos += 4;
-    for (const k of j.posKeys) {
-      dv.setUint16(pos,k[0],true); dv.setUint16(pos+2,k[1],true);
-      dv.setUint16(pos+4,k[2],true); dv.setUint16(pos+6,k[3],true);
-      pos += 8;
-    }
-  }
-  dv.setInt32(pos, 0, true);
-  return ab;
-}
-
-function remapKeys(keys, scale, offset, addHold) {
-  const out = [];
-  if (addHold && keys.length > 0) {
-    const k0 = keys[0];
-    out.push([0, k0[1], k0[2], k0[3]]);
-  }
-  for (const k of keys) {
-    let nt = Math.round(k[0] * scale + offset);
-    if (nt < 0) nt = 0;
-    if (nt > 65535) nt = 65535;
-    if (out.length > 0 && nt === out[out.length - 1][0]) {
-      nt = Math.min(65535, out[out.length - 1][0] + 1);
-    }
-    out.push([nt, k[1], k[2], k[3]]);
-  }
-  return out;
-}
-
-function lerpAt(keys, t) {
-  let prev = null;
-  for (const k of keys) {
-    if (k[0] === t) return [k[1], k[2], k[3]];
-    if (k[0] > t) {
-      if (!prev) return [k[1], k[2], k[3]];
-      const f = (t - prev[0]) / (k[0] - prev[0]);
-      return [1, 2, 3].map(i => Math.round(prev[i] + (k[i] - prev[i]) * f));
-    }
-    prev = k;
-  }
-  return [prev[1], prev[2], prev[3]];
-}
-
-// Tile the source file's loop cycle into [winIn, winOut] of the output at
-// (nearly) original speed. The cycle count is rounded so the last cycle
-// ends exactly on winOut - the result loops seamlessly, at worst a few
-// percent faster or slower than the original.
-function tileKeys(keys, src, outDur, winIn, winOut) {
-  if (!keys.length) return [];
-  let inS = src.loopIn, outS = src.loopOut;
-  if (!(outS - inS > 0.05)) { inS = 0; outS = src.duration; }
-  const srcCycle = Math.max(outS - inS, 1e-6);
-  const win = Math.max(winOut - winIn, 1e-6);
-  const cycles = Math.min(64, Math.max(1, Math.round(win / srcCycle)));
-  const cycleLen = win / cycles;
-  const li = Math.round(inS / src.duration * 65535);
-  const lo = Math.round(outS / src.duration * 65535);
-  const cyc = [[0, ...lerpAt(keys, li)]];
-  for (const k of keys) {
-    if (k[0] > li && k[0] < lo) cyc.push([(k[0] - li) / 65535 * src.duration, k[1], k[2], k[3]]);
-  }
-  cyc.push([srcCycle, ...lerpAt(keys, lo)]);
-  const speed = cycleLen / srcCycle;
-  const out = [];
-  const push = (t, x, y, z) => {
-    let nt = Math.min(65535, Math.round(t / outDur * 65535));
-    if (out.length && nt <= out[out.length - 1][0]) nt = Math.min(65535, out[out.length - 1][0] + 1);
-    out.push([nt, x, y, z]);
-  };
-  if (winIn > 0) push(0, cyc[0][1], cyc[0][2], cyc[0][3]);
-  for (let c = 0; c < cycles; c++) {
-    for (let i = 0; i < cyc.length; i++) {
-      if (i === cyc.length - 1 && c < cycles - 1) continue;
-      const [rt, x, y, z] = cyc[i];
-      push(winIn + c * cycleLen + rt * speed, x, y, z);
-    }
-  }
-  return out;
-}
+const PARAM_GROUP = {"33":"Body","34":"Body","36":"Torso","37":"Legs","842":"Legs","38":"Torso","195":"Eyes","661":"Eyes","772":"Eyes","768":"Eyes","655":"Head","675":"Torso","683":"Torso","689":"Eyes","692":"Legs","693":"Torso","756":"Torso","11001":"Body","5":"Chin","12":"Chin","13":"Chin","22":"Ears","186":"Head","187":"Head","194":"Eyes","633":"Body","657":"Mouth","658":"Mouth","797":"Mouth","798":"Mouth","660":"Head","770":"Head","664":"Eyes","686":"Eyes","767":"Eyes","518":"Eyes","626":"Torso","627":"Torso","843":"Torso","106":"Torso","107":"Torso","648":"Torso","677":"Torso","634":"Body","507":"Torso","684":"Torso","685":"Torso","151":"Legs","794":"Legs","152":"Legs","651":"Legs","515":"Legs","635":"Body","679":"Eyes","687":"Eyes","694":"Eyes","695":"Eyes","681":"Eyes","691":"Eyes","2":"Nose","20002":"Nose","30002":"Nose","4":"Nose","20004":"Nose","30004":"Nose","517":"Nose","20517":"Nose","30517":"Nose","20":"Nose","20020":"Nose","30020":"Nose","656":"Nose","20656":"Nose","30656":"Nose","653":"Mouth","20653":"Mouth","30653":"Mouth","506":"Mouth","20506":"Mouth","30506":"Mouth","764":"Mouth","20764":"Mouth","30764":"Mouth","25":"Mouth","20025":"Mouth","30025":"Mouth","663":"Mouth","20663":"Mouth","31663":"Mouth","32663":"Mouth","35":"Ears","20035":"Ears","30035":"Ears","15":"Ears","20015":"Ears","30015":"Ears","796":"Ears","20796":"Ears","30796":"Ears","185":"Chin","20185":"Chin","30185":"Chin","760":"Chin","20760":"Chin","30760":"Chin","665":"Chin","20665":"Chin","30665":"Chin","6":"Nose","20006":"Nose","30006":"Nose","7":"Chin","20007":"Chin","30007":"Chin","8":"Chin","20008":"Chin","30008":"Chin","24":"Eyes","20024":"Eyes","30024":"Eyes","650":"Eyes","20650":"Eyes","30650":"Eyes","880":"Eyes","20880":"Eyes","30880":"Eyes","21":"Eyes","20021":"Eyes","30021":"Eyes","23":"Eyes","20023":"Eyes","30023":"Eyes","765":"Eyes","20765":"Eyes","30765":"Eyes","1":"Head","20001":"Head","30001":"Head","11":"Nose","20011":"Nose","30011":"Nose","758":"Nose","20758":"Nose","30758":"Nose","27":"Nose","20027":"Nose","30027":"Nose","759":"Nose","20759":"Nose","30759":"Nose","10":"Head","20010":"Head","30010":"Head","17":"Chin","20017":"Chin","30017":"Chin","18":"Head","20018":"Head","30018":"Head","14":"Head","20014":"Head","30014":"Head","19":"Nose","20019":"Nose","30019":"Nose","505":"Mouth","26":"Mouth","28":"Mouth","30505":"Mouth","31505":"Mouth","799":"Mouth","30797":"Mouth","30798":"Mouth","155":"Mouth","29":"Mouth","30":"Mouth","30155":"Mouth","196":"Eyes","769":"Eyes","193":"Head","188":"Head","642":"Head","189":"Head","643":"Head","30193":"Head","157":"Torso","104":"Torso","156":"Torso","849":"Torso","637":"Body","851":"Body","105":"Torso","629":"Head","630":"Head","644":"Head","631":"Head","645":"Head","31629":"Head","32629":"Head","646":"Head","640":"Head","30646":"Head","647":"Head","641":"Head","30647":"Head","649":"Torso","678":"Torso","652":"Legs","659":"Mouth","30658":"Mouth","30657":"Mouth","662":"Head","774":"Head","773":"Head","771":"Head","30772":"Head","31772":"Head","32772":"Head","682":"Head","680":"Head","690":"Eyes","688":"Eyes","30689":"Eyes","795":"Legs","867":"Legs","852":"Legs","879":"Legs","20879":"Legs","30879":"Legs","841":"Legs","853":"Legs","847":"Legs","753":"Legs","850":"Legs","854":"Legs","676":"Torso","855":"Torso","856":"Torso","80":"Body"};
 
 const GROUPS = [
-  { id: 'face',  label: 'Head & Face',          re: /^(mFace|mHead$|mNeck$|mSkull$|mEye)/ },
-  { id: 'torso', label: 'Torso & Pelvis',       re: /^(mPelvis$|mTorso$|mChest$|mSpine)/ },
-  { id: 'armL',  label: 'Left Arm',             re: /^(mCollar|mShoulder|mElbow|mWrist)Left$/ },
-  { id: 'handL', label: 'Left Hand',            re: /^mHand\w+Left$/ },
-  { id: 'armR',  label: 'Right Arm',            re: /^(mCollar|mShoulder|mElbow|mWrist)Right$/ },
-  { id: 'handR', label: 'Right Hand',           re: /^mHand\w+Right$/ },
-  { id: 'legs',  label: 'Legs & Feet',          re: /^(mHip|mKnee|mAnkle|mFoot|mToe)/ },
-  { id: 'extra', label: 'Wings / Tail / Extra', re: /^(mWing|mTail|mGroin|mHind)/ },
-  { id: 'other', label: 'Volume & Other',       re: /./ },
+  { id: 'Body',  sub: 'height · thickness · fat' },
+  { id: 'Head',  sub: 'size · shape · brows' },
+  { id: 'Eyes',  sub: 'size · spacing · depth' },
+  { id: 'Ears',  sub: 'size · angle · tips' },
+  { id: 'Nose',  sub: 'size · bridge · nostrils' },
+  { id: 'Mouth', sub: 'lips · width · position' },
+  { id: 'Chin',  sub: 'jaw · cheeks · neck' },
+  { id: 'Torso', sub: 'arms · chest · belly · hips' },
+  { id: 'Legs',  sub: 'length · muscles · butt · feet' },
 ];
-function groupOf(name) { return GROUPS.find(g => g.re.test(name)).id; }
+const BODY_SET = { Body: 1, Torso: 1, Legs: 1 };
 
-function unionJoints(a, b) {
-  const seen = new Set(), out = [];
-  for (const j of a.joints) { out.push(j.name); seen.add(j.name); }
-  for (const j of b.joints) if (!seen.has(j.name)) out.push(j.name);
-  return out;
-}
-
-function combine(a, b, opts) {
-  const driver = opts.duration === 'b' ? b : a;
-  const other  = opts.duration === 'b' ? a : b;
-  const header = {
-    version: driver.version,
-    subVersion: driver.subVersion,
-    basePriority: opts.priority != null ? opts.priority
-                  : Math.max(a.basePriority, b.basePriority),
-    duration: driver.duration,
-    emoteName: driver.emoteName,
-    loopIn: driver.loopIn,
-    loopOut: driver.loopOut,
-    loop: driver.loop,
-    easeIn: driver.easeIn,
-    easeOut: driver.easeOut,
-    handPose: driver.handPose,
-  };
-  const win = Math.max(header.loopOut - header.loopIn, 1e-6);
-  const stretchScale  = win / header.duration;
-  const stretchOffset = (header.loopIn / header.duration) * 65535;
-  const retime = (keys) => {
-    if (opts.timing === 'raw') return keys;
-    if (opts.timing === 'stretch') return remapKeys(keys, stretchScale, stretchOffset, true);
-    return tileKeys(keys, other, header.duration, header.loopIn, header.loopOut);
-  };
-  const finalJoints = [];
-  for (const name of unionJoints(a, b)) {
-    const choice = opts.choice[name] || (b.jointsByName[name] ? 'B' : 'A');
-    if (choice === 'off') continue;
-    const src = choice === 'B' ? b.jointsByName[name] : a.jointsByName[name];
-    if (!src) continue;
-    const fromDriver = (choice === 'B') === (opts.duration === 'b');
-    finalJoints.push(fromDriver ? src : {
-      name: src.name, priority: src.priority,
-      rotKeys: retime(src.rotKeys),
-      posKeys: retime(src.posKeys),
-    });
+function parseShape(text, name) {
+  const doc = new DOMParser().parseFromString(text, 'text/xml');
+  if (doc.querySelector('parsererror')) throw new Error(name + ' is not readable XML');
+  const params = {};
+  let known = 0;
+  for (const p of doc.querySelectorAll('param')) {
+    const id = p.getAttribute('id');
+    if (id == null || p.getAttribute('value') == null) continue;
+    params[id] = p;
+    if (PARAM_GROUP[id]) known++;
   }
-  if (!finalJoints.length) throw new Error('every joint is set to OFF - nothing to write');
-  return writeAnim(header, finalJoints);
+  if (!known) throw new Error(name + ' contains no shape sliders - is it a shape XML export?');
+  return { doc, params, known };
 }
 
-const state = { a: null, b: null, aName: '', bName: '', choice: {} };
-const els = {
-  fileA: document.getElementById('fileA'),
-  fileB: document.getElementById('fileB'),
-  dropA: document.getElementById('dropA'),
-  dropB: document.getElementById('dropB'),
-  metaA: document.getElementById('metaA'),
-  metaB: document.getElementById('metaB'),
-  btnGo: document.getElementById('btnGo'),
-  status: document.getElementById('status'),
-  optDuration: document.getElementById('optDuration'),
-  optTiming: document.getElementById('optTiming'),
-  optOutname: document.getElementById('optOutname'),
-  optPriority: document.getElementById('optPriority'),
-  jointsCard: document.getElementById('jointsCard'),
-  jointGroups: document.getElementById('jointGroups'),
-  selCount: document.getElementById('selCount'),
-  summary: document.getElementById('summary'),
-};
+const state = { h: null, b: null, hName: '', bName: '' };
+const els = {};
+for (const id of ['fileA','fileB','dropA','dropB','btnGo','status','optOutname'])
+  els[id] = document.getElementById(id);
 
-// "Pin" = a joint that is static AND sitting at the rest pose (identity
-// rotation / zero offset). It contributes nothing visually but blocks
-// lower-priority animations (e.g. the AO stand) from moving that bone.
-function isPin(j) {
-  const TOL = 200; // u16 ticks around center (32767.5) ≈ rest pose
-  const flat = ks => ks.every(k =>
-    Math.abs(k[1] - 32767.5) < TOL &&
-    Math.abs(k[2] - 32767.5) < TOL &&
-    Math.abs(k[3] - 32767.5) < TOL);
-  return flat(j.rotKeys) && flat(j.posKeys);
-}
+function sideOf(group) { return BODY_SET[group] ? 'B' : 'H'; }
 
-function autoChoice(name) {
-  const ja = state.a.jointsByName[name], jb = state.b.jointsByName[name];
-  if (ja && jb) return jb.priority >= ja.priority ? 'B' : 'A';
-  if (isPin(ja || jb)) return 'off';
-  return ja ? 'A' : 'B';
-}
-
-function resolveDuration() {
-  const v = els.optDuration.value;
-  if (v === 'a' || v === 'b') return v;
-  return state.a.duration >= state.b.duration ? 'a' : 'b';
-}
-
-function summarize() {
-  if (!(state.a && state.b)) { els.summary.classList.remove('shown'); return; }
-  const wins = { A: {}, B: {} };
-  const dropped = [];
-  let ca = 0, cb = 0;
-  for (const [name, c] of Object.entries(state.choice)) {
-    if (c === 'off') { dropped.push(name); continue; }
-    if (c === 'A') ca++; else cb++;
-    const g = groupOf(name);
-    wins[c][g] = (wins[c][g] || 0) + 1;
-  }
-  const list = side => GROUPS
-    .filter(g => wins[side][g.id])
-    .map(g => `${g.label} (${wins[side][g.id]})`)
-    .join(' · ') || '-';
-  const drv = resolveDuration() === 'b' ? state.b : state.a;
-  els.summary.innerHTML = `<b>RESULT PREVIEW</b><br>
-    <span class="field">from A · ${state.aName}:</span> ${ca} bones - ${list('A')}<br>
-    <span class="field">from B · ${state.bName}:</span> ${cb} bones - ${list('B')}<br>
-    <span class="field">dropped pins:</span> ${dropped.length ? dropped.join(', ') : 'none'}<br>
-    <span class="field">duration &amp; loop:</span> ${drv.duration.toFixed(2)}s from ${drv === state.a ? 'A' : 'B'}${drv.loop ? ' · loops' : ''}`;
-  els.summary.classList.add('shown');
-}
-
-function setJoint(name, c) {
-  if (c === 'A' && !state.a.jointsByName[name]) c = 'off';
-  if (c === 'B' && !state.b.jointsByName[name]) c = 'off';
-  state.choice[name] = c;
-}
-
-function refreshSegs() {
-  let ca = 0, cb = 0, coff = 0;
-  for (const row of els.jointGroups.querySelectorAll('.jrow')) {
-    const c = state.choice[row.dataset.joint];
-    for (const btn of row.querySelectorAll('[data-c]')) {
-      btn.className = btn.dataset.c === c ? 'on-' + c : '';
-    }
-    if (c === 'A') ca++; else if (c === 'B') cb++; else coff++;
-  }
-  els.selCount.textContent = `:: ${ca} × A · ${cb} × B · ${coff} × OFF`;
-  summarize();
-}
-
-function renderJoints() {
-  if (!(state.a && state.b)) { els.jointsCard.style.display = 'none'; summarize(); return; }
-  const names = unionJoints(state.a, state.b);
-  state.choice = {};
-  for (const n of names) state.choice[n] = autoChoice(n);
-  const byGroup = {};
-  for (const n of names) (byGroup[groupOf(n)] = byGroup[groupOf(n)] || []).push(n);
-  let html = '';
-  for (const g of GROUPS) {
-    const list = byGroup[g.id];
-    if (!list) continue;
-    html += `<details class="jgroup" open>
-      <summary>
-        <span class="jgroup-name">${g.label}</span>
-        <span class="jgroup-count">${list.length} joint${list.length === 1 ? '' : 's'}</span>
-        <span class="jgroup-btns">
-          <button class="mini" data-gset="A">A</button>
-          <button class="mini" data-gset="B">B</button>
-          <button class="mini" data-gset="off">OFF</button>
-        </span>
-      </summary>
-      <div class="jgroup-body">`;
-    for (const n of list) {
-      const inA = !!state.a.jointsByName[n], inB = !!state.b.jointsByName[n];
-      html += `<div class="jrow" data-joint="${n}">
-        <span class="jname" title="${n} - in ${inA && inB ? 'A + B' : inA ? 'A only' : 'B only'}">${n}</span>
-        <span class="jseg">
-          <button data-c="A"${inA ? '' : ' disabled'}>A</button>
-          <button data-c="B"${inB ? '' : ' disabled'}>B</button>
-          <button data-c="off">OFF</button>
-        </span></div>`;
-    }
-    html += `</div></details>`;
-  }
-  els.jointGroups.innerHTML = html;
-  els.jointsCard.style.display = '';
-  refreshSegs();
-}
-
-els.jointGroups.addEventListener('click', (e) => {
-  const seg = e.target.closest('[data-c]');
-  if (seg && !seg.disabled) {
-    state.choice[seg.closest('.jrow').dataset.joint] = seg.dataset.c;
-    refreshSegs();
-    return;
-  }
-  const gbtn = e.target.closest('[data-gset]');
-  if (gbtn) {
-    e.preventDefault();
-    for (const row of gbtn.closest('.jgroup').querySelectorAll('.jrow')) {
-      setJoint(row.dataset.joint, gbtn.dataset.gset);
-    }
-    refreshSegs();
-  }
-});
-
-document.querySelectorAll('[data-allset]').forEach(btn => btn.addEventListener('click', () => {
-  for (const name of Object.keys(state.choice)) {
-    if (btn.dataset.allset === 'auto') state.choice[name] = autoChoice(name);
-    else setJoint(name, btn.dataset.allset);
-  }
-  refreshSegs();
-}));
-
-function showMeta(elem, name, parsed) {
-  elem.classList.add('shown');
-  elem.innerHTML = `<b>${name}</b><br>
-    <span class="field">Duration:</span> ${parsed.duration.toFixed(3)}s &nbsp;·&nbsp;
-    <span class="field">Prio:</span> ${parsed.basePriority} &nbsp;·&nbsp;
-    <span class="field">Joints:</span> ${parsed.joints.length} &nbsp;·&nbsp;
-    <span class="field">Loop:</span> ${parsed.loop ? 'YES' : 'NO'}`;
-}
+let autoName = '';
 
 function updateButton() {
-  els.btnGo.disabled = !(state.a && state.b);
-  if (state.a && state.b && !els.optOutname.value) {
-    const na = state.aName.replace(/\.anim$/i, '');
-    const nb = state.bName.replace(/\.anim$/i, '');
-    els.optOutname.value = `${na} + ${nb}.anim`;
+  els.btnGo.disabled = !(state.h && state.b);
+  if (state.h && state.b && (!els.optOutname.value || els.optOutname.value === autoName)) {
+    const nh = state.hName.replace(/\.xml$/i, '');
+    const nb = state.bName.replace(/\.xml$/i, '');
+    autoName = `${nh} + ${nb}`;
+    els.optOutname.value = autoName;
   }
+}
+
+function setDrop(kind, name) {
+  const drop = kind === 'h' ? els.dropA : els.dropB;
+  drop.classList.toggle('loaded', !!name);
+  drop.querySelector('strong').textContent = name || 'Choose a file or drop it here';
+  drop.querySelector('small').textContent = name ? 'click to swap the file' : 'shape .xml export';
+}
+
+function clearFile(kind) {
+  state[kind] = null;
+  state[kind + 'Name'] = '';
+  (kind === 'h' ? els.fileA : els.fileB).value = '';
+  setDrop(kind, null);
+  if (els.optOutname.value === autoName) { els.optOutname.value = ''; autoName = ''; }
+  els.btnGo.disabled = true;
+  setStatus('', '');
 }
 
 async function handleFile(file, kind) {
   try {
-    const buf = await file.arrayBuffer();
-    const parsed = readAnim(buf);
+    const text = await file.text();
+    const parsed = parseShape(text, file.name);
     state[kind] = parsed;
     state[kind + 'Name'] = file.name;
-    showMeta(kind === 'a' ? els.metaA : els.metaB, file.name, parsed);
+    setDrop(kind, file.name);
     setStatus('', '');
     updateButton();
-    renderJoints();
   } catch (e) {
     setStatus('>> ERROR: ' + e.message, 'err');
   }
+}
+
+function combine() {
+  const out = state.b.doc.cloneNode(true);
+  const outParams = {};
+  for (const p of out.querySelectorAll('param')) {
+    const id = p.getAttribute('id');
+    if (id != null) outParams[id] = p;
+  }
+  let appendTo = out.querySelector('archetype');
+  if (!appendTo) appendTo = out.documentElement;
+  let taken = 0;
+  const ids = new Set([...Object.keys(state.h.params), ...Object.keys(state.b.params)]);
+  for (const id of ids) {
+    const g = PARAM_GROUP[id];
+    if (!g || sideOf(g) !== 'H') continue;
+    const pb = state.h.params[id];
+    if (!pb) continue;
+    const po = outParams[id];
+    if (po) {
+      po.setAttribute('value', pb.getAttribute('value'));
+      if (pb.getAttribute('u8') != null) po.setAttribute('u8', pb.getAttribute('u8'));
+      else po.removeAttribute('u8');
+    } else {
+      appendTo.appendChild(out.importNode(pb, true));
+    }
+    taken++;
+  }
+  const xml = new XMLSerializer().serializeToString(out);
+  return { xml: xml.startsWith('<?xml') ? xml : '<?xml version="1.0" encoding="US-ASCII" standalone="yes"?>\n' + xml, taken };
 }
 
 function setStatus(msg, kind) {
@@ -2489,30 +2054,28 @@ function bindDrop(dropEl, fileEl, kind) {
   dropEl.addEventListener('drop', e => {
     if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], kind);
   });
+  dropEl.querySelector('.clear').addEventListener('click', e => {
+    e.preventDefault();
+    e.stopPropagation();
+    clearFile(kind);
+  });
 }
-bindDrop(els.dropA, els.fileA, 'a');
+bindDrop(els.dropA, els.fileA, 'h');
 bindDrop(els.dropB, els.fileB, 'b');
-els.optDuration.addEventListener('change', summarize);
 
 els.btnGo.addEventListener('click', () => {
   try {
-    const opts = {
-      duration: resolveDuration(),
-      timing: els.optTiming.value,
-      priority: els.optPriority.value.trim() ? parseInt(els.optPriority.value, 10) : null,
-      choice: state.choice,
-    };
-    const ab = combine(state.a, state.b, opts);
-    const blob = new Blob([ab], { type: 'application/octet-stream' });
+    const { xml, taken } = combine();
+    const blob = new Blob([xml], { type: 'text/xml' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = els.optOutname.value || 'combo.anim';
+    a.download = (els.optOutname.value.replace(/\.xml$/i, '') || 'combo_shape') + '.xml';
     document.body.appendChild(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-    setStatus(`>> OK :: ${a.download} (${ab.byteLength.toLocaleString('en-US')} bytes)`, 'ok');
+    setStatus(`>> OK :: ${a.download} (${taken} slider${taken === 1 ? '' : 's'} from the head file)`, 'ok');
   } catch (e) {
     setStatus('>> ERROR: ' + e.message, 'err');
     console.error(e);
