@@ -1916,10 +1916,12 @@ body.slt-themed .mode-btn {
 
   <details class="help">
     <summary>How does it work?</summary>
-    <p>Export both shapes from your viewer (Firestorm: wear the shape, then <b>Appearance → Edit Shape → Export XML</b>, or right-click the worn shape). Each export lists every slider as a numeric parameter. This tool knows which parameter belongs to which slider group - Head, Eyes, Nose, Torso, Legs and so on - and builds a new file that takes each group from the shape you picked.</p>
-    <p><b>The body shape is the base.</b> The output file is a copy of the body shape where every group set to Head gets the head file's slider values. Anything that is not a shape slider (skin or wearable parameters that some exports carry along) stays untouched from the body file.</p>
-    <p><b>The split is automatic:</b> Body, Torso and Legs (height, thickness, arms, chest, belly, hips, butt, feet ...) come from the body file, everything else (head, eyes, ears, nose, mouth, chin) from the head file.</p>
-    <p class="hint">Import the result in Firestorm via Inventory → right-click a folder → New Body Parts → New Shape, wear it, then Edit Shape → Import XML. The slider database was extracted from the viewer's avatar_lad.xml (239 parameters in 9 groups).</p>
+    <p>You have one shape with a face you love, and another shape with a body you love. This tool glues them together: face from one, body from the other. You never have to copy sliders by hand.</p>
+    <p><b>Step 1 - save both shapes as files.</b> In Firestorm, wear the shape with the good <b>face</b>. Right-click your avatar → <b>Appearance → Edit Shape</b>, then click <b>Export XML</b> and save the file. Now do the same with the shape that has the good <b>body</b>. You end up with two files on your computer.</p>
+    <p><b>Step 2 - drop them in above.</b> The face file goes into the left box (Head Shape), the body file into the right box (Body Shape). Mixed them up? Click the little ✕ on a box and try again.</p>
+    <p><b>Step 3 - click Combine.</b> Your browser saves one new file. That's your mixed shape. Face, eyes, ears, nose, mouth and chin come from the left file; height, body, arms, chest, belly, hips, butt, legs and feet come from the right file. It happens automatically - there is nothing to configure.</p>
+    <p><b>Step 4 - get it back into Second Life.</b> In your inventory, right-click a folder → <b>New Body Parts → New Shape</b>. Wear that new shape (you will look like a default avatar for a moment - that's fine). Then <b>Edit Shape → Import XML</b>, pick the file from step 3, and click <b>Save As</b>. Done - your old shapes stay untouched.</p>
+    <p class="hint">Nothing is uploaded anywhere. The two files are read right here in your browser, and the result is saved straight to your computer.</p>
   </details>
 
   <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
