@@ -2085,7 +2085,7 @@ els.btnGo.addEventListener('click', () => {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
-    setStatus(`>> OK :: ${a.download} (${taken} slider${taken === 1 ? '' : 's'} from the head file)`, 'ok');
+
   } catch (e) {
     setStatus('>> ERROR: ' + e.message, 'err');
     console.error(e);
