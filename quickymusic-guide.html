@@ -129,13 +129,22 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
 
   <section>
     <h2>Library (Settings)</h2>
-    <p>Owner only, under <b>⚙ Settings → Library</b>. Three buttons, one job each:</p>
+    <p>Owner only, under <b>⚙ Settings → Library</b>:</p>
     <div class="rows" style="margin-top:16px">
-      <div class="row"><span class="btn gold">⇪ Export</span><span>Prints the song list in chat - click a song to export it as a Mewsic/Nyanko-style notecard.</span></div>
-      <div class="row"><span class="btn gold">⇄ Web page</span><span>Shows how an export arrives and switches it: <b>Web page</b> (chat links to a temporary page with the notecard name and content - copy from there) or <b>Chat</b> (the content arrives as chat blocks of 25 clips - paste them in order into one notecard).</span></div>
+      <div class="row"><span class="btn gold">⇊ Ask</span><span>Whether other people may offer songs to this player: <b>Ask</b> (you get a dialog and decide) or <b>Off</b> (your player is invisible to their Transfer search). Fresh players start on Ask.</span></div>
       <div class="row"><span class="btn gold">⌦ Wipe all</span><span>Removes every song at once. Asks first (<b>⌦ WIPE IT</b>) and cannot be undone. Scripts and animations stay untouched. Single songs are deleted with their <b>✘</b> in ≡ List.</span></div>
     </div>
-    <div class="note">An exported notecard looks like: first line <span class="pill">30:21</span>, then one clip UUID per line. Any QuickyMusic player imports it automatically when you drop the notecard in.</div>
+  </section>
+
+  <section>
+    <h2>Transfer &amp; Export (Settings)</h2>
+    <p>Owner only, under <b>⚙ Settings → Export</b>. This is how songs leave the player:</p>
+    <div class="rows" style="margin-top:16px">
+      <div class="row"><span class="btn gold">⇉ Transfer</span><span>Sends songs straight into another QuickyMusic player - one song or all of them. Your own players are found automatically; a friend's player must be <b>within 10 m</b> (close enough to whisper), and its owner gets an <b>Accept / Decline</b> dialog first. Songs the target already has are skipped, nothing is removed from your player.</span></div>
+      <div class="row"><span class="btn gold">⇪ Export</span><span>Prints the song list in chat - click a song to export it as a Mewsic/Nyanko-style notecard.</span></div>
+      <div class="row"><span class="btn gold">⇄ Web page</span><span>Shows how an export arrives and switches it: <b>Web page</b> (chat links to a temporary page with the notecard name and content - copy from there) or <b>Chat</b> (the content arrives as chat blocks of 25 clips - paste them in order into one notecard).</span></div>
+    </div>
+    <div class="note">An exported notecard looks like: first line <span class="pill">30:21</span>, then one clip UUID per line. Any QuickyMusic player imports it automatically when you drop the notecard in. Transfers run directly between the two players in-world - no server is involved and nothing is stored anywhere else. Share only songs you hold the rights to; like uploading, sharing is the responsibility of the person who shares.</div>
   </section>
 
   <section>
