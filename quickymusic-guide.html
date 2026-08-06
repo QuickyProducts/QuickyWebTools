@@ -116,7 +116,8 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
       <div class="row"><span class="btn">∞ Repeat</span><span>Owner only. Cycles: <b>off</b> → <b>∞ song</b> → <b>∞ list</b>. The ∞ marks in the menu show which one is active.</span></div>
       <div class="row"><span class="btn">≡ List</span><span>Show all songs in chat. On your lines: <b>►</b> plays that one song (and stops after it), <b>✚</b> adds it to Up Next, <b>✘</b> deletes it (asks first). Guests see one big <b>✚ title</b> link per song that adds a wish.</span></div>
       <div class="row"><span class="btn">⌕ Search</span><span>Type part of a title - matches come back as clickable list lines, none and the search box reopens.</span></div>
-      <div class="row"><span class="btn gold">⚙ Settings</span><span>Owner only. Everything configurable in one place: <b>Access</b> (who may use the menu: Owner, Group or Public), <b>Library</b> (chapter below), plus one entry per installed module - <b>Anims</b> (chapter below), <b>Visualizer</b> (floating title, timeline styles, note colors and the Up Next line) and <b>Speaker</b> (sway on the dangle speaker).</span></div>
+      <div class="row"><span class="btn gold">⚙ Settings</span><span>Owner only. Everything configurable in one place: <b>Access</b> (who may use the menu: Owner, Group or Public), <b>Library</b> (chapter below), plus one entry per installed module - <b>Anims</b> (chapter below), <b>Visualizer</b> (floating title, timeline styles, note colors and the Up Next line), <b>Speaker</b> (sway on the dangle speaker) and <b>Mewsic Export</b> if you added that module.</span></div>
+      <div class="row"><span class="btn gold">⇉ Transfer</span><span>Owner only. Sends songs straight into another QuickyMusic player - chapter below.</span></div>
     </div>
     <div class="note">With Group or Public access, whoever touches the player gets the menu for 60 seconds (every click extends it). Others see who is using it; only the owner can take over early. Guests get <b>✘ Close</b>, <b>≡ List</b> and <b>⌕ Search</b> - they can add song wishes, nothing else.</div>
   </section>
@@ -131,21 +132,31 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
     <h2>Library (Settings)</h2>
     <p>Owner only, under <b>⚙ Settings → Library</b>:</p>
     <div class="rows" style="margin-top:16px">
-      <div class="row"><span class="btn gold">⇊ Ask</span><span>Whether other people may offer songs to this player: <b>Ask</b> (you get a dialog and decide) or <b>Off</b> (your player is invisible to their Transfer search). Fresh players start on Ask.</span></div>
-      <div class="row"><span class="btn gold">⌦ Wipe all</span><span>Removes every song at once. Asks first (<b>⌦ WIPE IT</b>) and cannot be undone. Scripts and animations stay untouched. Single songs are deleted with their <b>✘</b> in ≡ List.</span></div>
+      <div class="row"><span class="btn gold">☑ Receive</span><span>Whether other people may offer songs to this player. Ticked (the default): you get an <b>Accept / Decline</b> dialog and decide each time. Unticked: your player is invisible to their Transfer search and no one can offer you anything.</span></div>
+      <div class="row"><span class="btn gold">🗑 Wipe all</span><span>Removes every song at once. Asks first (<b>🗑 WIPE IT</b>) and cannot be undone. Scripts and animations stay untouched. Single songs are deleted with their <b>✘</b> in ≡ List.</span></div>
     </div>
   </section>
 
   <section>
-    <h2>Transfer &amp; Export (Settings)</h2>
-    <p>Owner only, under <b>⚙ Settings → Export</b>. This is how songs leave the player:</p>
+    <h2>Transfer (main menu)</h2>
+    <p>Owner only, the <b>⇉ Transfer</b> button top right in the main menu. It copies songs straight into another QuickyMusic player:</p>
+    <ol class="steps">
+      <li>Tap <b>⇉ Transfer</b>. The player looks around for other QuickyMusic players for three seconds.</li>
+      <li>Pick the target from the list - it shows each player’s name, its owner and how many songs it holds, so two speakers side by side are easy to tell apart. If only one answers, that step is skipped.</li>
+      <li>Choose <b>⇉ All songs</b> or <b>⇉ One song</b> (then click the song in the printed list).</li>
+    </ol>
+    <div class="note">Your own players accept right away. Someone else’s player must be <b>within 10 m</b> and have <b>Receive</b> ticked; its owner then gets an <b>Accept / Decline</b> dialog naming you and, for a single song, its title. Songs the target already has are skipped, nothing is ever removed - on either side. Transfers run directly between the two players in-world: no server is involved and nothing is stored anywhere else. Share only songs you hold the rights to; like uploading, sharing is the responsibility of the person who shares.</div>
+  </section>
+
+  <section>
+    <h2>Mewsic Export (extra module)</h2>
+    <p>An optional script you can add to the player. With it installed, <b>⚙ Settings</b> gains a <b>Mewsic Export</b> entry that turns a stored song back into a notecard:</p>
     <div class="rows" style="margin-top:16px">
-      <div class="row"><span class="btn gold">⇉ Transfer</span><span>Sends songs straight into another QuickyMusic player - one song or all of them. Your own players are found automatically; a friend's player must be <b>within 10 m</b> (close enough to whisper), and its owner gets an <b>Accept / Decline</b> dialog first. Songs the target already has are skipped, nothing is removed from your player.</span></div>
-      <div class="row"><span class="btn gold">⇪ Export</span><span>Prints the song list in chat - click a song to export it as a Mewsic/Nyanko-style notecard.</span></div>
+      <div class="row"><span class="btn gold">⇪ Export</span><span>Prints the song list in chat - click a song to export it as a Mewsic notecard.</span></div>
       <div class="row"><span class="btn gold">⇄ Web page</span><span>Shows how an export arrives and switches it: <b>Web page</b> (chat links to a temporary page with the notecard name and content - copy from there) or <b>Chat</b> (the content arrives as chat blocks of 25 clips - paste them in order into one notecard).</span></div>
     </div>
-    <div class="note">An exported notecard looks like: first line <span class="pill">30:21</span>, then one clip UUID per line. Any QuickyMusic player imports it automatically when you drop the notecard in. Transfers run directly between the two players in-world - no server is involved and nothing is stored anywhere else. Share only songs you hold the rights to; like uploading, sharing is the responsibility of the person who shares.</div>
-  </section>
+    <div class="note">An exported notecard looks like: first line <span class="pill">30:21</span>, then one clip UUID per line. Any QuickyMusic player imports it automatically when you drop the notecard in. For player-to-player sharing you do not need this module at all - <b>⇉ Transfer</b> is faster and built in.</div>
+</section>
 
   <section>
     <h2>Animations (optional)</h2>
@@ -176,7 +187,7 @@ section a:hover{color:var(--pink);border-color:rgba(255,110,199,.55)}
     <p><b>How long can a song be?</b>
     Songs up to about 8 hours are supported. The slicer switches to 3-digit part numbers past 99 clips - nothing else changes for you. Storage cost is roughly 4.6 kB per hour of song. Long songs need full-perm clips; without full perm, use the notecard import instead (drop an exported notecard into the player and it registers by itself).</p>
     <p><b>How do I move my songs to another player?</b>
-    Open ⚙ Settings → Library → ⇪ Export, click the song, paste the result into a notecard named like the title, and drop that notecard into the other player. (The ⇄ button there only sets HOW the export arrives: web page link or chat blocks.)</p>
+    Stand next to them and use <b>⇉ Transfer</b> in the main menu - one song or all of them, and they confirm with Accept. If you would rather hand over a notecard (for someone with a different player), add the <b>Mewsic Export</b> module and export the song there.</p>
     <p><b>What music am I allowed to upload?</b>
     Only music you hold the rights to - your own works, licensed tracks or royalty-free material. Uploading copyrighted songs violates the Second Life Terms of Service, and the responsibility for every upload and every shared notecard lies with the person who uploads or shares it.</p>
   </section>
