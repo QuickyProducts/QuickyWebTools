@@ -1853,7 +1853,7 @@ body.slt-themed .mode-btn {
       <option value="5">5</option>
       <option value="6">6 - highest</option>
     </select>
-    <button id="exportAll" class="primary">▶ Export all</button>
+    <button id="exportAll" class="primary" title="Two or more files come down as one zip">▶ Export all (zip)</button>
     <button id="clear" class="btn-secondary">Clear</button>
   </div>
 
@@ -1981,6 +1981,98 @@ function download(name, bytes) {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
+// Minimal store-only ZIP writer. .anim files are already tightly packed
+// binary, so skipping deflate costs almost nothing and keeps this to a
+// few lines instead of pulling in a compression library.
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+
+// DOS date/time stamp for "now" - viewers and Windows Explorer both want one.
+function dosStamp(d) {
+  const time = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  const date = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate();
+  return { time, date };
+}
+
+function makeZip(entries) {
+  const enc = new TextEncoder();
+  const stamp = dosStamp(new Date());
+  const parts = [];
+  const central = [];
+  let offset = 0;
+  for (const { name, bytes } of entries) {
+    const nameBytes = enc.encode(name);
+    const crc = crc32(bytes);
+    const local = new Uint8Array(30 + nameBytes.length);
+    const ldv = new DataView(local.buffer);
+    ldv.setUint32(0, 0x04034B50, true);
+    ldv.setUint16(4, 20, true);
+    ldv.setUint16(6, 0x0800, true);      // UTF-8 filename flag
+    ldv.setUint16(8, 0, true);           // stored, no compression
+    ldv.setUint16(10, stamp.time, true);
+    ldv.setUint16(12, stamp.date, true);
+    ldv.setUint32(14, crc, true);
+    ldv.setUint32(18, bytes.length, true);
+    ldv.setUint32(22, bytes.length, true);
+    ldv.setUint16(26, nameBytes.length, true);
+    local.set(nameBytes, 30);
+    parts.push(local, bytes);
+
+    const cen = new Uint8Array(46 + nameBytes.length);
+    const cdv = new DataView(cen.buffer);
+    cdv.setUint32(0, 0x02014B50, true);
+    cdv.setUint16(4, 20, true);
+    cdv.setUint16(6, 20, true);
+    cdv.setUint16(8, 0x0800, true);
+    cdv.setUint16(10, 0, true);
+    cdv.setUint16(12, stamp.time, true);
+    cdv.setUint16(14, stamp.date, true);
+    cdv.setUint32(16, crc, true);
+    cdv.setUint32(20, bytes.length, true);
+    cdv.setUint32(24, bytes.length, true);
+    cdv.setUint16(28, nameBytes.length, true);
+    cdv.setUint32(42, offset, true);
+    cen.set(nameBytes, 46);
+    central.push(cen);
+
+    offset += local.length + bytes.length;
+  }
+  const centralSize = central.reduce((n, c) => n + c.length, 0);
+  const end = new Uint8Array(22);
+  const edv = new DataView(end.buffer);
+  edv.setUint32(0, 0x06054B50, true);
+  edv.setUint16(8, entries.length, true);
+  edv.setUint16(10, entries.length, true);
+  edv.setUint32(12, centralSize, true);
+  edv.setUint32(16, offset, true);
+  return new Blob([...parts, ...central, end], { type: 'application/zip' });
+}
+
+// Same base name twice in one zip would silently overwrite - number them.
+function uniqueNames(list) {
+  const seen = new Map();
+  return list.map(n => {
+    if (!seen.has(n)) { seen.set(n, 1); return n; }
+    const i = seen.get(n) + 1;
+    seen.set(n, i);
+    const dot = n.lastIndexOf('.');
+    return dot > 0 ? `${n.slice(0, dot)} (${i})${n.slice(dot)}` : `${n} (${i})`;
+  });
+}
+
 function saveOne(i) {
   const it = items[i];
   if (it.error) return;
@@ -2035,7 +2127,20 @@ els.allSel.addEventListener('change', () => {
 
 els.exportAll.addEventListener('click', () => {
   const ok = items.filter(x => !x.error);
-  ok.forEach((it, n) => setTimeout(() => saveOne(items.indexOf(it)), n * 250));
+  if (!ok.length) return;
+  if (ok.length === 1) { saveOne(items.indexOf(ok[0])); return; }
+  const names = uniqueNames(ok.map(it => it.name));
+  const zip = makeZip(ok.map((it, n) => ({
+    name: names[n],
+    bytes: writeWithPriority(it.buf, it.priOffsets, it.next),
+  })));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(zip);
+  a.download = 'anim priorities.zip';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 });
 
 els.clear.addEventListener('click', () => {
