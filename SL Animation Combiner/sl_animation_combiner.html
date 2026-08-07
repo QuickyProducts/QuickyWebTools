@@ -1454,8 +1454,6 @@ body.slt-themed .mode-btn {
      Tool-local styles - layout & spacing only ("Aurora Glass" v2).
      Colors, fonts, glass panels, buttons, drop zones, status pills and
      details/summary chrome all come from the SHARED-CSS block above.
-     The #jointsCard rules use the container id to out-rank the shared
-     default-button styling for this tool's tiny A/B/OFF toggles.
      ===================================================================== */
 
   body { padding: 24px 16px 60px; }
@@ -1463,8 +1461,8 @@ body.slt-themed .mode-btn {
   .wrap { max-width: 940px; margin: 0 auto; position: relative; z-index: 1; }
 
   /* ---- Two upload cards ---- */
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-  @media (max-width: 720px) { .row { grid-template-columns: 1fr; } }
+  .row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 940px) { .row { grid-template-columns: 1fr; } }
 
   .card {
     background: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.015)), rgba(17,10,34,.55);
@@ -1530,102 +1528,33 @@ body.slt-themed .mode-btn {
   input[type=text], select { width: 100%; padding: 8px 12px; font-size: 13.5px; }
 
   /* ---- Joint Control (this tool only) ---- */
-  .joint-toolbar {
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-    margin-bottom: 14px;
-    font-size: 12px;
-    color: var(--slt-dim);
+  .card .mini.clear {
+    margin-top: 10px;
+    background: none; border: 1px solid var(--slt-edge); color: var(--slt-dim);
+    border-radius: 999px; padding: 3px 12px; font-size: 11px; cursor: pointer;
   }
-  .joint-toolbar .tb-label {
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-    color: var(--slt-dim);
+  .card .mini.clear:hover { border-color: var(--slt-bad); color: var(--slt-bad); }
+
+  .sources {
+    margin-top: 18px; padding: 14px 18px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid var(--slt-edge); border-radius: 14px;
   }
-  /* Small glass buttons; the id out-ranks the shared primary-button rule. */
-  #jointsCard button.mini {
-    background: var(--slt-glass) !important;
-    color: var(--slt-txt) !important;
-    border: 1px solid var(--slt-edge) !important;
-    border-radius: 9px !important;
-    box-shadow: none !important;
-    font-size: 11px;
-    font-weight: 600 !important;
-    letter-spacing: .4px !important;
-    padding: 4px 12px;
+  .sources-head {
+    font-size: 11px; font-weight: 800; letter-spacing: 2px;
+    text-transform: uppercase; color: var(--slt-txt); margin-bottom: 4px;
   }
-  #jointsCard button.mini:hover:not(:disabled) {
-    transform: none !important;
-    border-color: var(--slt-purple) !important;
-    box-shadow: 0 4px 18px rgba(124,43,255,.28) !important;
-  }
-  .jgroup summary {
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-    -webkit-user-select: none;
-    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
-  }
-  .jgroup summary::-webkit-details-marker { display: none; }
-  .jgroup summary::before { content: "▸"; color: var(--slt-cyan); }
-  .jgroup[open] summary::before { content: "▾"; }
-  .jgroup-name {
-    flex: 1;
-    font-size: 12px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-    color: var(--slt-gold);
-  }
-  .jgroup-count { font-size: 12px; color: var(--slt-dim); }
-  .jgroup-btns { display: inline-flex; gap: 6px; }
-  .jgroup-body {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 2px 14px;
-    margin-top: 8px;
-    padding-top: 6px;
-    border-top: 1px dashed var(--slt-edge);
-  }
-  .jrow {
+  .srow {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 8px;
-    padding: 2px 0;
-    font-size: 13px;
+    gap: 12px; padding: 9px 0;
   }
-  .jrow { padding: 7px 0; }
-  .jrow + .jrow { border-top: 1px solid var(--slt-edge); }
-  .jrow .jname {
-    color: var(--slt-txt);
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .jrow .jname small {
-    display: block; font-size: 11px; color: var(--slt-dim); margin-top: 1px;
-  }
-  .jseg {
-    display: inline-flex;
-    border: 1px solid var(--slt-edge);
-    border-radius: 9px;
-    overflow: hidden;
-    flex-shrink: 0;
-  }
-  #jointsCard .jseg button {
-    background: rgba(0,0,0,.3) !important;
-    color: var(--slt-dim) !important;
-    border: none !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    font-size: 11px;
-    font-weight: 600 !important;
-    letter-spacing: .4px !important;
-    padding: 3px 9px;
-  }
-  #jointsCard .jseg button + button { border-left: 1px solid var(--slt-edge) !important; }
-  #jointsCard .jseg button:hover:not(:disabled) {
-    transform: none !important;
-    filter: brightness(1.25);
-    box-shadow: none !important;
-  }
-  #jointsCard .jseg button.on-A   { background: rgba(43,210,255,.18)  !important; color: var(--slt-cyan) !important; }
-  #jointsCard .jseg button.on-B   { background: rgba(255,60,172,.20)  !important; color: var(--slt-pink) !important; }
-  #jointsCard .jseg button.on-off { background: rgba(255,84,112,.16)  !important; color: var(--slt-bad)  !important; }
+  .srow + .srow { border-top: 1px solid var(--slt-edge); }
+  .srow .sname { color: var(--slt-txt); font-size: 13px; }
+  .srow .sname small { display: block; font-size: 11px; color: var(--slt-dim); }
+  .srow select { min-width: 210px; max-width: 55%; }
+  /* A slot the user left empty: the source is a guess, so mark it. */
+  .sources .srow.guessed select { border-color: #ffcf5e !important; }
+  .sources .srow.guessed .sname small { color: #ffcf5e; }
 
   /* ---- Actions / status ---- */
   .actions { margin-top: 22px; display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
@@ -1966,49 +1895,17 @@ body.slt-themed .mode-btn {
 
 <div class="wrap">
   <header class="slt-titlebar">
-    <div class="slt-subtitle">Merge two animations into one</div>
+    <div class="slt-subtitle">Head + body + tail into one animation</div>
     <h1 class="slt-title">SL Animation Combiner</h1>
-    <p class="slt-lede">Head animation on the left, body animation on the right, click Combine. The head comes from A, the body from B - body movement inside the head file is ignored. Everything stays on your computer, nothing is uploaded.</p>
+    <p class="slt-lede">Drop in a head animation, a body animation and a tail animation - any two of them is enough. Each one contributes the part it is named after, the rest of it is ignored. Everything stays on your computer, nothing is uploaded.</p>
   </header>
 
-  <div class="row">
-    <div class="card">
-      <div class="card-head">
-        <div class="badge">A</div>
-        <div class="role">Head animation<small>face, eyes, jaw - only its head bones are used</small></div>
-      </div>
-      <label class="drop" id="dropA">
-        <strong>Choose a file or drop it here</strong>
-        <small>.anim file</small>
-        <input type="file" id="fileA" accept=".anim,application/octet-stream">
-      </label>
-    </div>
+  <div class="row" id="slots"></div>
 
-    <div class="card">
-      <div class="card-head">
-        <div class="badge">B</div>
-        <div class="role">Body animation<small>dance, pose, walk - everything below the head</small></div>
-      </div>
-      <label class="drop" id="dropB">
-        <strong>Choose a file or drop it here</strong>
-        <small>.anim file</small>
-        <input type="file" id="fileB" accept=".anim,application/octet-stream">
-      </label>
-    </div>
+  <div class="sources" id="sources" style="display:none">
+    <div class="sources-head">Where each part comes from</div>
+    <div id="sourceRows"></div>
   </div>
-
-
-  <details class="options" id="jointsCard" style="display:none">
-    <summary>Fine-tune (optional): which file controls which body part</summary>
-    <div class="joint-toolbar">
-      <span class="tb-label">Quick set:</span>
-      <button class="mini" data-allset="auto">RESET</button>
-      <button class="mini" data-allset="A">ALL A</button>
-      <button class="mini" data-allset="B">ALL B</button>
-      
-    </div>
-    <div id="jointGroups"></div>
-  </details>
 
   <details class="options">
     <summary>Advanced Options</summary>
@@ -2016,13 +1913,11 @@ body.slt-themed .mode-btn {
       <label class="field">
         <div class="field-label">Take duration &amp; loop from</div>
         <select id="optDuration">
-          <option value="auto" selected>Auto - the longer file (recommended)</option>
-          <option value="a">Animation A</option>
-          <option value="b">Animation B</option>
+          <option value="auto" selected>Auto - the longest file (recommended)</option>
         </select>
       </label>
       <label class="field">
-        <div class="field-label">Motion timing (for the shorter file)</div>
+        <div class="field-label">Motion timing (for the shorter files)</div>
         <select id="optTiming">
           <option value="tile" selected>Tile - repeat at normal speed (recommended)</option>
           <option value="stretch">Stretch - slow down to play exactly once</option>
@@ -2035,26 +1930,26 @@ body.slt-themed .mode-btn {
       </label>
       <label class="field">
         <div class="field-label">Base priority</div>
-        <input type="text" id="optPriority" placeholder="auto (max of both)" />
+        <input type="text" id="optPriority" placeholder="auto (highest of the files)" />
       </label>
     </div>
   </details>
 
   <div class="actions">
-    <button class="primary" id="btnGo" disabled>▶ Combine</button>
+    <button class="primary" id="btnGo" disabled>&#9654; Combine</button>
     <span class="status" id="status"></span>
   </div>
 
   <details class="help">
     <summary>How does it work?</summary>
-    <p>The head comes from file A, the body from file B. Head means face, eyes, jaw, lips and tongue. Everything else - neck, torso, arms, hands, legs - comes from B.</p>
-    <p><b>Body movement in the head file is ignored.</b> Head animations often carry arm or torso bones along. Those are left out, so they cannot fight with your body animation. If you do want a part from A after all, open the fine-tune panel and switch that row to A.</p>
+    <p>There are three slots. The head file supplies face, eyes, jaw, lips and tongue. The body file supplies neck, torso, arms, hands and legs. The tail file supplies tail, wings and hind limbs. Whatever else a file happens to animate is ignored, so the files cannot fight each other.</p>
+    <p><b>Two files are enough.</b> If you leave a slot empty, the tool asks which of the loaded files should supply that part - for example head + tail only, then you say where the body comes from. Set it to "Off" and that part is simply left out of the result.</p>
     <p><b>Frozen parts are removed for you.</b> Many animations lock body parts in place without really using them - for example a hip that is frozen still, which would stop your AO from swaying. The tool spots those and leaves them out.</p>
-    <p><b>Different lengths?</b> No problem. The combined animation takes its length from the longer file. The shorter file's motion simply repeats at its normal speed until the end ("Tile", the default). In Advanced Options you can instead slow it down so it plays exactly once ("Stretch"), or copy it unchanged ("Raw" - only useful when both files are equally long).</p>
+    <p><b>Different lengths?</b> No problem. The result takes its length from the longest file. The shorter ones simply repeat at their normal speed until the end ("Tile", the default). In Advanced Options you can instead slow them down to play exactly once ("Stretch"), or copy them unchanged ("Raw" - only useful when all files are equally long).</p>
     <p class="hint">Each body part keeps its original priority, so your animations layer in-world just like before.</p>
   </details>
 
-  <footer class="slt-footer">Quicky Web Tools · © 2026 Ya · noncommercial use · <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
+  <footer class="slt-footer">Quicky Web Tools &middot; &copy; 2026 Ya &middot; noncommercial use &middot; <a href="https://github.com/QuickyProducts/QuickyWebTools" target="_blank" rel="noopener">GitHub</a></footer>
 </div>
 
 <script>
@@ -2231,33 +2126,101 @@ function tileKeys(keys, src, outDur, winIn, winOut) {
 // The tool has exactly one job: head animation + body animation. Every
 // bone belongs to one of these buckets, first match wins, and the bucket
 // decides which file it comes from.
-const GROUPS = [
-  { id: 'head',  label: 'Head & Face',    from: 'A', re: /^(mFace|mHead$|mSkull$|mEye)/ },
-  { id: 'neck',  label: 'Neck',           from: 'B', re: /^mNeck$/ },
-  { id: 'torso', label: 'Torso & Pelvis', from: 'B', re: /^(mPelvis$|mTorso$|mChest$|mSpine)/ },
-  { id: 'arms',  label: 'Arms',           from: 'B', re: /^(mCollar|mShoulder|mElbow|mWrist)(Left|Right)$/ },
-  { id: 'hands', label: 'Hands & Fingers',from: 'B', re: /^mHand/ },
-  { id: 'legs',  label: 'Legs & Feet',    from: 'B', re: /^(mHip|mKnee|mAnkle|mFoot|mToe)/ },
-  { id: 'other', label: 'Tail, Wings & Other', from: 'B', re: /./ },
+// Three slots, three jobs. First matching pattern wins; anything a file
+// animates outside its own slot is ignored, so two files can never fight
+// over the same bone.
+const SLOTS = [
+  { id: 'head', label: 'Head',        hint: 'face, eyes, jaw, lips, tongue',
+    re: /^(mFace|mHead$|mSkull$|mEye)/ },
+  { id: 'tail', label: 'Tail & Wings',hint: 'tail, wings, hind limbs',
+    re: /^(mTail|mWing|mHind)/ },
+  { id: 'body', label: 'Body',        hint: 'neck, torso, arms, hands, legs',
+    re: /./ },
 ];
+const SLOT_ORDER = ['head', 'body', 'tail'];
 
-function groupOf(name) { return GROUPS.find(g => g.re.test(name)).id; }
+function partOf(name) { return SLOTS.find(s => s.re.test(name)).id; }
+function slotDef(id) { return SLOTS.find(s => s.id === id); }
 
-function unionJoints(a, b) {
+const state = {
+  files: { head: null, body: null, tail: null },
+  names: { head: '',   body: '',   tail: '' },
+  source: {},   // part -> slot id or 'off', only when the user overrode it
+};
+
+const els = {
+  slots: document.getElementById('slots'),
+  sources: document.getElementById('sources'),
+  sourceRows: document.getElementById('sourceRows'),
+  btnGo: document.getElementById('btnGo'),
+  status: document.getElementById('status'),
+  optDuration: document.getElementById('optDuration'),
+  optTiming: document.getElementById('optTiming'),
+  optOutname: document.getElementById('optOutname'),
+  optPriority: document.getElementById('optPriority'),
+};
+
+function loadedSlots() { return SLOT_ORDER.filter(s => state.files[s]); }
+
+// "Pin" = a joint that is static AND sitting at the rest pose (identity
+// rotation / zero offset). It contributes nothing visually but blocks
+// lower-priority animations (e.g. the AO stand) from moving that bone.
+// Rotation keys span +-1 over the u16 range, position keys span +-5m, so
+// they need very different tolerances. 200 rotation ticks is about 0.35
+// degrees; 200 position ticks would be 3cm, which is a whole face
+// deformer - at that tolerance a jaw or teeth offset reads as "frozen"
+// and gets thrown away. 8 ticks is 1.2mm: below that a bone really is
+// sitting at rest.
+function isPin(j) {
+  const flat = (ks, tol) => ks.every(k =>
+    Math.abs(k[1] - 32767.5) < tol &&
+    Math.abs(k[2] - 32767.5) < tol &&
+    Math.abs(k[3] - 32767.5) < tol);
+  return flat(j.rotKeys, 200) && flat(j.posKeys, 8);
+}
+
+function hasPart(slot, part) {
+  const f = state.files[slot];
+  return !!f && f.joints.some(j => partOf(j.name) === part);
+}
+
+// A part is served by its own slot. With that slot empty, fall back to
+// whichever loaded file actually carries bones of that part - and say so
+// in the UI, because that is a guess the user may want to change.
+function defaultSource(part) {
+  if (state.files[part]) return part;
+  for (const s of SLOT_ORDER) if (hasPart(s, part)) return s;
+  return 'off';
+}
+function sourceOf(part) {
+  const chosen = state.source[part];
+  if (chosen && (chosen === 'off' || state.files[chosen])) return chosen;
+  return defaultSource(part);
+}
+
+function unionJoints(files) {
   const seen = new Set(), out = [];
-  for (const j of a.joints) { out.push(j.name); seen.add(j.name); }
-  for (const j of b.joints) if (!seen.has(j.name)) out.push(j.name);
+  for (const f of files) for (const j of f.joints) {
+    if (!seen.has(j.name)) { seen.add(j.name); out.push(j.name); }
+  }
   return out;
 }
 
-function combine(a, b, opts) {
-  const driver = opts.duration === 'b' ? b : a;
-  const other  = opts.duration === 'b' ? a : b;
+function durationSlot() {
+  const v = els.optDuration.value;
+  if (state.files[v]) return v;
+  return loadedSlots().reduce((best, s) =>
+    state.files[s].duration > state.files[best].duration ? s : best, loadedSlots()[0]);
+}
+
+function combine(opts) {
+  const files = loadedSlots().map(s => state.files[s]);
+  const driver = state.files[opts.durationSlot];
   const header = {
     version: driver.version,
     subVersion: driver.subVersion,
     basePriority: opts.priority != null ? opts.priority
-                  : Math.max(a.basePriority, b.basePriority),
+                  : Math.max(...files.map(f => f.basePriority)),
     duration: driver.duration,
     emoteName: driver.emoteName,
     loopIn: driver.loopIn,
@@ -2270,169 +2233,85 @@ function combine(a, b, opts) {
   const win = Math.max(header.loopOut - header.loopIn, 1e-6);
   const stretchScale  = win / header.duration;
   const stretchOffset = (header.loopIn / header.duration) * 65535;
-  const retime = (keys) => {
+  const retime = (keys, src) => {
     if (opts.timing === 'raw') return keys;
     if (opts.timing === 'stretch') return remapKeys(keys, stretchScale, stretchOffset, true);
-    return tileKeys(keys, other, header.duration, header.loopIn, header.loopOut);
+    return tileKeys(keys, src, header.duration, header.loopIn, header.loopOut);
   };
   const finalJoints = [];
-  for (const name of unionJoints(a, b)) {
-    const choice = opts.choice[name] || (b.jointsByName[name] ? 'B' : 'A');
-    if (choice === 'off') continue;
-    const src = choice === 'B' ? b.jointsByName[name] : a.jointsByName[name];
-    if (!src) continue;
-    const fromDriver = (choice === 'B') === (opts.duration === 'b');
-    finalJoints.push(fromDriver ? src : {
-      name: src.name, priority: src.priority,
-      rotKeys: retime(src.rotKeys),
-      posKeys: retime(src.posKeys),
+  for (const name of unionJoints(files)) {
+    const slot = opts.source[partOf(name)];
+    if (slot === 'off') continue;
+    const file = state.files[slot];
+    const j = file && file.jointsByName[name];
+    if (!j) continue;
+    // A bone only one file has, sitting at rest, moves nothing and only
+    // blocks whatever animation is playing underneath - drop it.
+    if (files.filter(f => f.jointsByName[name]).length === 1 && isPin(j)) continue;
+    finalJoints.push(slot === opts.durationSlot ? j : {
+      name: j.name, priority: j.priority,
+      rotKeys: retime(j.rotKeys, file),
+      posKeys: retime(j.posKeys, file),
     });
   }
-  if (!finalJoints.length) throw new Error('every joint is set to OFF - nothing to write');
+  if (!finalJoints.length) throw new Error('nothing left to write - every part is set to Off');
   return writeAnim(header, finalJoints);
 }
 
-const state = { a: null, b: null, aName: '', bName: '', choice: {}, override: {} };
-const els = {
-  fileA: document.getElementById('fileA'),
-  fileB: document.getElementById('fileB'),
-  dropA: document.getElementById('dropA'),
-  dropB: document.getElementById('dropB'),
-  btnGo: document.getElementById('btnGo'),
-  status: document.getElementById('status'),
-  optDuration: document.getElementById('optDuration'),
-  optTiming: document.getElementById('optTiming'),
-  optOutname: document.getElementById('optOutname'),
-  optPriority: document.getElementById('optPriority'),
-  jointsCard: document.getElementById('jointsCard'),
-  jointGroups: document.getElementById('jointGroups'),
-  summary: { classList: { add() {}, remove() {} } },
-};
-
-// "Pin" = a joint that is static AND sitting at the rest pose (identity
-// rotation / zero offset). It contributes nothing visually but blocks
-// lower-priority animations (e.g. the AO stand) from moving that bone.
-// Rotation keys span ±1 over the u16 range, position keys span ±5m, so
-// they need very different tolerances. 200 rotation ticks is about 0.35°;
-// 200 position ticks would be 3cm, which is a whole face deformer - at
-// that tolerance a jaw or teeth offset reads as "frozen" and gets thrown
-// away. 8 ticks is 1.2mm: below that a bone really is sitting at rest.
-function isPin(j) {
-  const flat = (ks, tol) => ks.every(k =>
-    Math.abs(k[1] - 32767.5) < tol &&
-    Math.abs(k[2] - 32767.5) < tol &&
-    Math.abs(k[3] - 32767.5) < tol);
-  return flat(j.rotKeys, 200) && flat(j.posKeys, 8);
+// ------------------------------------------------------------------ UI ----
+function renderSlots() {
+  els.slots.innerHTML = SLOT_ORDER.map(id => {
+    const s = slotDef(id);
+    const name = state.names[id];
+    return `<div class="card">
+      <div class="card-head">
+        <div class="badge">${s.label[0]}</div>
+        <div class="role">${s.label}<small>${s.hint}</small></div>
+      </div>
+      <label class="drop${name ? ' loaded' : ''}" data-slot="${id}">
+        <strong>${name || 'Choose a file or drop it here'}</strong>
+        <small>${name ? 'click to replace' : '.anim file'}</small>
+        <input type="file" accept=".anim,application/octet-stream">
+      </label>
+      ${name ? `<button class="mini clear" data-clear="${id}">remove</button>` : ''}
+    </div>`;
+  }).join('');
 }
 
-// Head bones come from A, everything else from B. Body movement that
-// happens to sit in the head file is ignored - that is the whole point.
-function autoChoice(name) {
-  const ja = state.a.jointsByName[name], jb = state.b.jointsByName[name];
-  const want = groupSetting(groupOf(name));
-  const src = want === 'A' ? ja : jb;
-  const alt = want === 'A' ? jb : ja;
-  if (!src) return (want === 'A' && jb) ? 'B' : 'off';
-  // A bone only one file has, sitting at rest, moves nothing and only
-  // blocks whatever animation is playing underneath - drop it.
-  if (!alt && isPin(src)) return 'off';
-  return want;
+function renderSources() {
+  const loaded = loadedSlots();
+  if (loaded.length < 1) { els.sources.style.display = 'none'; return; }
+  els.sources.style.display = '';
+  els.sourceRows.innerHTML = SLOT_ORDER.map(part => {
+    const cur = sourceOf(part);
+    const guessed = !state.files[part] && cur !== 'off';
+    const opts = loaded.map(s =>
+      `<option value="${s}"${s === cur ? ' selected' : ''}>${state.names[s]}</option>`).join('')
+      + `<option value="off"${cur === 'off' ? ' selected' : ''}>Off - leave this part out</option>`;
+    return `<div class="srow${guessed ? ' guessed' : ''}">
+      <span class="sname">${slotDef(part).label}<small>${guessed
+        ? 'slot is empty - pick where this comes from'
+        : slotDef(part).hint}</small></span>
+      <select data-part="${part}">${opts}</select>
+    </div>`;
+  }).join('');
 }
 
-function resolveDuration() {
-  const v = els.optDuration.value;
-  if (v === 'a' || v === 'b') return v;
-  return state.a.duration >= state.b.duration ? 'a' : 'b';
+function renderDurationOptions() {
+  const keep = els.optDuration.value;
+  els.optDuration.innerHTML = '<option value="auto">Auto - the longest file (recommended)</option>'
+    + loadedSlots().map(s => `<option value="${s}">${state.names[s]}</option>`).join('');
+  els.optDuration.value = state.files[keep] ? keep : 'auto';
 }
 
-function summarize() {
-  els.summary.classList.remove('shown');
-}
-
-function refreshSegs() {
-  for (const row of els.jointGroups.querySelectorAll('.jrow')) {
-    const c = state.override[row.dataset.group] || '';
-    for (const btn of row.querySelectorAll('[data-c]')) {
-      const on = btn.dataset.c === groupSetting(row.dataset.group);
-      btn.className = on ? 'on-' + btn.dataset.c : '';
-    }
-  }
-  for (const n of Object.keys(state.choice)) state.choice[n] = autoChoice(n);
-}
-
-// Where a group takes its bones from: its default, unless overridden.
-function groupSetting(id) {
-  if (state.override[id]) return state.override[id];
-  return GROUPS.find(g => g.id === id).from;
-}
-
-function renderJoints() {
-  if (!(state.a && state.b)) { els.jointsCard.style.display = 'none'; return; }
-  const names = unionJoints(state.a, state.b);
-  const counts = {};
-  for (const n of names) counts[groupOf(n)] = (counts[groupOf(n)] || 0) + 1;
-  state.choice = {};
-  for (const n of names) state.choice[n] = autoChoice(n);
-  let html = '';
-  for (const g of GROUPS) {
-    if (!counts[g.id]) continue;
-    html += `<div class="jrow" data-group="${g.id}">
-      <span class="jname">${g.label}<small>${counts[g.id]} bone${counts[g.id] === 1 ? '' : 's'}</small></span>
-      <span class="jseg">
-        <button data-c="A">A</button>
-        <button data-c="B">B</button>
-        <button data-c="off">OFF</button>
-      </span></div>`;
-  }
-  els.jointGroups.innerHTML = html;
-  els.jointsCard.style.display = '';
-  refreshSegs();
-}
-
-els.jointGroups.addEventListener('click', (e) => {
-  const seg = e.target.closest('[data-c]');
-  if (!seg) return;
-  state.override[seg.closest('.jrow').dataset.group] = seg.dataset.c;
-  refreshSegs();
-});
-
-document.querySelectorAll('[data-allset]').forEach(btn => btn.addEventListener('click', () => {
-  state.override = {};
-  if (btn.dataset.allset !== 'auto') {
-    for (const g of GROUPS) state.override[g.id] = btn.dataset.allset;
-  }
-  refreshSegs();
-}));
-
-function showMeta(kind, name) {
-  const drop = kind === 'a' ? els.dropA : els.dropB;
-  drop.classList.add('loaded');
-  drop.querySelector('strong').textContent = name;
-  drop.querySelector('small').textContent = 'click to replace';
-}
-
-function updateButton() {
-  els.btnGo.disabled = !(state.a && state.b);
-  if (state.a && state.b && !els.optOutname.value) {
-    const na = state.aName.replace(/\.anim$/i, '');
-    const nb = state.bName.replace(/\.anim$/i, '');
-    els.optOutname.value = `${na} + ${nb}.anim`;
-  }
-}
-
-async function handleFile(file, kind) {
-  try {
-    const buf = await file.arrayBuffer();
-    const parsed = readAnim(buf);
-    state[kind] = parsed;
-    state[kind + 'Name'] = file.name;
-    state.override = {};
-    showMeta(kind, file.name);
-    setStatus('', '');
-    updateButton();
-    renderJoints();
-  } catch (e) {
-    setStatus('>> ERROR: ' + e.message, 'err');
+function refresh() {
+  renderSlots();
+  renderSources();
+  renderDurationOptions();
+  const loaded = loadedSlots();
+  els.btnGo.disabled = loaded.length < 2;
+  if (loaded.length >= 2 && !els.optOutname.value) {
+    els.optOutname.value = loaded.map(s => state.names[s].replace(/\.anim$/i, '')).join(' + ') + '.anim';
   }
 }
 
@@ -2441,48 +2320,78 @@ function setStatus(msg, kind) {
   els.status.className = 'status' + (kind ? ' ' + kind : '');
 }
 
-function bindDrop(dropEl, fileEl, kind) {
-  fileEl.addEventListener('change', e => {
-    if (e.target.files[0]) handleFile(e.target.files[0], kind);
-  });
-  ['dragenter', 'dragover'].forEach(ev =>
-    dropEl.addEventListener(ev, e => { e.preventDefault(); dropEl.classList.add('hover'); })
-  );
-  ['dragleave', 'drop'].forEach(ev =>
-    dropEl.addEventListener(ev, e => { e.preventDefault(); dropEl.classList.remove('hover'); })
-  );
-  dropEl.addEventListener('drop', e => {
-    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], kind);
-  });
+async function handleFile(file, slot) {
+  try {
+    state.files[slot] = readAnim(await file.arrayBuffer());
+    state.names[slot] = file.name;
+    setStatus('', '');
+    refresh();
+  } catch (e) {
+    setStatus('>> ERROR: ' + e.message, 'err');
+  }
 }
-bindDrop(els.dropA, els.fileA, 'a');
-bindDrop(els.dropB, els.fileB, 'b');
-els.optDuration.addEventListener('change', summarize);
+
+els.slots.addEventListener('change', e => {
+  const inp = e.target.closest('input[type=file]');
+  if (inp && inp.files[0]) handleFile(inp.files[0], inp.closest('[data-slot]').dataset.slot);
+});
+els.slots.addEventListener('click', e => {
+  const btn = e.target.closest('[data-clear]');
+  if (!btn) return;
+  const slot = btn.dataset.clear;
+  state.files[slot] = null;
+  state.names[slot] = '';
+  refresh();
+});
+['dragenter', 'dragover'].forEach(ev => els.slots.addEventListener(ev, e => {
+  const drop = e.target.closest('[data-slot]');
+  if (!drop) return;
+  e.preventDefault();
+  drop.classList.add('hover');
+}));
+['dragleave', 'drop'].forEach(ev => els.slots.addEventListener(ev, e => {
+  const drop = e.target.closest('[data-slot]');
+  if (!drop) return;
+  e.preventDefault();
+  drop.classList.remove('hover');
+}));
+els.slots.addEventListener('drop', e => {
+  const drop = e.target.closest('[data-slot]');
+  if (drop && e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0], drop.dataset.slot);
+});
+
+els.sourceRows.addEventListener('change', e => {
+  const sel = e.target.closest('[data-part]');
+  if (!sel) return;
+  state.source[sel.dataset.part] = sel.value;
+  renderSources();
+});
 
 els.btnGo.addEventListener('click', () => {
   try {
-    const opts = {
-      duration: resolveDuration(),
+    const source = {};
+    for (const part of SLOT_ORDER) source[part] = sourceOf(part);
+    const ab = combine({
+      durationSlot: durationSlot(),
       timing: els.optTiming.value,
       priority: els.optPriority.value.trim() ? parseInt(els.optPriority.value, 10) : null,
-      choice: state.choice,
-    };
-    const ab = combine(state.a, state.b, opts);
-    const blob = new Blob([ab], { type: 'application/octet-stream' });
-    const url = URL.createObjectURL(blob);
+      source,
+    });
     const a = document.createElement('a');
-    a.href = url;
+    a.href = URL.createObjectURL(new Blob([ab], { type: 'application/octet-stream' }));
     a.download = els.optOutname.value || 'combo.anim';
     document.body.appendChild(a);
     a.click();
     a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
     setStatus(`>> OK :: ${a.download} (${ab.byteLength.toLocaleString('en-US')} bytes)`, 'ok');
   } catch (e) {
     setStatus('>> ERROR: ' + e.message, 'err');
     console.error(e);
   }
 });
+
+refresh();
 </script>
 </body>
 </html>
