@@ -63,7 +63,7 @@ PICKER_FONTS_TEXT    = _escape_script(_read(PICKER_FONTS))  if PICKER_FONTS.exis
 #                               (only the 3D Text Creator's font picker
 #                                needs this - Anton, BebasNeue, etc.)
 TOOLS = [
-    {"path": "SL Animation Combiner/sl_animation_combiner.html",                  "three": True,  "picker_fonts": False},
+    {"path": "SL Animation Combiner/sl_animation_combiner.html",                  "three": False, "picker_fonts": False},
     {"path": "SL Animation Priority Changer/sl_animation_priority_changer.html",  "three": False, "picker_fonts": False},
     {"path": "SL Shape Combiner/sl_shape_combiner.html",                          "three": False, "picker_fonts": False},
     {"path": "SL Sprite Sheet Maker/sl_sprite_sheet_maker.html",                  "three": False, "picker_fonts": False},
