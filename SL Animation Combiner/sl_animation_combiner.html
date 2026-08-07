@@ -1590,9 +1590,14 @@ body.slt-themed .mode-btn {
     padding: 2px 0;
     font-size: 13px;
   }
+  .jrow { padding: 7px 0; }
+  .jrow + .jrow { border-top: 1px solid var(--slt-edge); }
   .jrow .jname {
-    color: var(--slt-dim);
+    color: var(--slt-txt);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .jrow .jname small {
+    display: block; font-size: 11px; color: var(--slt-dim); margin-top: 1px;
   }
   .jseg {
     display: inline-flex;
@@ -1963,14 +1968,14 @@ body.slt-themed .mode-btn {
   <header class="slt-titlebar">
     <div class="slt-subtitle">Merge two animations into one</div>
     <h1 class="slt-title">SL Animation Combiner</h1>
-    <p class="slt-lede">Drop two animations in, click Combine, download the merged result. If both files move the same body part, the tool picks the right one for you. Everything stays on your computer - nothing is uploaded.</p>
+    <p class="slt-lede">Head animation on the left, body animation on the right, click Combine. The head comes from A, the body from B - body movement inside the head file is ignored. Everything stays on your computer, nothing is uploaded.</p>
   </header>
 
   <div class="row">
     <div class="card">
       <div class="card-head">
         <div class="badge">A</div>
-        <div class="role">Animation A<small>e.g. a dance, walk, or pose</small></div>
+        <div class="role">Head animation<small>face, eyes, jaw - only its head bones are used</small></div>
       </div>
       <label class="drop" id="dropA">
         <strong>Choose a file or drop it here</strong>
@@ -1982,7 +1987,7 @@ body.slt-themed .mode-btn {
     <div class="card">
       <div class="card-head">
         <div class="badge">B</div>
-        <div class="role">Animation B<small>e.g. a hand pose or head movement</small></div>
+        <div class="role">Body animation<small>dance, pose, walk - everything below the head</small></div>
       </div>
       <label class="drop" id="dropB">
         <strong>Choose a file or drop it here</strong>
@@ -1994,13 +1999,13 @@ body.slt-themed .mode-btn {
 
 
   <details class="options" id="jointsCard" style="display:none">
-    <summary>Fine-tune (optional): pick which animation controls each body part</summary>
+    <summary>Fine-tune (optional): which file controls which body part</summary>
     <div class="joint-toolbar">
       <span class="tb-label">Quick set:</span>
-      <button class="mini" data-allset="auto">AUTO</button>
+      <button class="mini" data-allset="auto">RESET</button>
       <button class="mini" data-allset="A">ALL A</button>
       <button class="mini" data-allset="B">ALL B</button>
-      <span id="selCount"></span>
+      
     </div>
     <div id="jointGroups"></div>
   </details>
@@ -2042,8 +2047,9 @@ body.slt-themed .mode-btn {
 
   <details class="help">
     <summary>How does it work?</summary>
-    <p>Every animation moves a set of body parts. When you combine two files, some parts may be moved by both. The tool then keeps the stronger one (the one with the higher priority) - exactly what SL would do if you played both animations at the same time. If both are equally strong, Animation B wins.</p>
-    <p><b>Frozen parts are removed for you.</b> Many animations lock body parts in place without really using them - for example a hip that is frozen still, which would stop your AO from swaying. The tool spots those and leaves them out. Want one back? Open the fine-tune panel and set it to A or B by hand.</p>
+    <p>The head comes from file A, the body from file B. Head means face, eyes, jaw, lips and tongue. Everything else - neck, torso, arms, hands, legs - comes from B.</p>
+    <p><b>Body movement in the head file is ignored.</b> Head animations often carry arm or torso bones along. Those are left out, so they cannot fight with your body animation. If you do want a part from A after all, open the fine-tune panel and switch that row to A.</p>
+    <p><b>Frozen parts are removed for you.</b> Many animations lock body parts in place without really using them - for example a hip that is frozen still, which would stop your AO from swaying. The tool spots those and leaves them out.</p>
     <p><b>Different lengths?</b> No problem. The combined animation takes its length from the longer file. The shorter file's motion simply repeats at its normal speed until the end ("Tile", the default). In Advanced Options you can instead slow it down so it plays exactly once ("Stretch"), or copy it unchanged ("Raw" - only useful when both files are equally long).</p>
     <p class="hint">Each body part keeps its original priority, so your animations layer in-world just like before.</p>
   </details>
@@ -2222,17 +2228,19 @@ function tileKeys(keys, src, outDur, winIn, winOut) {
   return out;
 }
 
+// The tool has exactly one job: head animation + body animation. Every
+// bone belongs to one of these buckets, first match wins, and the bucket
+// decides which file it comes from.
 const GROUPS = [
-  { id: 'face',  label: 'Head & Face',          re: /^(mFace|mHead$|mNeck$|mSkull$|mEye)/ },
-  { id: 'torso', label: 'Torso & Pelvis',       re: /^(mPelvis$|mTorso$|mChest$|mSpine)/ },
-  { id: 'armL',  label: 'Left Arm',             re: /^(mCollar|mShoulder|mElbow|mWrist)Left$/ },
-  { id: 'handL', label: 'Left Hand',            re: /^mHand\w+Left$/ },
-  { id: 'armR',  label: 'Right Arm',            re: /^(mCollar|mShoulder|mElbow|mWrist)Right$/ },
-  { id: 'handR', label: 'Right Hand',           re: /^mHand\w+Right$/ },
-  { id: 'legs',  label: 'Legs & Feet',          re: /^(mHip|mKnee|mAnkle|mFoot|mToe)/ },
-  { id: 'extra', label: 'Wings / Tail / Extra', re: /^(mWing|mTail|mGroin|mHind)/ },
-  { id: 'other', label: 'Volume & Other',       re: /./ },
+  { id: 'head',  label: 'Head & Face',    from: 'A', re: /^(mFace|mHead$|mSkull$|mEye)/ },
+  { id: 'neck',  label: 'Neck',           from: 'B', re: /^mNeck$/ },
+  { id: 'torso', label: 'Torso & Pelvis', from: 'B', re: /^(mPelvis$|mTorso$|mChest$|mSpine)/ },
+  { id: 'arms',  label: 'Arms',           from: 'B', re: /^(mCollar|mShoulder|mElbow|mWrist)(Left|Right)$/ },
+  { id: 'hands', label: 'Hands & Fingers',from: 'B', re: /^mHand/ },
+  { id: 'legs',  label: 'Legs & Feet',    from: 'B', re: /^(mHip|mKnee|mAnkle|mFoot|mToe)/ },
+  { id: 'other', label: 'Tail, Wings & Other', from: 'B', re: /./ },
 ];
+
 function groupOf(name) { return GROUPS.find(g => g.re.test(name)).id; }
 
 function unionJoints(a, b) {
@@ -2284,7 +2292,7 @@ function combine(a, b, opts) {
   return writeAnim(header, finalJoints);
 }
 
-const state = { a: null, b: null, aName: '', bName: '', choice: {} };
+const state = { a: null, b: null, aName: '', bName: '', choice: {}, override: {} };
 const els = {
   fileA: document.getElementById('fileA'),
   fileB: document.getElementById('fileB'),
@@ -2298,27 +2306,37 @@ const els = {
   optPriority: document.getElementById('optPriority'),
   jointsCard: document.getElementById('jointsCard'),
   jointGroups: document.getElementById('jointGroups'),
-  selCount: document.getElementById('selCount'),
   summary: { classList: { add() {}, remove() {} } },
 };
 
 // "Pin" = a joint that is static AND sitting at the rest pose (identity
 // rotation / zero offset). It contributes nothing visually but blocks
 // lower-priority animations (e.g. the AO stand) from moving that bone.
+// Rotation keys span ±1 over the u16 range, position keys span ±5m, so
+// they need very different tolerances. 200 rotation ticks is about 0.35°;
+// 200 position ticks would be 3cm, which is a whole face deformer - at
+// that tolerance a jaw or teeth offset reads as "frozen" and gets thrown
+// away. 8 ticks is 1.2mm: below that a bone really is sitting at rest.
 function isPin(j) {
-  const TOL = 200; // u16 ticks around center (32767.5) ≈ rest pose
-  const flat = ks => ks.every(k =>
-    Math.abs(k[1] - 32767.5) < TOL &&
-    Math.abs(k[2] - 32767.5) < TOL &&
-    Math.abs(k[3] - 32767.5) < TOL);
-  return flat(j.rotKeys) && flat(j.posKeys);
+  const flat = (ks, tol) => ks.every(k =>
+    Math.abs(k[1] - 32767.5) < tol &&
+    Math.abs(k[2] - 32767.5) < tol &&
+    Math.abs(k[3] - 32767.5) < tol);
+  return flat(j.rotKeys, 200) && flat(j.posKeys, 8);
 }
 
+// Head bones come from A, everything else from B. Body movement that
+// happens to sit in the head file is ignored - that is the whole point.
 function autoChoice(name) {
   const ja = state.a.jointsByName[name], jb = state.b.jointsByName[name];
-  if (ja && jb) return jb.priority >= ja.priority ? 'B' : 'A';
-  if (isPin(ja || jb)) return 'off';
-  return ja ? 'A' : 'B';
+  const want = groupSetting(groupOf(name));
+  const src = want === 'A' ? ja : jb;
+  const alt = want === 'A' ? jb : ja;
+  if (!src) return (want === 'A' && jb) ? 'B' : 'off';
+  // A bone only one file has, sitting at rest, moves nothing and only
+  // blocks whatever animation is playing underneath - drop it.
+  if (!alt && isPin(src)) return 'off';
+  return want;
 }
 
 function resolveDuration() {
@@ -2331,58 +2349,40 @@ function summarize() {
   els.summary.classList.remove('shown');
 }
 
-function setJoint(name, c) {
-  if (c === 'A' && !state.a.jointsByName[name]) c = 'off';
-  if (c === 'B' && !state.b.jointsByName[name]) c = 'off';
-  state.choice[name] = c;
+function refreshSegs() {
+  for (const row of els.jointGroups.querySelectorAll('.jrow')) {
+    const c = state.override[row.dataset.group] || '';
+    for (const btn of row.querySelectorAll('[data-c]')) {
+      const on = btn.dataset.c === groupSetting(row.dataset.group);
+      btn.className = on ? 'on-' + btn.dataset.c : '';
+    }
+  }
+  for (const n of Object.keys(state.choice)) state.choice[n] = autoChoice(n);
 }
 
-function refreshSegs() {
-  let ca = 0, cb = 0, coff = 0;
-  for (const row of els.jointGroups.querySelectorAll('.jrow')) {
-    const c = state.choice[row.dataset.joint];
-    for (const btn of row.querySelectorAll('[data-c]')) {
-      btn.className = btn.dataset.c === c ? 'on-' + c : '';
-    }
-    if (c === 'A') ca++; else if (c === 'B') cb++; else coff++;
-  }
-  els.selCount.textContent = `:: ${ca} × A · ${cb} × B · ${coff} × OFF`;
-  summarize();
+// Where a group takes its bones from: its default, unless overridden.
+function groupSetting(id) {
+  if (state.override[id]) return state.override[id];
+  return GROUPS.find(g => g.id === id).from;
 }
 
 function renderJoints() {
-  if (!(state.a && state.b)) { els.jointsCard.style.display = 'none'; summarize(); return; }
+  if (!(state.a && state.b)) { els.jointsCard.style.display = 'none'; return; }
   const names = unionJoints(state.a, state.b);
+  const counts = {};
+  for (const n of names) counts[groupOf(n)] = (counts[groupOf(n)] || 0) + 1;
   state.choice = {};
   for (const n of names) state.choice[n] = autoChoice(n);
-  const byGroup = {};
-  for (const n of names) (byGroup[groupOf(n)] = byGroup[groupOf(n)] || []).push(n);
   let html = '';
   for (const g of GROUPS) {
-    const list = byGroup[g.id];
-    if (!list) continue;
-    html += `<details class="jgroup" open>
-      <summary>
-        <span class="jgroup-name">${g.label}</span>
-        <span class="jgroup-count">${list.length} joint${list.length === 1 ? '' : 's'}</span>
-        <span class="jgroup-btns">
-          <button class="mini" data-gset="A">A</button>
-          <button class="mini" data-gset="B">B</button>
-          <button class="mini" data-gset="off">OFF</button>
-        </span>
-      </summary>
-      <div class="jgroup-body">`;
-    for (const n of list) {
-      const inA = !!state.a.jointsByName[n], inB = !!state.b.jointsByName[n];
-      html += `<div class="jrow" data-joint="${n}">
-        <span class="jname" title="${n} - in ${inA && inB ? 'A + B' : inA ? 'A only' : 'B only'}">${n}</span>
-        <span class="jseg">
-          <button data-c="A"${inA ? '' : ' disabled'}>A</button>
-          <button data-c="B"${inB ? '' : ' disabled'}>B</button>
-          <button data-c="off">OFF</button>
-        </span></div>`;
-    }
-    html += `</div></details>`;
+    if (!counts[g.id]) continue;
+    html += `<div class="jrow" data-group="${g.id}">
+      <span class="jname">${g.label}<small>${counts[g.id]} bone${counts[g.id] === 1 ? '' : 's'}</small></span>
+      <span class="jseg">
+        <button data-c="A">A</button>
+        <button data-c="B">B</button>
+        <button data-c="off">OFF</button>
+      </span></div>`;
   }
   els.jointGroups.innerHTML = html;
   els.jointsCard.style.display = '';
@@ -2391,30 +2391,19 @@ function renderJoints() {
 
 els.jointGroups.addEventListener('click', (e) => {
   const seg = e.target.closest('[data-c]');
-  if (seg && !seg.disabled) {
-    state.choice[seg.closest('.jrow').dataset.joint] = seg.dataset.c;
-    refreshSegs();
-    return;
-  }
-  const gbtn = e.target.closest('[data-gset]');
-  if (gbtn) {
-    e.preventDefault();
-    for (const row of gbtn.closest('.jgroup').querySelectorAll('.jrow')) {
-      setJoint(row.dataset.joint, gbtn.dataset.gset);
-    }
-    refreshSegs();
-  }
+  if (!seg) return;
+  state.override[seg.closest('.jrow').dataset.group] = seg.dataset.c;
+  refreshSegs();
 });
 
 document.querySelectorAll('[data-allset]').forEach(btn => btn.addEventListener('click', () => {
-  for (const name of Object.keys(state.choice)) {
-    if (btn.dataset.allset === 'auto') state.choice[name] = autoChoice(name);
-    else setJoint(name, btn.dataset.allset);
+  state.override = {};
+  if (btn.dataset.allset !== 'auto') {
+    for (const g of GROUPS) state.override[g.id] = btn.dataset.allset;
   }
   refreshSegs();
 }));
 
-// The drop zone itself reports which file is loaded - no extra panel.
 function showMeta(kind, name) {
   const drop = kind === 'a' ? els.dropA : els.dropB;
   drop.classList.add('loaded');
@@ -2437,6 +2426,7 @@ async function handleFile(file, kind) {
     const parsed = readAnim(buf);
     state[kind] = parsed;
     state[kind + 'Name'] = file.name;
+    state.override = {};
     showMeta(kind, file.name);
     setStatus('', '');
     updateButton();
