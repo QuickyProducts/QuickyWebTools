@@ -1988,7 +1988,7 @@ function saveOne(i) {
 }
 
 async function addFiles(list) {
-  for (const f of list) {
+  for (const f of Array.from(list)) {
     const it = { name: f.name };
     try {
       it.buf = await f.arrayBuffer();
@@ -2004,7 +2004,11 @@ async function addFiles(list) {
   render();
 }
 
-els.file.addEventListener('change', e => { addFiles(e.target.files); els.file.value = ''; });
+els.file.addEventListener('change', e => {
+  const picked = Array.from(e.target.files);
+  els.file.value = '';
+  addFiles(picked);
+});
 ['dragenter', 'dragover'].forEach(ev =>
   els.drop.addEventListener(ev, e => { e.preventDefault(); els.drop.classList.add('hover'); }));
 ['dragleave', 'drop'].forEach(ev =>
